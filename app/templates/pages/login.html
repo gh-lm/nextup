@@ -1,0 +1,21 @@
+{% extends 'layout/base.html' %}
+{% block title %}Sign in — Nextup{% endblock %}
+{% block body %}
+<div style="max-width: 400px; margin: 8vh auto 0;">
+  <div style="text-align:center; margin-bottom: 22px;">
+    <h1>Nextup</h1>
+    <p class="subtle">What to watch next, and when it airs.</p>
+  </div>
+  <form class="panel" method="post">
+    <div class="field">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" autocomplete="username" required autofocus>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+    </div>
+    <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+  </form>
+</div>
+{% endblock %}

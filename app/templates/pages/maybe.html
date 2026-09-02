@@ -1,0 +1,86 @@
+{% extends 'layout/base.html' %}
+{% block title %}Maybe — Nextup{% endblock %}
+{% block body %}
+<div class="page-head">
+  <div>
+    <h1>Maybe</h1>
+    <p>Shows you fancy the look of but are not following yet.</p>
+  </div>
+  <span class="spacer"></span>
+  <a class="btn btn-primary" href="{{ url_for('main.search') }}">Find something</a>
+</div>
+
+{% if shows or films %}
+<p class="hint" style="margin-bottom:20px">
+  Nothing here shows up in Next up, the calendar or Coming soon. When you decide
+  to watch one, press Start watching and it joins your shows.
+</p>
+{% if shows %}
+<h2 style="font-size:1.25rem; margin-bottom:14px">Shows</h2>
+<div class="show-grid">
+  {% for item in shows %}
+    {% set show = item.show %}
+    <article class="show-tile">
+      <a class="poster" href="{{ url_for('shows.detail', show_id=show.id) }}">
+        {% if show.poster_path %}
+          <img src="{{ url_for('images.poster', size='w342', tmdb_path=show.poster_path.lstrip('/')) }}"
+               alt="{{ show.name }}" loading="lazy">
+        {% else %}<span class="poster-empty">{{ show.name }}</span>{% endif %}
+      </a>
+      <a class="show-tile-name" href="{{ url_for('shows.detail', show_id=show.id) }}">{{ show.name }}</a>
+      <div class="show-tile-meta">
+        {{ show.first_air_date|year }}{% if show.network %} · {{ show.network }}{% endif %}
+      </div>
+      <div class="show-tile-badges">
+        {% if show.status %}<span class="badge">{{ show.status }}</span>{% endif %}
+        {% if item.next_air %}
+          <span class="badge badge-info">Next {{ item.next_air.air_date|short_date }}</span>
+        {% endif %}
+      </div>
+      <form method="post" action="{{ url_for('shows.toggle_maybe', show_id=show.id) }}">
+        <input type="hidden" name="next" value="{{ request.full_path }}">
+        <button class="btn btn-small btn-primary btn-block" type="submit">Start watching</button>
+      </form>
+    </article>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if films %}
+<h2 style="font-size:1.25rem; margin: 32px 0 14px">Films</h2>
+<div class="show-grid">
+  {% for film in films %}
+    <article class="show-tile">
+      <a class="poster" href="{{ url_for('movies.detail', movie_id=film.id) }}">
+        {% if film.poster_path %}
+          <img src="{{ url_for('images.poster', size='w342', tmdb_path=film.poster_path.lstrip('/')) }}"
+               alt="{{ film.title }}" loading="lazy">
+        {% else %}<span class="poster-empty">{{ film.title }}</span>{% endif %}
+      </a>
+      <a class="show-tile-name" href="{{ url_for('movies.detail', movie_id=film.id) }}">{{ film.title }}</a>
+      <div class="show-tile-meta">{{ film.release_date|year }}</div>
+      <form method="post" action="{{ url_for('movies.toggle_maybe', movie_id=film.id) }}">
+        <input type="hidden" name="next" value="{{ request.full_path }}">
+        <button class="btn btn-small btn-primary btn-block" type="submit">Move to my films</button>
+      </form>
+    </article>
+  {% endfor %}
+</div>
+{% endif %}
+{% else %}
+<div class="panel">
+  <div class="empty">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 21s-7.5-4.6-9.5-9A5.2 5.2 0 0 1 12 6.6 5.2 5.2 0 0 1 21.5 12c-2 4.4-9.5 9-9.5 9Z"/>
+    </svg>
+    <h3>Nothing on the maybe list</h3>
+    <p>
+      When you come across a show that looks interesting but you are not ready to
+      commit to, put it here instead of your main list.
+    </p>
+    <a class="btn btn-primary" href="{{ url_for('main.search') }}">Find something</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends 'layout/base.html' %}
+{% block title %}Next up — Nextup{% endblock %}
+{% block body %}
+
+{% if not has_key %}
+<div class="notice">
+  <span>! No TMDB key yet, so nothing can be looked up.</span>
+  <span class="spacer"></span>
+  <a class="btn btn-small" href="{{ url_for('settings.index') }}">Add one</a>
+</div>
+{% endif %}
+{% if default_password %}
+<div class="notice">
+  <span>! You are still on the starter password.</span>
+  <span class="spacer"></span>
+  <a class="btn btn-small" href="{{ url_for('settings.index') }}">Change it</a>
+</div>
+{% endif %}
+
+<div class="page-head">
+  <div>
+    <h1>Next up</h1>
+    <p>{{ to_watch|length }} show{{ '' if to_watch|length == 1 else 's' }} with something waiting.</p>
+  </div>
+</div>
+
+<div class="stats" style="margin-bottom: 24px;">
+  <div class="stat">
+    <div class="stat-value">{{ counts.shows }}</div>
+    <div class="stat-label">Shows tracked</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">{{ counts.episodes_watched }}</div>
+    <div class="stat-label">Episodes watched</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">{{ counts.minutes_watched|runtime_hours }}</div>
+    <div class="stat-label">Time watched</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">{{ counts.movies_to_watch }}</div>
+    <div class="stat-label">Films to watch</div>
+  </div>
+</div>
+
+<div class="split">
+  <div>
+    {% if to_watch %}
+      <div class="watchlist">
+        {% for item in to_watch %}
+          {% set show = item.show %}{% set ep = item.episode %}
+          <article class="watch-card">
+            <a class="poster" href="{{ url_for('shows.detail', show_id=show.id) }}" tabindex="-1" aria-hidden="true">
+              {% if show.poster_path %}
+                <img src="{{ url_for('images.poster', size='w185', tmdb_path=show.poster_path.lstrip('/')) }}"
+                     alt="" loading="lazy">
+              {% else %}<span class="poster-empty">{{ show.name }}</span>{% endif %}
+            </a>
+            <div class="watch-card-body">
+              <a class="watch-card-show" href="{{ url_for('shows.detail', show_id=show.id) }}">{{ show.name }}</a>
+              <div class="watch-card-ep">
+                {{ ep|episode_code }} ·
+                <a href="{{ url_for('shows.episode', episode_id=ep.id) }}">{{ ep.name or 'Episode ' ~ ep.episode_number }}</a>
+              </div>
+              <div class="watch-card-meta">
+                <span class="badge">Aired {{ ep.air_date|relative_day }}</span>
+                {% if item.progress.remaining > 1 %}
+                  <span class="badge badge-warning">! {{ item.progress.remaining }} behind</span>
+                {% endif %}
+              </div>
+              <div class="progress" role="img"
+                   aria-label="{{ item.progress.watched }} of {{ item.progress.aired }} aired episodes watched">
+                <span style="width: {{ item.progress.percent }}%"></span>
+              </div>
+            </div>
+            <div class="watch-card-actions">
+              <form method="post" action="{{ url_for('shows.watch_episode', episode_id=ep.id) }}">
+                <input type="hidden" name="next" value="{{ request.full_path }}">
+                <button class="btn btn-primary btn-small" type="submit">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                       stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg>
+                  Watched
+                </button>
+              </form>
+              <a class="btn btn-small" href="{{ url_for('shows.detail', show_id=show.id) }}">Open</a>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="panel">
+        <div class="empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+               stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2.5"/><path d="m8 3 4 4 4-4"/>
+          </svg>
+          <h3>Nothing waiting</h3>
+          <p>Either you are fully caught up, or you have not added any shows yet.</p>
+          <a class="btn btn-primary" href="{{ url_for('main.search') }}">Find a show</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <aside>
+    <section class="panel">
+      <div class="panel-head">
+        <h3>Coming soon</h3>
+        <span class="spacer"></span>
+        <a class="hint" href="{{ url_for('main.upcoming_view') }}">See all</a>
+      </div>
+      {% if upcoming %}
+        {% for ep in upcoming %}
+          <div class="schedule-row">
+            <a class="poster" href="{{ url_for('shows.detail', show_id=ep.show_id) }}" tabindex="-1" aria-hidden="true">
+              {% if ep.poster_path %}
+                <img src="{{ url_for('images.poster', size='w92', tmdb_path=ep.poster_path.lstrip('/')) }}" alt="" loading="lazy">
+              {% else %}<span class="poster-empty"></span>{% endif %}
+            </a>
+            <div style="min-width:0">
+              <a class="show-tile-name" href="{{ url_for('shows.detail', show_id=ep.show_id) }}">{{ ep.show_name }}</a>
+              <div class="ep-date">
+              <a href="{{ url_for('shows.episode', episode_id=ep.id) }}">{{ ep|episode_code }}</a>
+              · {{ ep.air_date|relative_day }}
+            </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="subtle" style="margin:0">Nothing scheduled in the next three weeks.</p>
+      {% endif %}
+    </section>
+
+    {% if recent %}
+    <section class="panel">
+      <div class="panel-head"><h3>Recently watched</h3></div>
+      {% for ep in recent %}
+        <div class="schedule-row">
+          <a class="poster" href="{{ url_for('shows.detail', show_id=ep.show_id) }}" tabindex="-1" aria-hidden="true">
+            {% if ep.poster_path %}
+              <img src="{{ url_for('images.poster', size='w92', tmdb_path=ep.poster_path.lstrip('/')) }}" alt="" loading="lazy">
+            {% else %}<span class="poster-empty"></span>{% endif %}
+          </a>
+          <div style="min-width:0">
+            <a class="show-tile-name" href="{{ url_for('shows.detail', show_id=ep.show_id) }}">{{ ep.show_name }}</a>
+            <div class="ep-date">
+              <a href="{{ url_for('shows.episode', episode_id=ep.id) }}">{{ ep|episode_code }}</a>
+              · {{ ep.name or '' }}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if last_sync %}
+    <section class="panel">
+      <div class="panel-head"><h3>Last refresh</h3></div>
+      <p class="hint" style="margin:0">
+        {{ last_sync.started_at[:16].replace('T', ' ') }} ·
+        {{ last_sync.shows_done }} show{{ '' if last_sync.shows_done == 1 else 's' }} ·
+        {% if last_sync.status == 'ok' %}<span class="badge badge-success">✓ fine</span>
+        {% elif last_sync.status == 'error' %}<span class="badge badge-danger">! problems</span>
+        {% else %}<span class="badge">running</span>{% endif %}
+      </p>
+    </section>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

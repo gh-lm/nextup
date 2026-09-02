@@ -1,0 +1,104 @@
+{% extends 'layout/base.html' %}
+{% block title %}{{ show.name }} {{ episode|episode_code }} — Nextup{% endblock %}
+{% block body %}
+
+<div class="page-head">
+  <div>
+    <p class="subtle" style="margin:0">
+      <a href="{{ url_for('shows.detail', show_id=show.id) }}">{{ show.name }}</a>
+      · {{ 'Specials' if episode.season_number == 0 else 'Season ' ~ episode.season_number }}
+    </p>
+    <h1>{{ episode.name or 'Episode ' ~ episode.episode_number }}</h1>
+  </div>
+</div>
+
+<article class="panel">
+  {% if episode.still_path %}
+    <img class="episode-still"
+         src="{{ url_for('images.poster', size='w780', tmdb_path=episode.still_path.lstrip('/')) }}"
+         alt="A scene from {{ show.name }} {{ episode|episode_code }}" loading="lazy">
+  {% endif %}
+
+  <div class="show-hero-meta">
+    <span class="badge badge-accent">{{ episode|episode_code }}</span>
+    {% if episode.air_date %}
+      <span class="badge">{{ episode.air_date|pretty_date }}</span>
+      {% if episode.air_date > today.isoformat() %}
+        <span class="badge badge-info">Airs {{ episode.air_date|relative_day }}</span>
+      {% endif %}
+    {% else %}
+      <span class="badge">Date to be announced</span>
+    {% endif %}
+    {% if episode.runtime %}<span class="badge">{{ episode.runtime }} min</span>{% endif %}
+    {% if rating %}<span class="badge">★ {{ '%.1f'|format(rating) }}</span>{% endif %}
+    {% if episode.watched %}<span class="badge badge-success">✓ Watched</span>{% endif %}
+  </div>
+
+  {% if episode.overview %}
+    <p style="max-width:65ch">{{ episode.overview }}</p>
+  {% else %}
+    <p class="subtle">TMDB has no synopsis for this episode yet.</p>
+  {% endif %}
+
+  {% if tracked %}
+    <div class="btn-row" style="margin-top:16px">
+      <form method="post" action="{{ url_for('shows.watch_episode', episode_id=episode.id) }}">
+        <input type="hidden" name="next" value="{{ request.full_path }}">
+        <button class="btn {{ '' if episode.watched else 'btn-primary' }}" type="submit">
+          {{ 'Mark as not watched' if episode.watched else 'Mark watched' }}
+        </button>
+      </form>
+      {% if not episode.watched and episode.air_date and episode.air_date <= today.isoformat() %}
+        <form method="post" action="{{ url_for('shows.watch_through', show_id=show.id, episode_id=episode.id) }}">
+          <input type="hidden" name="next" value="{{ request.full_path }}">
+          <button class="btn" type="submit"
+                  title="Mark this episode and everything before it as watched">Up to here</button>
+        </form>
+      {% endif %}
+      <a class="btn btn-quiet" href="{{ url_for('shows.detail', show_id=show.id) }}">All episodes</a>
+    </div>
+  {% endif %}
+</article>
+
+{% if crew or guests %}
+<div class="split">
+  {% if guests %}
+  <section class="panel">
+    <div class="panel-head"><h2 style="font-size:1.25rem">Guest cast</h2></div>
+    <ul class="credit-list">
+      {% for person in guests %}
+        <li><strong>{{ person.name }}</strong>{% if person.role %}<span class="subtle"> as {{ person.role }}</span>{% endif %}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+  {% if crew %}
+  <section class="panel">
+    <div class="panel-head"><h2 style="font-size:1.25rem">Made by</h2></div>
+    <ul class="credit-list">
+      {% for person in crew %}
+        <li><strong>{{ person.name }}</strong><span class="subtle"> · {{ person.role }}</span></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</div>
+{% endif %}
+
+<nav class="ep-nav" aria-label="Other episodes">
+  {% if previous %}
+    <a class="btn" href="{{ url_for('shows.episode', episode_id=previous.id) }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>
+      {{ previous|episode_code }} {{ previous.name or '' }}
+    </a>
+  {% else %}<span></span>{% endif %}
+  {% if following %}
+    <a class="btn" href="{{ url_for('shows.episode', episode_id=following.id) }}">
+      {{ following|episode_code }} {{ following.name or '' }}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+    </a>
+  {% endif %}
+</nav>
+{% endblock %}

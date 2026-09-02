@@ -1,0 +1,9 @@
+{# poster_path, alt, size #}
+<span class="poster">
+  {% if poster_path %}
+    <img src="{{ url_for('images.poster', size=size|default('w185'), tmdb_path=poster_path.lstrip('/')) }}"
+         alt="" loading="lazy" width="185" height="278">
+  {% else %}
+    <span class="poster-empty">{{ alt }}</span>
+  {% endif %}
+</span>

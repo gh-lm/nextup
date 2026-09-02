@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy: Nextup</title>
+<meta name="description" content="What this website collects, which is nothing, and what the Nextup software stores on your own server.">
+<link rel="canonical" href="https://nextup.lightmorphic.com/privacy.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/site.css">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nextup">
+<meta property="og:title" content="Privacy: Nextup">
+<meta property="og:description" content="What this website collects, which is nothing, and what the Nextup software stores on your own server.">
+<meta property="og:url" content="https://nextup.lightmorphic.com/privacy.html">
+<meta property="og:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Nextup dashboard, listing TV shows with the next episode to watch.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Privacy: Nextup">
+<meta name="twitter:description" content="What this website collects, which is nothing, and what the Nextup software stores on your own server.">
+<meta name="twitter:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-nav">
+  <div class="wrap">
+    <a class="wordmark" href="index.html">
+      <img src="favicon.svg" alt="" width="30" height="30">
+      Nextup
+    </a>
+    <nav aria-label="Main">
+      <a href="index.html#what-it-does">What it does</a>
+      <a href="index.html#install">Install</a>
+      <a href="index.html#limits">Limits</a>
+      <a href="index.html#faq">Questions</a>
+      <a href="https://github.com/lightmorphic/nextup">Source</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="page-title">
+    <div class="wrap">
+      <h1>Privacy</h1>
+      <p>Short version: this website collects nothing about you, and the software keeps everything on your own machine.</p>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="prose">
+
+      <h2>This website</h2>
+      <p>
+        These pages are plain files. They set no cookies, run no analytics, load
+        nothing from another company and have no forms, so there is nothing for us
+        to collect and nothing for us to keep. We hold no personal data about
+        anyone who reads this site.
+      </p>
+      <p>
+        The site is hosted on GitHub Pages. GitHub receives your IP address when
+        your browser asks for a page, in the same way any web server does, and uses
+        it to serve the page and to guard against abuse. That processing is
+        GitHub's, described in the
+        <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a>.
+        We do not see those logs and receive nothing from them.
+      </p>
+
+      <h2>The Nextup software</h2>
+      <p>
+        Nextup is something you install on your own server. We never see it, and it
+        never contacts us. There is no account with Lightmorphic, no licence check
+        and no usage reporting of any kind.
+      </p>
+      <p>What your own copy stores, on your own disk:</p>
+      <ul>
+        <li>The shows and films you added, and which episodes you marked as watched.</li>
+        <li>Your username and a hashed password. The password itself is never stored.</li>
+        <li>Your TMDB API key, encrypted with a key held in the same directory.</li>
+        <li>Artwork downloaded from TMDB, cached so pages do not call out to anyone.</li>
+      </ul>
+      <p>
+        All of it sits in the one directory you chose when you installed it. You are
+        the only person who can reach it, and deleting that directory deletes
+        everything.
+      </p>
+
+      <h2>What Nextup sends out</h2>
+      <p>
+        One thing only: requests to TMDB, made by your server, asking about the
+        shows and films you looked up and fetching their artwork. TMDB therefore
+        sees your server's IP address and what you searched for. Their handling of
+        that is covered by the
+        <a href="https://www.themoviedb.org/privacy-policy">TMDB privacy policy</a>.
+        If you would rather not have that happen, do not add a TMDB key, though
+        then the app has nothing to look up.
+      </p>
+
+      <h2>Your rights</h2>
+      <p>
+        Since we hold no personal data about you, there is nothing for us to
+        disclose, correct or delete. If you believe otherwise, write to
+        <a href="mailto:privacy@lightmorphic.co.uk">privacy@lightmorphic.co.uk</a>
+        and we will answer within 30 days. You may also complain to the
+        <a href="https://ico.org.uk/">Information Commissioner's Office</a>.
+      </p>
+      <p>
+        The data controller for this website is Lightmorphic Ltd, 82A James Carter
+        Road, Mildenhall, IP28 7DE.
+      </p>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-cols">
+      <div>
+        <a class="wordmark" href="index.html" style="margin-bottom:.75rem"><img src="favicon.svg" alt="" width="30" height="30">Nextup</a>
+        <p>
+          A self-hosted tracker for the TV shows and films you watch. Made by
+          Lightmorphic and given away under the GPL.
+        </p>
+      </div>
+      <div>
+        <h3>The project</h3>
+        <ul>
+          <li><a href="https://github.com/lightmorphic/nextup">Source code</a></li>
+          <li><a href="https://github.com/lightmorphic/nextup/releases">Releases</a></li>
+          <li><a href="https://github.com/lightmorphic/nextup/issues">Report a problem</a></li>
+          <li><a href="https://github.com/lightmorphic/nextup/blob/main/LICENSE">Licence</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>On this site</h3>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+          <li><a href="terms.html">Terms</a></li>
+          <li><a href="accessibility.html">Accessibility</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-footer">
+    <div class="wrap">
+      <p>
+        &copy; Lightmorphic Ltd. Registered in England and Wales, company number
+        17423646. Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.
+        Nextup is released under the
+        <a href="https://github.com/lightmorphic/nextup/blob/main/LICENSE">GNU General Public Licence version 3</a>.
+      </p>
+      <!-- Update this date whenever the content of this page changes. -->
+      <p>Page last updated 2 September 2026.</p>
+      <nav aria-label="Legal">
+        <a href="privacy.html">Privacy</a>
+        <a href="cookies.html">Cookies</a>
+        <a href="terms.html">Terms</a>
+        <a href="accessibility.html">Accessibility</a>
+        <a href="complaints.html">Complaints</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

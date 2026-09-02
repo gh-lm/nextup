@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accessibility: Nextup</title>
+<meta name="description" content="What we checked on this site, what we did not check, and how to tell us about a barrier you hit.">
+<link rel="canonical" href="https://nextup.lightmorphic.com/accessibility.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/site.css">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nextup">
+<meta property="og:title" content="Accessibility: Nextup">
+<meta property="og:description" content="What we checked on this site, what we did not check, and how to tell us about a barrier you hit.">
+<meta property="og:url" content="https://nextup.lightmorphic.com/accessibility.html">
+<meta property="og:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Nextup dashboard, listing TV shows with the next episode to watch.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Accessibility: Nextup">
+<meta name="twitter:description" content="What we checked on this site, what we did not check, and how to tell us about a barrier you hit.">
+<meta name="twitter:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-nav">
+  <div class="wrap">
+    <a class="wordmark" href="index.html">
+      <img src="favicon.svg" alt="" width="30" height="30">
+      Nextup
+    </a>
+    <nav aria-label="Main">
+      <a href="index.html#what-it-does">What it does</a>
+      <a href="index.html#install">Install</a>
+      <a href="index.html#limits">Limits</a>
+      <a href="index.html#faq">Questions</a>
+      <a href="https://github.com/lightmorphic/nextup">Source</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="page-title">
+    <div class="wrap">
+      <h1>Accessibility</h1>
+      <p>We want this site to work for everybody. Here is what we tested, and honestly, what we did not.</p>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="prose">
+
+      <h2>How we are doing</h2>
+      <p>
+        This site aims to meet the Web Content Accessibility Guidelines version
+        2.1 at level AA. We believe it does, but we have not had it audited by
+        anyone outside the company, so treat that as our own assessment rather
+        than a certificate.
+      </p>
+
+      <h2>What we checked, and fixed</h2>
+      <ul>
+        <li>Every colour pair on the page, in both the light and dark themes, against the AA contrast thresholds. Three shades were too pale on the grey bands and were darkened.</li>
+        <li>Every image carries a written description, or an empty one where the image is decoration and should be skipped rather than announced.</li>
+        <li>One main heading per page, with the rest in order and no levels skipped. Two footer headings were at the wrong level and were corrected.</li>
+        <li>A skip link as the first thing you reach with the keyboard, so you can jump the menu.</li>
+        <li>A visible focus outline on everything you can reach with a keyboard. It is never removed.</li>
+        <li>Links and buttons are at least 44 pixels tall, so they can be hit without precision.</li>
+        <li>Pinch zoom is not blocked, text reflows down to a narrow screen, and the page does not scroll sideways at any width.</li>
+        <li>Movement respects the reduce motion setting in your operating system.</li>
+        <li>The page is written in plain HTML, so it works with JavaScript turned off.</li>
+      </ul>
+
+      <h2>What we have not checked</h2>
+      <p>
+        This matters more than the list above, because an automated check finds
+        somewhere around half of real accessibility problems. The rest needs a
+        person.
+      </p>
+      <ul>
+        <li>We have not tested this site with a screen reader, with voice control, or with a switch device. If you use one and something reads badly, we would genuinely like to know.</li>
+        <li>Whether our image descriptions are <em>useful</em> is a judgement we made ourselves. The screenshots are dense, and a written description of one is never the whole picture.</li>
+        <li>We have not tested with magnification software beyond browser zoom.</li>
+      </ul>
+
+      <h2>Known limitations</h2>
+      <ul>
+        <li>
+          The screenshots show a lot of information at once. Each has a
+          description of what it demonstrates rather than a reading of every
+          element in it, because the latter would be unusable. The text beside each
+          screenshot explains the same feature, so nothing is only available in an
+          image.
+        </li>
+        <li>
+          The Nextup software itself is a separate thing from this site and has
+          been built to the same rules, but it has had no independent accessibility
+          audit either.
+        </li>
+      </ul>
+
+      <h2>Telling us about a barrier</h2>
+      <p>
+        Two routes, because the one you need might be the one that is broken.
+      </p>
+      <ul>
+        <li>Email <a href="mailto:hello@lightmorphic.co.uk">hello@lightmorphic.co.uk</a>.</li>
+        <li>Open an issue on <a href="https://github.com/lightmorphic/nextup/issues">the project's issue tracker</a>.</li>
+      </ul>
+      <p>
+        Or write to Lightmorphic Ltd, 82A James Carter Road, Mildenhall, IP28 7DE.
+        We reply within five working days.
+      </p>
+      <p>
+        If you are not happy with our answer, you can contact the
+        <a href="https://www.equalityadvisoryservice.com/">Equality Advisory and Support Service</a>,
+        who advise on rights under the Equality Act 2010.
+      </p>
+
+      <h2>When this was last reviewed</h2>
+      <p>
+        This statement was written on 2 September 2026, after the checks above were
+        run against the finished site. It is reviewed whenever the site changes.
+      </p>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-cols">
+      <div>
+        <a class="wordmark" href="index.html" style="margin-bottom:.75rem"><img src="favicon.svg" alt="" width="30" height="30">Nextup</a>
+        <p>
+          A self-hosted tracker for the TV shows and films you watch. Made by
+          Lightmorphic and given away under the GPL.
+        </p>
+      </div>
+      <div>
+        <h3>The project</h3>
+        <ul>
+          <li><a href="https://github.com/lightmorphic/nextup">Source code</a></li>
+          <li><a href="https://github.com/lightmorphic/nextup/releases">Releases</a></li>
+          <li><a href="https://github.com/lightmorphic/nextup/issues">Report a problem</a></li>
+          <li><a href="https://github.com/lightmorphic/nextup/blob/main/LICENSE">Licence</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>On this site</h3>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+          <li><a href="terms.html">Terms</a></li>
+          <li><a href="accessibility.html">Accessibility</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-footer">
+    <div class="wrap">
+      <p>
+        &copy; Lightmorphic Ltd. Registered in England and Wales, company number
+        17423646. Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.
+        Nextup is released under the
+        <a href="https://github.com/lightmorphic/nextup/blob/main/LICENSE">GNU General Public Licence version 3</a>.
+      </p>
+      <!-- Update this date whenever the content of this page changes. -->
+      <p>Page last updated 2 September 2026.</p>
+      <nav aria-label="Legal">
+        <a href="privacy.html">Privacy</a>
+        <a href="cookies.html">Cookies</a>
+        <a href="terms.html">Terms</a>
+        <a href="accessibility.html">Accessibility</a>
+        <a href="complaints.html">Complaints</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
