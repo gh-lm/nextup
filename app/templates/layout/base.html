@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en-GB"{% if accent and accent != 'brand' %} data-accent="{{ accent }}"{% endif %}{% if theme %} data-theme="{{ theme }}"{% endif %}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{% block title %}Nextup{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="icon" href="{{ url_for('static', filename='img/icon.svg') }}" type="image/svg+xml">
+</head>
+<body>
+{% if user %}
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="{{ url_for('main.dashboard') }}">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2.5"/>
+          <path d="m8 3 4 4 4-4"/>
+        </svg>
+      </span>
+      Nextup
+    </a>
+
+    <nav class="nav" aria-label="Main">
+      {% set here = request.endpoint or '' %}
+      <a href="{{ url_for('main.dashboard') }}" {% if here == 'main.dashboard' %}class="current" aria-current="page"{% endif %}>Next up</a>
+      <a href="{{ url_for('shows.index') }}" {% if here.startswith('shows.') and here != 'shows.maybe' %}class="current" aria-current="page"{% endif %}>My shows</a>
+      <a href="{{ url_for('discover.films') }}" {% if here.startswith('discover.') %}class="current" aria-current="page"{% endif %}>Discover</a>
+      <a href="{{ url_for('shows.maybe') }}" {% if here == 'shows.maybe' %}class="current" aria-current="page"{% endif %}>Maybe</a>
+      <a href="{{ url_for('main.calendar_view') }}" {% if here == 'main.calendar_view' %}class="current" aria-current="page"{% endif %}>Calendar</a>
+      <a href="{{ url_for('main.upcoming_view') }}" {% if here == 'main.upcoming_view' %}class="current" aria-current="page"{% endif %}>Coming soon</a>
+      <a href="{{ url_for('movies.index') }}" {% if here.startswith('movies.') %}class="current" aria-current="page"{% endif %}>Films</a>
+      <a href="{{ url_for('settings.index') }}" {% if here.startswith('settings.') %}class="current" aria-current="page"{% endif %}>Settings</a>
+    </nav>
+
+    <div class="topbar-right">
+      <form class="searchbox" action="{{ url_for('main.search') }}" method="get" role="search">
+        <label class="visually-hidden" for="q">Search for a show or film</label>
+        <input id="q" name="q" type="search" placeholder="Search shows and films"
+               value="{{ request.args.get('q', '') }}" autocomplete="off">
+        <button type="submit" aria-label="Search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+               stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+      </form>
+      {% include 'partials/_theme_toggle.html' %}
+    </div>
+  </div>
+</header>
+{% endif %}
+
+<main class="shell" id="content">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div role="status">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ 'error' if category == 'error' else ('success' if category == 'success' else 'info') }}">
+            <strong>{{ '!' if category == 'error' else '✓' }}</strong>
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% block body %}{% endblock %}
+</main>
+
+{% if user %}
+<footer class="site-footer">
+  <span>Nextup {{ app_version }}</span>
+  <span>Show and film data from TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.</span>
+  <span class="spacer"></span>
+  <form method="post" action="{{ url_for('auth.logout') }}">
+    <button class="btn btn-quiet btn-small" type="submit">Sign out</button>
+  </form>
+</footer>
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+</body>
+</html>

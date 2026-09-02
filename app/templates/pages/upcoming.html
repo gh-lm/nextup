@@ -1,0 +1,79 @@
+{% extends 'layout/base.html' %}
+{% block title %}Coming soon — Nextup{% endblock %}
+{% block body %}
+<div class="page-head">
+  <div>
+    <h1>Coming soon</h1>
+    <p>Episodes of your shows airing in the next {{ days }} days.</p>
+  </div>
+  <span class="spacer"></span>
+  <nav class="tabs" aria-label="How far ahead">
+    {% for option in [14, 30, 60, 180] %}
+      <a href="{{ url_for('main.upcoming_view', days=option) }}"
+         {% if days == option %}class="current" aria-current="page"{% endif %}>{{ option }} days</a>
+    {% endfor %}
+  </nav>
+</div>
+
+{% if films %}
+<section class="panel" style="margin-bottom:22px">
+  <div class="panel-head">
+    <h2 style="font-size:1.25rem">Films landing on streaming</h2>
+  </div>
+  <div class="schedule">
+    {% for film in films %}
+      <div class="schedule-row">
+        <a class="poster" href="{{ url_for('movies.detail', movie_id=film.id) }}" tabindex="-1" aria-hidden="true">
+          {% if film.poster_path %}
+            <img src="{{ url_for('images.poster', size='w92', tmdb_path=film.poster_path.lstrip('/')) }}" alt="" loading="lazy">
+          {% else %}<span class="poster-empty"></span>{% endif %}
+        </a>
+        <div style="min-width:0">
+          <a class="show-tile-name" href="{{ url_for('movies.detail', movie_id=film.id) }}">{{ film.title }}</a>
+          <div class="ep-date">{{ film.digital_release|relative_day }} · {{ film.digital_release|pretty_date }}</div>
+        </div>
+        <span class="badge badge-accent">Film</span>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if grouped %}
+  <div class="schedule">
+    {% for day, episodes in grouped %}
+      <section class="panel">
+        <div class="schedule-day-label">{{ day|relative_day }} · {{ day|pretty_date }}</div>
+        {% for ep in episodes %}
+          <div class="schedule-row">
+            <a class="poster" href="{{ url_for('shows.detail', show_id=ep.show_id) }}" tabindex="-1" aria-hidden="true">
+              {% if ep.poster_path %}
+                <img src="{{ url_for('images.poster', size='w92', tmdb_path=ep.poster_path.lstrip('/')) }}" alt="" loading="lazy">
+              {% else %}<span class="poster-empty"></span>{% endif %}
+            </a>
+            <div style="min-width:0">
+              <a class="show-tile-name" href="{{ url_for('shows.detail', show_id=ep.show_id) }}">{{ ep.show_name }}</a>
+              <div class="ep-date">
+                <a href="{{ url_for('shows.episode', episode_id=ep.id) }}">{{ ep|episode_code }}</a>
+                · {{ ep.name or 'Episode ' ~ ep.episode_number }}
+              </div>
+            </div>
+            {% if ep.network %}<span class="badge">{{ ep.network }}</span>{% endif %}
+          </div>
+        {% endfor %}
+      </section>
+    {% endfor %}
+  </div>
+{% elif not films %}
+  <div class="panel">
+    <div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+           stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 10h18"/>
+      </svg>
+      <h3>Nothing scheduled</h3>
+      <p>None of your shows have a dated episode in this window.</p>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

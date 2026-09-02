@@ -1,0 +1,46 @@
+{% extends 'layout/base.html' %}
+{% block title %}Calendar — Nextup{% endblock %}
+{% block body %}
+<div class="page-head">
+  <div>
+    <h1>Calendar</h1>
+    <p>{{ month_label }}</p>
+  </div>
+  <span class="spacer"></span>
+  <div class="btn-row">
+    <a class="btn btn-small" href="{{ url_for('main.calendar_view', y=prev_month.year, m=prev_month.month) }}">Previous</a>
+    <a class="btn btn-small" href="{{ url_for('main.calendar_view') }}">This month</a>
+    <a class="btn btn-small" href="{{ url_for('main.calendar_view', y=next_month.year, m=next_month.month) }}">Next</a>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="calendar-scroll">
+    <table class="calendar">
+      <caption>Episodes of your tracked shows for {{ month_label }}. Faded entries are ones you have already watched.</caption>
+      <thead>
+        <tr>{% for name in day_names %}<th scope="col">{{ name }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+        {% for week in weeks %}
+          <tr>
+            {% for day in week %}
+              <td class="{{ 'outside' if not day.in_month else '' }} {{ 'today' if day.is_today else '' }}">
+                <div class="cal-daynum">{{ day.date.day }}{% if day.is_today %} · today{% endif %}</div>
+                {% for ep in day.episodes %}
+                  <a class="cal-ep {{ 'done' if ep.watched else '' }}"
+                     href="{{ url_for('shows.episode', episode_id=ep.id) }}"
+                     title="{{ ep.show_name }} {{ ep|episode_code }} — {{ ep.name or '' }}">
+                    {{ ep.show_name }}
+                    <small>{{ ep|episode_code }}{% if ep.watched %} ✓{% endif %}</small>
+                  </a>
+                {% endfor %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
