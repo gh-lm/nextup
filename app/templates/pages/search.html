@@ -1,0 +1,90 @@
+{% extends 'layout/base.html' %}
+{% block title %}{{ 'Search: ' ~ term if term else 'Search' }} — Nextup{% endblock %}
+{% block body %}
+<div class="page-head">
+  <div>
+    <h1>Search</h1>
+    <p>Shows and films from TMDB.</p>
+  </div>
+</div>
+
+<form class="panel" action="{{ url_for('main.search') }}" method="get" role="search"
+      style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+  <div class="field" style="flex:1; min-width:240px; margin:0;">
+    <label for="term">What are you looking for?</label>
+    <input id="term" name="q" type="search" value="{{ term }}" autocomplete="off"
+           placeholder="A show or film title" {% if not term %}autofocus{% endif %}>
+  </div>
+  <button class="btn btn-primary" type="submit">Search</button>
+</form>
+
+{% if error %}
+  <div class="flash flash-error" style="margin-top:20px"><strong>!</strong><span>{{ error }}</span></div>
+{% endif %}
+
+{% if term and not error %}
+  {% if results %}
+    <div class="result-grid" style="margin-top:20px">
+      {% for item in results %}
+        {% set target = url_for('shows.detail', show_id=item.id) if item.kind == 'tv' else url_for('movies.detail', movie_id=item.id) %}
+        <article class="result">
+          <a class="poster" href="{{ target }}" tabindex="-1" aria-hidden="true">
+            {% if item.poster_path %}
+              <img src="{{ url_for('images.poster', size='w185', tmdb_path=item.poster_path.lstrip('/')) }}"
+                   alt="" loading="lazy">
+            {% else %}<span class="poster-empty">{{ item.title }}</span>{% endif %}
+          </a>
+          <div style="min-width:0">
+            <a class="watch-card-show" href="{{ target }}">{{ item.title }}</a>
+            <div class="watch-card-meta">
+              <span class="badge {{ 'badge-accent' if item.kind == 'tv' else '' }}">{{ 'TV show' if item.kind == 'tv' else 'Film' }}</span>
+              {% if item.date %}<span class="badge">{{ item.date|year }}</span>{% endif %}
+              {% if item.vote_average %}<span class="badge">★ {{ '%.1f'|format(item.vote_average) }}</span>{% endif %}
+              {% if item.tracked %}<span class="badge badge-success">✓ On your list</span>{% endif %}
+            </div>
+            {% if item.overview %}<p>{{ item.overview }}</p>{% endif %}
+          </div>
+          <div class="result-actions">
+            {% if not item.tracked %}
+              <form method="post"
+                    action="{{ url_for('shows.track', show_id=item.id) if item.kind == 'tv' else url_for('movies.track', movie_id=item.id) }}">
+                <input type="hidden" name="next" value="{{ request.full_path }}">
+                <button class="btn btn-primary btn-small" type="submit">Add</button>
+              </form>
+              {% if item.kind == 'tv' %}
+                <form method="post" action="{{ url_for('shows.track', show_id=item.id) }}" style="margin-top:8px">
+                  <input type="hidden" name="next" value="{{ request.full_path }}">
+                  <input type="hidden" name="list" value="maybe">
+                  <button class="btn btn-small" type="submit"
+                          title="Save it for later without it appearing in Next up">Maybe</button>
+                </form>
+              {% endif %}
+            {% else %}
+              <a class="btn btn-small" href="{{ target }}">Open</a>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+
+    {% if total_pages > 1 %}
+      <div class="pager">
+        {% if page > 1 %}
+          <a class="btn btn-small" href="{{ url_for('main.search', q=term, page=page-1) }}">Back</a>
+        {% endif %}
+        <span class="hint">Page {{ page }} of {{ total_pages }}</span>
+        {% if page < total_pages %}
+          <a class="btn btn-small" href="{{ url_for('main.search', q=term, page=page+1) }}">More</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="panel" style="margin-top:20px">
+      <div class="empty">
+        <h3>Nothing found</h3>
+        <p>TMDB has no show or film matching that. Try a shorter title.</p>
+      </div>
+    </div>
+  {% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,12 @@
+services:
+  nextup:
+    image: ghcr.io/lightmorphic/nextup:latest
+    container_name: nextup
+    restart: unless-stopped
+    ports:
+      - "4090:8080"
+    volumes:
+      - /opt/nextup:/data
+    environment:
+      # Hours between automatic refreshes of tracked shows.
+      NEXTUP_SYNC_HOURS: "12"

@@ -1,0 +1,86 @@
+{% extends 'layout/base.html' %}
+{% block title %}Discover films — Nextup{% endblock %}
+{% block body %}
+<div class="page-head">
+  <div>
+    <h1>Discover films</h1>
+    <p>Films reaching streaming or television in the next {{ days }} days. Cinema releases are left out.</p>
+  </div>
+  <span class="spacer"></span>
+  <nav class="tabs" aria-label="Discover">
+    <a href="{{ url_for('discover.films') }}" class="current" aria-current="page">Films</a>
+    <a href="{{ url_for('discover.tv') }}">TV</a>
+  </nav>
+</div>
+
+<div class="panel" style="margin-bottom:20px; display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+  <nav class="tabs" aria-label="How far ahead">
+    {% for option in windows %}
+      <a href="{{ url_for('discover.films', days=option) }}"
+         {% if days == option %}class="current" aria-current="page"{% endif %}>{{ option }} days</a>
+    {% endfor %}
+  </nav>
+  <span class="spacer" style="margin-left:auto"></span>
+  <span class="hint">
+    <strong>✓</strong> adds it &nbsp; <strong>?</strong> saves it for later &nbsp; <strong>✕</strong> hides it here
+  </span>
+  {% if dismissed_count %}
+    <form method="post" action="{{ url_for('discover.restore') }}">
+      <input type="hidden" name="kind" value="movie">
+      <input type="hidden" name="next" value="{{ request.full_path }}">
+      <button class="btn btn-small btn-quiet" type="submit"
+              title="Show the {{ dismissed_count }} film{{ '' if dismissed_count == 1 else 's' }} you said no to again"
+              aria-label="Bring back the {{ dismissed_count }} films you said no to">
+        Bring back {{ dismissed_count }} hidden
+      </button>
+    </form>
+  {% endif %}
+</div>
+
+{% if error %}
+  <div class="flash flash-error"><strong>!</strong><span>{{ error }}</span></div>
+{% endif %}
+
+{% if items %}
+  <div class="discover-grid">
+    {% for item in items %}
+      <article class="discover-card">
+        <a class="poster" href="{{ url_for('movies.detail', movie_id=item.id) }}">
+          {% if item.poster_path %}
+            <img src="{{ url_for('images.poster', size='w342', tmdb_path=item.poster_path.lstrip('/')) }}"
+                 alt="{{ item.title }}" loading="lazy">
+          {% else %}<span class="poster-empty">{{ item.title }}</span>{% endif %}
+        </a>
+        <div class="discover-card-body">
+          <a class="discover-card-name" href="{{ url_for('movies.detail', movie_id=item.id) }}">{{ item.title }}</a>
+          <div class="discover-card-meta">
+            {{ item.date|short_date }}{% if item.vote_average %} · ★ {{ '%.1f'|format(item.vote_average) }}{% endif %}
+          </div>
+          {% if item.overview %}<p>{{ item.overview }}</p>{% endif %}
+        </div>
+        {% with title=item.title,
+                yes_url=url_for('discover.decide_film', movie_id=item.id, action='yes'),
+                maybe_url=url_for('discover.decide_film', movie_id=item.id, action='maybe'),
+                no_url=url_for('discover.decide_film', movie_id=item.id, action='no') %}
+          {% include 'partials/_decide.html' %}
+        {% endwith %}
+      </article>
+    {% endfor %}
+  </div>
+{% elif not error %}
+  <div class="panel">
+    <div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+           stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/>
+      </svg>
+      <h3>Nothing new in this window</h3>
+      <p>
+        Either nothing is landing in the next {{ days }} days, or you have already
+        had your say on all of it. Try a longer window.
+      </p>
+      <a class="btn btn-primary" href="{{ url_for('discover.films', days=60) }}">Look 60 days ahead</a>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

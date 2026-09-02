@@ -1,0 +1,42 @@
+{# Three one-tap decisions: tick to add it, question mark for the maybe list,
+   cross to send it away. Each carries a real label, so the meaning does not
+   rest on the shape alone. #}
+<div class="decide" role="group" aria-label="Decide about {{ title }}">
+  <form method="post" action="{{ yes_url }}">
+    <input type="hidden" name="next" value="{{ request.full_path }}">
+    <button class="decide-btn decide-yes" type="submit"
+            title="Yes: add {{ title }} to my list"
+            aria-label="Yes, add {{ title }} to my list">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m5 13 4.5 4.5L19 7"/>
+      </svg>
+      <span class="decide-word">Yes</span>
+    </button>
+  </form>
+  <form method="post" action="{{ maybe_url }}">
+    <input type="hidden" name="next" value="{{ request.full_path }}">
+    <button class="decide-btn decide-maybe" type="submit"
+            title="Maybe: put {{ title }} on the maybe list"
+            aria-label="Maybe, put {{ title }} on the maybe list">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9 8.5a3.2 3.2 0 1 1 4.2 3q-1.2.6-1.2 2V15"/>
+        <path d="M12 18.6v.1"/>
+      </svg>
+      <span class="decide-word">Maybe</span>
+    </button>
+  </form>
+  <form method="post" action="{{ no_url }}">
+    <input type="hidden" name="next" value="{{ request.full_path }}">
+    <button class="decide-btn decide-no" type="submit"
+            title="No: do not show {{ title }} here again. It will still turn up in a search."
+            aria-label="No, hide {{ title }} from Discover">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 6l12 12M18 6 6 18"/>
+      </svg>
+      <span class="decide-word">No</span>
+    </button>
+  </form>
+</div>

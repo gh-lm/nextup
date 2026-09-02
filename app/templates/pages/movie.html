@@ -1,0 +1,71 @@
+{% extends 'layout/base.html' %}
+{% block title %}{{ movie.title }} — Nextup{% endblock %}
+{% block body %}
+<article class="panel">
+  <div class="show-hero">
+    <span class="poster">
+      {% if movie.poster_path %}
+        <img src="{{ url_for('images.poster', size='w342', tmdb_path=movie.poster_path.lstrip('/')) }}"
+             alt="{{ movie.title }}">
+      {% else %}<span class="poster-empty">{{ movie.title }}</span>{% endif %}
+    </span>
+    <div>
+      <h1>{{ movie.title }}</h1>
+      <div class="show-hero-meta">
+        {% if movie.release_date %}<span class="badge">{{ movie.release_date|year }}</span>{% endif %}
+        {% if movie.runtime %}<span class="badge">{{ movie.runtime }} min</span>{% endif %}
+        {% if movie.vote_average %}<span class="badge">★ {{ '%.1f'|format(movie.vote_average) }}</span>{% endif %}
+        {% if tracked and tracked.watched_at %}<span class="badge badge-success">✓ Watched</span>{% endif %}
+        {% if shortlisted %}<span class="badge badge-accent">On your maybe list</span>{% endif %}
+      </div>
+
+      <div class="show-hero-meta">
+        {% if providers %}
+          {% for name in providers %}<span class="badge badge-success">✓ On {{ name }}</span>{% endfor %}
+        {% elif movie.digital_release %}
+          {% if streamable %}
+            <span class="badge badge-success">✓ Out for home viewing since {{ movie.digital_release|pretty_date }}</span>
+          {% else %}
+            <span class="badge badge-info">Streaming {{ movie.digital_release|relative_day }}, {{ movie.digital_release|pretty_date }}</span>
+          {% endif %}
+        {% elif tracked %}
+          <span class="badge badge-warning">! No streaming date announced yet</span>
+        {% endif %}
+      </div>
+      {% if movie.overview %}<p>{{ movie.overview }}</p>{% endif %}
+      {% if tracked and movie.provider_link %}
+        <p class="hint">
+          <a href="{{ movie.provider_link }}" rel="noopener noreferrer">Where to watch it, on TMDB</a>.
+          Streaming information supplied by JustWatch through TMDB.
+        </p>
+      {% endif %}
+      <div class="btn-row" style="margin-top:14px">
+        {% if tracked %}
+          <form method="post" action="{{ url_for('movies.watched', movie_id=movie.id) }}">
+            <button class="btn btn-primary" type="submit">
+              {{ 'Mark as not watched' if tracked.watched_at else 'Mark watched' }}
+            </button>
+          </form>
+          <form method="post" action="{{ url_for('movies.toggle_maybe', movie_id=movie.id) }}">
+            <button class="btn" type="submit">
+              {{ 'Move to my films' if shortlisted else 'Move to maybe' }}
+            </button>
+          </form>
+          <form method="post" action="{{ url_for('movies.refresh', movie_id=movie.id) }}">
+            <button class="btn" type="submit">Check streaming date</button>
+          </form>
+          <form method="post" action="{{ url_for('movies.untrack', movie_id=movie.id) }}">
+            <button class="btn btn-quiet" type="submit"
+                    title="Remove this film from your list"
+                    aria-label="Remove this film from your list">Remove</button>
+          </form>
+        {% else %}
+          <form method="post" action="{{ url_for('movies.track', movie_id=movie.id) }}">
+            <button class="btn btn-primary" type="submit">Add to my films</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</article>
+{% endblock %}

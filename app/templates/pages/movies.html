@@ -1,0 +1,119 @@
+{% extends 'layout/base.html' %}
+{% block title %}Films — Nextup{% endblock %}
+
+{% macro film_tile(film, show_state=True) %}
+  <article class="show-tile">
+    <a class="poster" href="{{ url_for('movies.detail', movie_id=film.id) }}">
+      {% if film.poster_path %}
+        <img src="{{ url_for('images.poster', size='w342', tmdb_path=film.poster_path.lstrip('/')) }}"
+             alt="{{ film.title }}" loading="lazy">
+      {% else %}<span class="poster-empty">{{ film.title }}</span>{% endif %}
+    </a>
+    <a class="show-tile-name" href="{{ url_for('movies.detail', movie_id=film.id) }}">{{ film.title }}</a>
+    <div class="show-tile-meta">
+      {{ film.release_date|year }}{% if film.runtime %} · {{ film.runtime }} min{% endif %}
+    </div>
+    {% if show_state %}
+      {% set names = provider_names(film) %}
+      <div class="show-tile-badges">
+        {% if names %}
+          {% for name in names[:3] %}<span class="badge badge-success">✓ {{ name }}</span>{% endfor %}
+        {% elif film.digital_release %}
+          <span class="badge badge-info">Streaming {{ film.digital_release|short_date }}</span>
+        {% else %}
+          <span class="badge">No date yet</span>
+        {% endif %}
+      </div>
+    {% endif %}
+  </article>
+{% endmacro %}
+
+{% block body %}
+<div class="page-head">
+  <div>
+    <h1>Films</h1>
+    <p>
+      {{ ready|length }} you can watch now, {{ waiting|length }} still to come,
+      {{ seen|length }} seen.
+    </p>
+  </div>
+  <span class="spacer"></span>
+  <nav class="tabs" aria-label="Elsewhere">
+    <a href="{{ url_for('discover.films') }}">Discover films</a>
+    <a href="{{ url_for('shows.maybe') }}">Maybe list</a>
+  </nav>
+  <a class="btn btn-primary" href="{{ url_for('main.search') }}">Add a film</a>
+</div>
+
+<section class="panel">
+  <div class="panel-head">
+    <h2 style="font-size:1.25rem">Ready to watch</h2>
+    <span class="spacer"></span>
+    <span class="hint">On a streaming service in the UK, or already released for home viewing.</span>
+  </div>
+  {% if ready %}
+    <div class="show-grid">
+      {% for film in ready %}
+        {{ film_tile(film) }}
+        <form method="post" action="{{ url_for('movies.watched', movie_id=film.id) }}"
+              style="margin-top:-8px">
+          <input type="hidden" name="next" value="{{ request.full_path }}">
+          <button class="btn btn-small btn-block" type="submit">Mark watched</button>
+        </form>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="subtle" style="margin:0">Nothing of yours has landed on streaming yet.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <div class="panel-head">
+    <h2 style="font-size:1.25rem">Coming to streaming</h2>
+    <span class="spacer"></span>
+    <span class="hint">Checked against TMDB every few days.</span>
+  </div>
+  {% if waiting %}
+    <div class="schedule">
+      {% for film in waiting %}
+        <div class="schedule-row">
+          <a class="poster" href="{{ url_for('movies.detail', movie_id=film.id) }}" tabindex="-1" aria-hidden="true">
+            {% if film.poster_path %}
+              <img src="{{ url_for('images.poster', size='w92', tmdb_path=film.poster_path.lstrip('/')) }}" alt="" loading="lazy">
+            {% else %}<span class="poster-empty"></span>{% endif %}
+          </a>
+          <div style="min-width:0">
+            <a class="show-tile-name" href="{{ url_for('movies.detail', movie_id=film.id) }}">{{ film.title }}</a>
+            <div class="ep-date">
+              {% if film.digital_release %}
+                Streaming {{ film.digital_release|relative_day }} · {{ film.digital_release|pretty_date }}
+              {% else %}
+                In cinemas {{ film.release_date|pretty_date }}. No streaming date announced.
+              {% endif %}
+            </div>
+          </div>
+          <form method="post" action="{{ url_for('movies.refresh', movie_id=film.id) }}">
+            <input type="hidden" name="next" value="{{ request.full_path }}">
+            <button class="btn btn-small btn-quiet" type="submit"
+                    title="Ask TMDB again whether a streaming date has been set"
+                    aria-label="Check {{ film.title }} for a streaming date">Check now</button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="subtle" style="margin:0">Nothing waiting. Add a film you are looking forward to.</p>
+  {% endif %}
+</section>
+
+{% if seen %}
+<section class="panel">
+  <div class="panel-head"><h2 style="font-size:1.25rem">Seen</h2></div>
+  <div class="show-grid">
+    {% for film in seen %}
+      {{ film_tile(film, show_state=False) }}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

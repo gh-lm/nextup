@@ -1,0 +1,121 @@
+{% extends 'layout/base.html' %}
+{% block title %}Settings — Nextup{% endblock %}
+{% block body %}
+<div class="page-head">
+  <div>
+    <h1>Settings</h1>
+    <p>Keys, sign-in and appearance.</p>
+  </div>
+</div>
+
+<div class="split">
+  <div>
+    <section class="panel">
+      <div class="panel-head">
+        <h2 style="font-size:1.25rem">TMDB key</h2>
+        <span class="spacer"></span>
+        {% if has_key %}<span class="badge badge-success">✓ Saved and encrypted</span>
+        {% else %}<span class="badge badge-warning">! Not set</span>{% endif %}
+      </div>
+      <p class="subtle">
+        Nextup gets every show, episode and poster from TMDB. Make a free account at
+        themoviedb.org, open Settings then API, and copy the API Key (v3 auth).
+        The key is checked against TMDB before it is saved, then encrypted with a key
+        that lives on the server beside the database.
+      </p>
+      <form method="post" action="{{ url_for('settings.save_tmdb') }}">
+        <div class="field">
+          <label for="tmdb_api_key">API key</label>
+          <input id="tmdb_api_key" name="tmdb_api_key" type="password" autocomplete="off"
+                 placeholder="{{ 'Saved — paste a new one to replace it' if has_key else 'Paste your key' }}">
+          <p class="hint">Stored encrypted. Never written to a plain text file.</p>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" type="submit">Check and save</button>
+          {% if has_key %}
+            <button class="btn btn-quiet" type="submit"
+                    formaction="{{ url_for('settings.clear_tmdb') }}"
+                    title="Delete the saved key. Nothing will be able to look up shows until you add another."
+                    aria-label="Delete the saved key">Remove key</button>
+          {% endif %}
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 style="font-size:1.25rem">Sign in</h2>
+        {% if default_password %}<span class="badge badge-warning">! Starter password</span>{% endif %}
+      </div>
+      <form method="post" action="{{ url_for('settings.save_account') }}">
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" value="{{ user.username }}" autocomplete="username">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="password">New password</label>
+            <input id="password" name="password" type="password" autocomplete="new-password">
+          </div>
+          <div class="field">
+            <label for="confirm">Repeat it</label>
+            <input id="confirm" name="confirm" type="password" autocomplete="new-password">
+          </div>
+        </div>
+        <p class="hint" style="margin-bottom:14px">At least 8 characters. Leave both blank to keep the current one.</p>
+        <button class="btn btn-primary" type="submit">Save</button>
+      </form>
+    </section>
+  </div>
+
+  <aside>
+    <section class="panel">
+      <div class="panel-head"><h3>Refresh from TMDB</h3></div>
+      <p class="hint" style="margin-top:0">
+        Runs on its own every 12 hours. Shows that have ended are checked far less often.
+      </p>
+      {% if last_sync %}
+        <p class="hint">
+          Last run {{ last_sync.started_at[:16].replace('T', ' ') }} —
+          {{ last_sync.shows_done }} show{{ '' if last_sync.shows_done == 1 else 's' }}.
+          {% if last_sync.message %}<br><span style="color:var(--danger)">! {{ last_sync.message }}</span>{% endif %}
+        </p>
+      {% endif %}
+      <form method="post" action="{{ url_for('settings.run_sync') }}">
+        <button class="btn btn-block" type="submit" {{ 'disabled' if syncing else '' }}>
+          {{ 'Refresh running…' if syncing else 'Refresh everything now' }}
+        </button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h3>Accent colour</h3></div>
+      <form method="post" action="{{ url_for('settings.save_accent') }}">
+        <div class="swatches">
+          {% for key, label, hex in accents %}
+            <label class="swatch">
+              <input type="radio" name="accent" value="{{ key }}"
+                     {% if accent == key %}checked{% endif %}
+                     aria-label="{{ label }}">
+              <span style="background: {{ hex }}" title="{{ label }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                     stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg>
+              </span>
+            </label>
+          {% endfor %}
+        </div>
+        <button class="btn btn-block" type="submit" style="margin-top:14px">Apply colour</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h3>What is stored</h3></div>
+      <p class="hint" style="margin:0">
+        {{ stats.shows }} shows, {{ stats.episodes }} episodes and {{ stats.movies }} films
+        cached locally. Posters are downloaded once and served from this server, so no page
+        ever calls out to another site.
+      </p>
+    </section>
+  </aside>
+</div>
+{% endblock %}
