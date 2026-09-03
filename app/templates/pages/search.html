@@ -19,7 +19,7 @@
 </form>
 
 {% if error %}
-  <div class="flash flash-error" style="margin-top:20px"><strong>!</strong><span>{{ error }}</span></div>
+  <p class="note note-error" style="margin-top:20px"><span class="note-mark" aria-hidden="true">!</span><span>{{ error }}</span></p>
 {% endif %}
 
 {% if term and not error %}

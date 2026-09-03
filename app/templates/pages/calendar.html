@@ -8,6 +8,10 @@
   </div>
   <span class="spacer"></span>
   <div class="btn-row">
+    <span class="cal-key">
+      <span class="cal-key-swatch cal-key-tv" aria-hidden="true"></span> Episodes
+      <span class="cal-key-swatch cal-key-film" aria-hidden="true"></span> Films
+    </span>
     <a class="btn btn-small" href="{{ url_for('main.calendar_view', y=prev_month.year, m=prev_month.month) }}">Previous</a>
     <a class="btn btn-small" href="{{ url_for('main.calendar_view') }}">This month</a>
     <a class="btn btn-small" href="{{ url_for('main.calendar_view', y=next_month.year, m=next_month.month) }}">Next</a>
@@ -17,7 +21,11 @@
 <div class="panel">
   <div class="calendar-scroll">
     <table class="calendar">
-      <caption>Episodes of your tracked shows for {{ month_label }}. Faded entries are ones you have already watched.</caption>
+      <caption>
+        {{ month_label }}. Yellow entries are episodes of your shows, blue ones
+        are films reaching home viewing. Each is labelled, and faded entries are
+        ones you have already watched.
+      </caption>
       <thead>
         <tr>{% for name in day_names %}<th scope="col">{{ name }}</th>{% endfor %}</tr>
       </thead>
@@ -30,9 +38,17 @@
                 {% for ep in day.episodes %}
                   <a class="cal-ep {{ 'done' if ep.watched else '' }}"
                      href="{{ url_for('shows.episode', episode_id=ep.id) }}"
-                     title="{{ ep.show_name }} {{ ep|episode_code }} — {{ ep.name or '' }}">
+                     title="TV: {{ ep.show_name }} {{ ep|episode_code }} — {{ ep.name or '' }}">
                     {{ ep.show_name }}
-                    <small>{{ ep|episode_code }}{% if ep.watched %} ✓{% endif %}</small>
+                    <small>{{ ep|episode_code }}{% if ep.watched %} ✓ watched{% endif %}</small>
+                  </a>
+                {% endfor %}
+                {% for film in day.films %}
+                  <a class="cal-ep cal-film {{ 'done' if film.watched_at else '' }}"
+                     href="{{ url_for('movies.detail', movie_id=film.id) }}"
+                     title="Film: {{ film.title }} reaches home viewing on {{ film.digital_release|pretty_date }}">
+                    {{ film.title }}
+                    <small>Film{% if film.watched_at %} ✓ watched{% endif %}</small>
                   </a>
                 {% endfor %}
               </td>

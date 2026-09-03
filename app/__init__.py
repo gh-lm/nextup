@@ -42,7 +42,8 @@ def create_app(start_sync=True):
         SECRET_KEY=_session_secret(),
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
-        MAX_CONTENT_LENGTH=2 * 1024 * 1024,
+        # Big enough for a backup of a large library to be uploaded back.
+        MAX_CONTENT_LENGTH=64 * 1024 * 1024,
         JSON_SORT_KEYS=False,
         TEMPLATES_AUTO_RELOAD=False,
     )
@@ -70,9 +71,10 @@ def create_app(start_sync=True):
     _register_context(app)
 
     if start_sync:
-        from . import sync
+        from . import mailer, sync
 
         sync.start_background(app)
+        mailer.start_background(app)
 
     return app
 
@@ -140,7 +142,7 @@ def _register_filters(app):
 
 
 def _register_context(app):
-    from flask import request, session
+    from flask import get_flashed_messages, request, session
 
     from . import secretstore
     from .auth import current_user
@@ -153,8 +155,17 @@ def _register_context(app):
             accent = secretstore.get("accent", "brand") or "brand"
         except Exception:
             pass
+        # Read once here, because reading clears them. Both the layout and the
+        # page itself need them: a message tagged with a panel is shown beside
+        # that panel, and anything untagged falls back to the top of the page.
+        notes = []
+        for category, message in get_flashed_messages(with_categories=True):
+            kind, _, panel = (category or "info").partition(":")
+            notes.append({"kind": kind or "info", "panel": panel, "message": message})
+
         return {
             "app_version": __version__,
+            "notes": notes,
             "user": current_user() if session.get("logged_in") else None,
             "theme": theme,
             "accent": accent,

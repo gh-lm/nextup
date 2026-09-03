@@ -1,4 +1,5 @@
 {% extends 'layout/base.html' %}
+{% import 'partials/_note.html' as n %}
 {% block title %}Settings — Nextup{% endblock %}
 {% block body %}
 <div class="page-head">
@@ -8,114 +9,359 @@
   </div>
 </div>
 
-<div class="split">
-  <div>
-    <section class="panel">
-      <div class="panel-head">
-        <h2 style="font-size:1.25rem">TMDB key</h2>
-        <span class="spacer"></span>
-        {% if has_key %}<span class="badge badge-success">✓ Saved and encrypted</span>
-        {% else %}<span class="badge badge-warning">! Not set</span>{% endif %}
-      </div>
-      <p class="subtle">
-        Nextup gets every show, episode and poster from TMDB. Make a free account at
-        themoviedb.org, open Settings then API, and copy the API Key (v3 auth).
-        The key is checked against TMDB before it is saved, then encrypted with a key
-        that lives on the server beside the database.
-      </p>
-      <form method="post" action="{{ url_for('settings.save_tmdb') }}">
-        <div class="field">
-          <label for="tmdb_api_key">API key</label>
-          <input id="tmdb_api_key" name="tmdb_api_key" type="password" autocomplete="off"
-                 placeholder="{{ 'Saved — paste a new one to replace it' if has_key else 'Paste your key' }}">
-          <p class="hint">Stored encrypted. Never written to a plain text file.</p>
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-primary" type="submit">Check and save</button>
-          {% if has_key %}
-            <button class="btn btn-quiet" type="submit"
-                    formaction="{{ url_for('settings.clear_tmdb') }}"
-                    title="Delete the saved key. Nothing will be able to look up shows until you add another."
-                    aria-label="Delete the saved key">Remove key</button>
-          {% endif %}
-        </div>
-      </form>
-    </section>
+<div class="bento">
+  <section class="panel bento-wide" id="mail">
+  <div class="panel-head">
+  <h2 style="font-size:1.25rem">Morning email</h2>
+  <span class="spacer"></span>
+  {% if mail.enabled and mail_ready %}
+  <span class="badge badge-success">✓ On, at {{ mail.time_display }}</span>
+  {% elif mail_ready %}
+  <span class="badge">Set up, but off</span>
+  {% else %}
+  <span class="badge badge-warning">! Not set up</span>
+  {% endif %}
+  </div>
+  <p class="subtle">
+  One short message each morning listing what has become watchable, using
+  the same rule as above. If nothing has, no email is sent.
+  </p>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h2 style="font-size:1.25rem">Sign in</h2>
-        {% if default_password %}<span class="badge badge-warning">! Starter password</span>{% endif %}
-      </div>
-      <form method="post" action="{{ url_for('settings.save_account') }}">
-        <div class="field">
-          <label for="username">Username</label>
-          <input id="username" name="username" type="text" value="{{ user.username }}" autocomplete="username">
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label for="password">New password</label>
-            <input id="password" name="password" type="password" autocomplete="new-password">
-          </div>
-          <div class="field">
-            <label for="confirm">Repeat it</label>
-            <input id="confirm" name="confirm" type="password" autocomplete="new-password">
-          </div>
-        </div>
-        <p class="hint" style="margin-bottom:14px">At least 8 characters. Leave both blank to keep the current one.</p>
-        <button class="btn btn-primary" type="submit">Save</button>
-      </form>
-    </section>
+  <form method="post" action="{{ url_for('settings.save_mail') }}">
+  <div class="field-row">
+  <div class="field">
+  <label for="smtp_host">Mail server</label>
+  <input id="smtp_host" name="smtp_host" type="text" autocomplete="off"
+  placeholder="smtp.fastmail.com" value="{{ mail.host }}">
+  </div>
+  <div class="field">
+  <label for="smtp_port">Port</label>
+  <input id="smtp_port" name="smtp_port" type="number" min="1" max="65535"
+  value="{{ mail.port }}">
+  </div>
+  <div class="field">
+  <label for="smtp_security">Security</label>
+  <select id="smtp_security" name="smtp_security">
+  {% for option in securities %}
+  <option value="{{ option }}" {% if mail.security == option %}selected{% endif %}>
+  {% if option == 'starttls' %}STARTTLS, usually port 587
+  {% elif option == 'ssl' %}SSL or TLS, usually port 465
+  {% else %}None, not encrypted{% endif %}
+  </option>
+  {% endfor %}
+  </select>
+  </div>
+  </div>
+  <div class="field-row">
+  <div class="field">
+  <label for="smtp_username">Username</label>
+  <input id="smtp_username" name="smtp_username" type="text" autocomplete="off"
+  value="{{ mail.username }}">
+  </div>
+  <div class="field">
+  <label for="smtp_password">Password</label>
+  <input id="smtp_password" name="smtp_password" type="password" autocomplete="off"
+  placeholder="{{ 'Saved. Type a new one to replace it' if mail.has_password else 'App password' }}">
+  <p class="hint">Stored encrypted, the same as the TMDB key.</p>
+  </div>
+  </div>
+  <div class="field-row">
+  <div class="field">
+  <label for="mail_from">Send from</label>
+  <input id="mail_from" name="mail_from" type="text" autocomplete="off"
+  placeholder="nextup@example.com" value="{{ mail.from_address }}">
+  </div>
+  <div class="field">
+  <label for="mail_to">Send to</label>
+  <input id="mail_to" name="mail_to" type="text" autocomplete="off"
+  placeholder="you@example.com" value="{{ mail.to_address }}">
+  </div>
+  <div class="field">
+  <label for="site_url">This Nextup's address</label>
+  <input id="site_url" name="site_url" type="text" autocomplete="off"
+  placeholder="https://homelab.example.ts.net:4090" value="{{ mail.base_url }}">
+  <p class="hint">Makes the covers and titles in the email clickable.</p>
+  {% if mail.enabled and not mail.base_url %}
+  <p class="note note-info">
+  <span class="note-mark" aria-hidden="true">i</span>
+  <span>The email is on but this box is empty, so nothing in it can be
+  clicked yet.</span>
+  </p>
+  {% endif %}
+  </div>
+  </div>
+  <div class="btn-row">
+  <button class="btn btn-primary" type="submit">Save mail settings</button>
+  {% if mail_ready %}
+  <button class="btn" type="submit" formaction="{{ url_for('settings.test_mail') }}">
+  Send a test
+  </button>
+  <button class="btn" type="submit" formaction="{{ url_for('settings.preview_mail') }}"
+  title="Build this morning's email from today's list and send it now">
+  Send today's email now
+  </button>
+  <button class="btn btn-quiet" type="submit"
+  formaction="{{ url_for('settings.clear_mail') }}"
+  title="Delete the mail server details, including the stored password"
+  aria-label="Delete the mail settings">Remove</button>
+  {% endif %}
+  </div>
+  </form>
+
+  <form data-autosave method="post" action="{{ url_for('settings.save_mail_schedule') }}"
+  style="margin-top:22px; border-top:1px solid var(--border); padding-top:18px">
+  <div class="field">
+  <span class="field-label" id="send-at-label">Send at</span>
+  <div class="timerow">
+  <div class="timepicker" role="group" aria-labelledby="send-at-label">
+  <label class="visually-hidden" for="send_hour">Hour</label>
+  <select id="send_hour" name="send_hour">
+  {% if mail.clock == '12' %}
+  {% for h in range(1, 13) %}
+  <option value="{{ h }}" {% if h == mail.hour_12 %}selected{% endif %}>{{ h }}</option>
+  {% endfor %}
+  {% else %}
+  {% for h in range(0, 24) %}
+  <option value="{{ h }}" {% if h == mail.hour_24 %}selected{% endif %}>{{ '%02d'|format(h) }}</option>
+  {% endfor %}
+  {% endif %}
+  </select>
+  <span class="timepicker-colon" aria-hidden="true">:</span>
+  <label class="visually-hidden" for="send_minute">Minute</label>
+  <select id="send_minute" name="send_minute">
+  {% for m in range(0, 60) %}
+  <option value="{{ m }}" {% if m == mail.minute %}selected{% endif %}>{{ '%02d'|format(m) }}</option>
+  {% endfor %}
+  </select>
+  {% if mail.clock == '12' %}
+  <label class="visually-hidden" for="send_meridiem">Morning or afternoon</label>
+  <select id="send_meridiem" name="send_meridiem">
+  <option value="am" {% if mail.meridiem == 'am' %}selected{% endif %}>am</option>
+  <option value="pm" {% if mail.meridiem == 'pm' %}selected{% endif %}>pm</option>
+  </select>
+  {% endif %}
   </div>
 
-  <aside>
-    <section class="panel">
-      <div class="panel-head"><h3>Refresh from TMDB</h3></div>
-      <p class="hint" style="margin-top:0">
-        Runs on its own every 12 hours. Shows that have ended are checked far less often.
-      </p>
-      {% if last_sync %}
-        <p class="hint">
-          Last run {{ last_sync.started_at[:16].replace('T', ' ') }} —
-          {{ last_sync.shows_done }} show{{ '' if last_sync.shows_done == 1 else 's' }}.
-          {% if last_sync.message %}<br><span style="color:var(--danger)">! {{ last_sync.message }}</span>{% endif %}
-        </p>
-      {% endif %}
-      <form method="post" action="{{ url_for('settings.run_sync') }}">
-        <button class="btn btn-block" type="submit" {{ 'disabled' if syncing else '' }}>
-          {{ 'Refresh running…' if syncing else 'Refresh everything now' }}
-        </button>
-      </form>
-    </section>
+  {# Sits beside the time because the time is the only thing it changes.
+  The inputs belong to the small form further down the page, which is
+  what lets them stand here without nesting one form inside another. #}
+  <div class="clock-toggle" role="radiogroup" aria-label="Clock">
+  <label>
+  <input type="radio" name="clock_format" value="12" form="clock-form"
+  {% if mail.clock == '12' %}checked{% endif %}>
+  <span>12 hours</span>
+  </label>
+  <label>
+  <input type="radio" name="clock_format" value="24" form="clock-form"
+  {% if mail.clock == '24' %}checked{% endif %}>
+  <span>24 hours</span>
+  </label>
+  <button class="btn btn-small clock-toggle-go" type="submit" form="clock-form">Change</button>
+  </div>
+  </div>
+  <p class="hint">
+  Any time you like, to the minute. Currently {{ mail.time_display }},
+  on the server's clock.
+  </p>
+  </div>
 
-    <section class="panel">
-      <div class="panel-head"><h3>Accent colour</h3></div>
-      <form method="post" action="{{ url_for('settings.save_accent') }}">
-        <div class="swatches">
-          {% for key, label, hex in accents %}
-            <label class="swatch">
-              <input type="radio" name="accent" value="{{ key }}"
-                     {% if accent == key %}checked{% endif %}
-                     aria-label="{{ label }}">
-              <span style="background: {{ hex }}" title="{{ label }}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-                     stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg>
-              </span>
-            </label>
-          {% endfor %}
-        </div>
-        <button class="btn btn-block" type="submit" style="margin-top:14px">Apply colour</button>
-      </form>
-    </section>
+  <label class="hint inline-check">
+  <input id="daily_email_enabled" name="daily_email_enabled" type="checkbox"
+  value="1" {% if mail.enabled %}checked{% endif %}>
+  Email me every morning
+  </label>
+  <button class="btn" type="submit">Save schedule</button>
+  {% if mail.last_sent %}
+  <p class="hint" style="margin-top:10px">Last sent {{ mail.last_sent }}.</p>
+  {% endif %}
+  </form>
+  <form id="clock-form" method="post" action="{{ url_for('settings.save_clock') }}"></form>
+  {{ n.notes_for(notes, "mail") }}
+  </section>
 
-    <section class="panel">
-      <div class="panel-head"><h3>What is stored</h3></div>
-      <p class="hint" style="margin:0">
-        {{ stats.shows }} shows, {{ stats.episodes }} episodes and {{ stats.movies }} films
-        cached locally. Posters are downloaded once and served from this server, so no page
-        ever calls out to another site.
-      </p>
-    </section>
-  </aside>
+  <section class="panel" id="tmdb">
+  <div class="panel-head">
+  <h2 style="font-size:1.25rem">TMDB key</h2>
+  <span class="spacer"></span>
+  {% if has_key %}<span class="badge badge-success">✓ Saved and encrypted</span>
+  {% else %}<span class="badge badge-warning">! Not set</span>{% endif %}
+  </div>
+  <p class="subtle">
+  Every show, episode and cover comes from TMDB. Copy your API Key (v3 auth)
+  from <a href="https://www.themoviedb.org/settings/api" rel="noopener noreferrer">themoviedb.org/settings/api</a>,
+  which opens on their site. It is checked before it is saved, then encrypted.
+  </p>
+  <form method="post" action="{{ url_for('settings.save_tmdb') }}">
+  <div class="field inline-field">
+  <label class="visually-hidden" for="tmdb_api_key">API key</label>
+  <input id="tmdb_api_key" name="tmdb_api_key" type="password" autocomplete="off"
+  placeholder="{{ 'Saved — paste a new one to replace it' if has_key else 'Paste your key' }}">
+  </div>
+  <div class="btn-row">
+  <button class="btn btn-primary" type="submit">Check and save</button>
+  {% if has_key %}
+  <button class="btn btn-quiet" type="submit"
+  formaction="{{ url_for('settings.clear_tmdb') }}"
+  title="Delete the saved key. Nothing will be able to look up shows until you add another."
+  aria-label="Delete the saved key">Remove key</button>
+  {% endif %}
+  </div>
+  </form>
+  {{ n.notes_for(notes, "tmdb") }}
+  </section>
+
+  <section class="panel" id="sync">
+  <div class="panel-head"><h3>Refresh from TMDB</h3></div>
+  <p class="hint" style="margin-top:0">
+  Runs on its own every 12 hours. Shows that have ended are checked far less often.
+  </p>
+  {% if last_sync %}
+  <p class="hint">
+  Last run {{ last_sync.started_at[:16].replace('T', ' ') }} —
+  {{ last_sync.shows_done }} show{{ '' if last_sync.shows_done == 1 else 's' }}.
+  {% if last_sync.message %}<br><span style="color:var(--danger)">! {{ last_sync.message }}</span>{% endif %}
+  </p>
+  {% endif %}
+  <form method="post" action="{{ url_for('settings.run_sync') }}">
+  <button class="btn btn-block" type="submit" {{ 'disabled' if syncing else '' }}>
+  {{ 'Refresh running…' if syncing else 'Refresh everything now' }}
+  </button>
+  </form>
+  {{ n.notes_for(notes, "sync") }}
+  </section>
+
+  <section class="panel" id="availability">
+  <div class="panel-head">
+  <h2 style="font-size:1.25rem">When something counts as watchable</h2>
+  </div>
+  <p class="subtle">
+  A programme that goes out at eleven at night is not really available
+  until the next day. This setting decides how long Nextup waits before it
+  puts something in Next up, moves a film into Ready to watch, and puts it
+  in the morning email.
+  </p>
+  <form data-autosave method="post" action="{{ url_for('settings.save_availability') }}">
+  <div class="field">
+  <label for="available_after_days">Wait this many days after it airs</label>
+  <input id="available_after_days" name="available_after_days" type="number"
+  min="0" max="14" step="1" value="{{ available_after }}">
+  <p class="hint">
+  0 means the day it airs. 1 means the following morning, which is the
+  usual choice if you watch things back rather than live.
+  </p>
+  </div>
+  <button class="btn btn-primary" type="submit">Save</button>
+  </form>
+  {{ n.notes_for(notes, "availability") }}
+  </section>
+
+  <section class="panel" id="accent">
+  <div class="panel-head"><h3>Accent colour</h3></div>
+  <form data-autosave method="post" action="{{ url_for('settings.save_accent') }}">
+  <div class="swatches">
+  {% for key, label, hex in accents %}
+  <label class="swatch">
+  <input type="radio" name="accent" value="{{ key }}"
+  {% if accent == key %}checked{% endif %}
+  aria-label="{{ label }}">
+  <span style="background: {{ hex }}" title="{{ label }}">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+  stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg>
+  </span>
+  </label>
+  {% endfor %}
+  </div>
+  <button class="btn btn-block" type="submit" style="margin-top:14px">Apply colour</button>
+  </form>
+  {{ n.notes_for(notes, "accent") }}
+  </section>
+
+  <section class="panel" id="transfer">
+  <div class="panel-head">
+  <h2 style="font-size:1.25rem">Take it with you</h2>
+  </div>
+  <p class="subtle">
+  One file holds every show and film you have added, everything you have
+  marked as watched, the things you said no to, and how you like Nextup set
+  up. Put it on another machine and you carry on where you left off, before
+  it has even spoken to TMDB.
+  </p>
+  <p class="hint">
+  Right now that is {{ backup.tracked_show }} show{{ '' if backup.tracked_show == 1 else 's' }},
+  {{ backup.watched_episode }} watched episode{{ '' if backup.watched_episode == 1 else 's' }},
+  {{ backup.tracked_movie }} film{{ '' if backup.tracked_movie == 1 else 's' }}
+  and {{ backup.settings }} settings.
+  </p>
+
+  <div class="btn-row" style="margin-bottom:8px">
+  <a class="btn btn-primary" href="{{ url_for('settings.export_data') }}">Download a backup</a>
+  <a class="btn" href="{{ url_for('settings.export_data', secrets=1) }}"
+  title="The same file, with your TMDB key and mail password written into it as plain text">
+  Include my keys
+  </a>
+  </div>
+  <p class="hint">
+  The plain download leaves your TMDB key and mail password out, because
+  they are encrypted with a key that stays on this server and cannot travel.
+  You would type those two back in. The second button puts them in the file
+  readable by anyone who opens it, so keep that one somewhere safe.
+  </p>
+
+  <form method="post" action="{{ url_for('settings.import_data') }}"
+  enctype="multipart/form-data"
+  style="margin-top:22px; border-top:1px solid var(--border); padding-top:18px">
+  <div class="field">
+  <label for="backup">Restore from a backup</label>
+  <input id="backup" name="backup" type="file" accept="application/json,.json" required>
+  </div>
+  <div class="field">
+  <label class="hint" style="font-weight:400; display:flex; gap:8px; align-items:flex-start">
+  <input type="checkbox" name="confirm" value="replace" style="width:auto; flex:none" required>
+  <span>I understand this replaces everything currently in Nextup.</span>
+  </label>
+  </div>
+  <button class="btn" type="submit">Restore</button>
+  <p class="hint" style="margin-top:10px">
+  All of it or none of it. If the file cannot be read, nothing is touched.
+  </p>
+  </form>
+  {{ n.notes_for(notes, "transfer") }}
+  </section>
+
+  <section class="panel">
+  <div class="panel-head"><h3>What is stored</h3></div>
+  <p class="hint" style="margin:0">
+  {{ stats.shows }} shows, {{ stats.episodes }} episodes and {{ stats.movies }} films
+  cached locally. Posters are downloaded once and served from this server, so no page
+  ever calls out to another site.
+  </p>
+  </section>
+
+  <section class="panel" id="account">
+  <div class="panel-head">
+  <h2 style="font-size:1.25rem">Sign in</h2>
+  {% if default_password %}<span class="badge badge-warning">! Starter password</span>{% endif %}
+  </div>
+  <form method="post" action="{{ url_for('settings.save_account') }}">
+  <div class="field">
+  <label for="username">Username</label>
+  <input id="username" name="username" type="text" value="{{ user.username }}" autocomplete="username">
+  </div>
+  <div class="field-row">
+  <div class="field">
+  <label for="password">New password</label>
+  <input id="password" name="password" type="password" autocomplete="new-password">
+  </div>
+  <div class="field">
+  <label for="confirm">Repeat it</label>
+  <input id="confirm" name="confirm" type="password" autocomplete="new-password">
+  </div>
+  </div>
+  <p class="hint" style="margin-bottom:14px">At least 8 characters. Leave both blank to keep the current one.</p>
+  <button class="btn btn-primary" type="submit">Save</button>
+  </form>
+  {{ n.notes_for(notes, "account") }}
+  </section>
+
 </div>
 {% endblock %}

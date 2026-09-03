@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nextup: a self-hosted TV and film tracker</title>
-<meta name="description" content="Nextup tracks the TV shows and films you watch, tells you which episode you are up to, when the next one airs, and when a film reaches streaming in the UK. Free, open source, self-hosted.">
+<meta name="description" content="Nextup remembers which episode you are on for every show you watch, tells you when the next one airs, and emails you each morning with what has become watchable. Free, open source, runs on your own server.">
 <link rel="canonical" href="https://nextup.lightmorphic.com/">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/site.css">
@@ -12,7 +12,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Nextup">
 <meta property="og:title" content="Nextup: a self-hosted TV and film tracker">
-<meta property="og:description" content="Know which episode you are up to and when the next one airs. Free, open source, and it runs on your own server.">
+<meta property="og:description" content="Which episode were you on? Nextup remembers, tells you when the next one airs, and emails you each morning. Free, open source, on your own server.">
 <meta property="og:url" content="https://nextup.lightmorphic.com/">
 <meta property="og:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
 <meta property="og:image:width" content="1200">
@@ -20,7 +20,7 @@
 <meta property="og:image:alt" content="The Nextup dashboard, listing TV shows with the next episode to watch.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Nextup: a self-hosted TV and film tracker">
-<meta name="twitter:description" content="Know which episode you are up to and when the next one airs. Free, open source, and it runs on your own server.">
+<meta name="twitter:description" content="Which episode were you on? Nextup remembers, tells you when the next one airs, and emails you each morning.">
 <meta name="twitter:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
 
 <script type="application/ld+json">
@@ -34,9 +34,9 @@
       "applicationCategory": "MultimediaApplication",
       "applicationSubCategory": "Media tracker",
       "operatingSystem": "Linux, via Docker",
-      "description": "A self-hosted tracker for TV shows and films. It records which episodes you have watched, shows the next one to watch, lists when new episodes air, and tells you when a film reaches streaming in the UK.",
+      "description": "A self-hosted tracker for TV shows and films. It records which episodes you have watched, shows the next one to watch, lists when new episodes air, tells you when a film reaches streaming in the UK, and emails you each morning.",
       "license": "https://www.gnu.org/licenses/gpl-3.0.html",
-      "softwareVersion": "0.3.0",
+      "softwareVersion": "0.13.1",
       "codeRepository": "https://github.com/lightmorphic/nextup",
       "programmingLanguage": "Python",
       "isAccessibleForFree": true,
@@ -74,7 +74,12 @@
         {
           "@type": "Question",
           "name": "Do I need a TMDB API key?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes, and it is free. Make an account at themoviedb.org, open Settings then API, and copy the API Key for v3 auth. You paste it into the Settings page inside Nextup, where it is stored encrypted." }
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, and it is free. Make an account, then go straight to themoviedb.org/settings/api and copy the API Key for v3 auth. You paste it into the Settings page inside Nextup, where it is stored encrypted." }
+        },
+        {
+          "@type": "Question",
+          "name": "How does Nextup know when a film reaches streaming?",
+          "acceptedAnswer": { "@type": "Answer", "text": "TMDB records several release dates for a film, including the digital, physical and television ones. Nextup reads those, prefers a UK date, and falls back to Ireland then the United States. It also lists which UK subscription, free and ad-supported services carry the film, using the JustWatch data TMDB publishes." }
         },
         {
           "@type": "Question",
@@ -85,16 +90,6 @@
           "@type": "Question",
           "name": "What does Nextup cost?",
           "acceptedAnswer": { "@type": "Answer", "text": "Nothing. It is released under the GPL version 3, so you can run it, read it and change it. There is no paid tier and no hosted version to buy." }
-        },
-        {
-          "@type": "Question",
-          "name": "Can I keep a list of shows I might watch one day?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes, that is the Maybe list. Anything on it keeps its poster and its next air date but stays out of Next up, the calendar and Coming soon, so it never makes you look behind on something you never started. One button moves it across when you decide to watch it." }
-        },
-        {
-          "@type": "Question",
-          "name": "How does Nextup know when a film reaches streaming?",
-          "acceptedAnswer": { "@type": "Answer", "text": "TMDB records several release dates for a film, including the digital, physical and television ones. Nextup reads those, prefers a UK date, and falls back to Ireland then the United States. It also lists which UK subscription, free and ad-supported services carry the film, using the JustWatch data TMDB publishes." }
         },
         {
           "@type": "Question",
@@ -117,10 +112,10 @@
       Nextup
     </a>
     <nav aria-label="Main">
-      <a href="#what-it-does">What it does</a>
+      <a href="#email">The email</a>
+      <a href="#watching">Watching</a>
+      <a href="#deciding">Deciding</a>
       <a href="#install">Install</a>
-      <a href="#limits">Limits</a>
-      <a href="#faq">Questions</a>
       <a href="https://github.com/lightmorphic/nextup">Source</a>
     </nav>
   </div>
@@ -130,225 +125,150 @@
 
 <div class="hero">
   <div class="wrap hero-inner">
-    <span class="eyebrow">Free and open source</span>
-    <h1>Know what to watch next.</h1>
+    <h1>Which episode were you on?</h1>
+
+    <p class="answer">
+      <span class="visually-hidden">Slow Horses, series 5, episode 2. Nextup remembers, for every show you watch.</span>
+      <span class="typed" aria-hidden="true"><span class="typed-line" data-lines='["Slow Horses, series 5, episode 2.","Death in Paradise, series 14, episode 6.","Only Murders in the Building, series 5, episode 3.","Reacher, series 4, episode 6."]'>Slow Horses, series 5, episode 2.</span><span class="caret"></span></span>
+    </p>
+
     <p class="lede">
-      Nextup keeps a list of the TV shows and films you watch. It works out which
-      episode you are up to, counts how far behind you have fallen, tells you when
-      the next one airs, and tells you when a film finally reaches a streaming
-      service you can use. It runs on your own server and it stays there.
+      Nextup remembers, for every show you watch, wherever you watched it. It
+      works out what is waiting, tells you when the next one airs, and lets you
+      know when a film you wanted finally turns up on something you already pay
+      for.
     </p>
     <div class="hero-actions">
-      <a class="btn btn-primary" href="https://github.com/lightmorphic/nextup">
+      <a class="btn btn-primary" href="#install">Put it on your server</a>
+      <a class="btn" href="https://github.com/lightmorphic/nextup">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.36 1.09 2.94.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>
-        Get it on GitHub
+        Read the source
       </a>
-      <a class="btn" href="#install">How to install it</a>
     </div>
+    <p class="hero-note">Free under the GPL. No account, no tracking, nothing to pay.</p>
   </div>
 </div>
 
-<div class="wrap">
+<div class="stage wrap">
   <figure>
     <div class="shot">
       <img src="images/nextup-dashboard.webp"
-           alt="The Nextup dashboard. A Next up list shows Shogun, The Day of the Jackal, The Last of Us and Murderbot, each with the exact episode to watch next, a progress bar and a Watched button. A sidebar lists episodes airing soon."
-           width="1600" height="1200" fetchpriority="high" decoding="async">
+           alt="The Nextup dashboard. A list of shows, each with the exact episode to watch next, how many you are behind, a progress bar and a Watched button. A panel beside it lists episodes airing in the next few days."
+           width="1800" height="1250" fetchpriority="high" decoding="async">
     </div>
-    <figcaption>The first screen: every show with an episode waiting, oldest first.</figcaption>
+    <figcaption>The first screen. Every show with something waiting, oldest first.</figcaption>
   </figure>
 </div>
 
-<section id="what-it-does">
+<section id="email" class="band">
   <div class="wrap">
-    <div class="section-head">
-      <h2>It answers one question well</h2>
-      <p>
-        Most trackers give you a library to browse. Nextup opens on the thing you
-        actually wanted to know, which is what to put on tonight.
-      </p>
-    </div>
-
     <div class="feature-lead">
       <div>
-        <h3>Tick an episode, a season, or everything up to here</h3>
+        <h2>One email, every morning</h2>
         <p>
-          Every show page lists its seasons and episodes. Mark one as watched, mark
-          a whole season, or pick an episode and mark it along with everything
-          before it. That last one is how you catch up a show you started years ago
-          without clicking forty times.
+          A short message listing what became watchable overnight. The cover of
+          each show and film, a couple of sentences about it, which channel or
+          service it is on, and a link straight to it. If nothing became
+          available, nothing is sent.
         </p>
         <p>
-          Episodes that have not aired yet cannot be ticked by accident, and the
-          progress bar counts only what has actually been broadcast, so a show is
-          never quietly "incomplete" because of a special.
+          A programme that goes out at eleven at night is not really available
+          until the next day, so you tell Nextup how long to wait and it holds
+          things back accordingly. Set the time to the minute. The covers travel
+          inside the message, so it reads properly even with no signal.
         </p>
       </div>
-      <figure>
+      <figure class="letter">
         <div class="shot">
-          <img src="images/nextup-show.webp"
-               alt="The Slow Horses page in Nextup, showing seasons one to five with tick counts, a Mark season watched button on each, and the episode list for season five open."
-               width="1400" height="1147" loading="lazy" decoding="async">
+          <img src="images/nextup-email.webp"
+               alt="The Nextup morning email, headed Ready to watch, listing a Reacher episode and the film The Runner, each with its cover, the service it is on and a short description."
+               width="760" height="900" loading="lazy" decoding="async">
         </div>
       </figure>
     </div>
   </div>
 </section>
 
-<section class="band">
+<section id="watching">
   <div class="wrap">
     <div class="feature-lead flip">
       <figure>
         <div class="shot">
-          <img src="images/nextup-calendar.webp"
-               alt="A month calendar in Nextup, with each day showing the shows that air on it."
-               width="1400" height="1050" loading="lazy" decoding="async">
+          <img src="images/nextup-show.webp"
+               alt="The Slow Horses page in Nextup, showing the poster, the cast, a details panel with network and episode count, and the first season's episodes listed with a tick beside each."
+               width="1400" height="1283" loading="lazy" decoding="async">
         </div>
       </figure>
       <div>
-        <h3>See the month, not just tonight</h3>
+        <h2>Catching up without forty clicks</h2>
         <p>
-          The calendar puts every tracked show on the day it airs. Episodes you
-          have already watched fade back so what is left stands out. If a list
-          suits you better, Coming soon does the same thing over the next two
-          weeks, month, two months or six.
+          Pick the last episode you remember watching and press <b>Up to here</b>.
+          Everything before it is ticked in one go. That is how you get a show
+          you started three years ago back under control.
         </p>
         <p>
-          Air dates come from TMDB and refresh on their own twice a day. Shows that
-          have ended are checked far less often, because they are not going to
-          change.
+          Every episode has its own page too, with the still, the synopsis, the
+          air date, the guest cast and the director. Episodes that have not aired
+          cannot be ticked by accident, and the progress bar counts only what has
+          actually been broadcast, so a show is never quietly unfinished because
+          of a Christmas special.
         </p>
       </div>
+    </div>
+  </div>
+</section>
+
+<section id="deciding" class="band">
+  <div class="wrap">
+    <div class="feature-lead">
+      <div>
+        <h2>Yes, no, or maybe</h2>
+        <p>
+          Discover shows you what is arriving and asks one question about each of
+          it. A tick puts it on your list. A question mark parks it on the maybe
+          list. A cross sends it away and it does not come back.
+        </p>
+        <p>
+          The film list asks for home releases rather than cinema ones, so it
+          answers the question someone who does not go to the cinema is actually
+          asking. A cross deletes nothing: the title still turns up in a search,
+          and one button brings back everything you dismissed.
+        </p>
+      </div>
+      <figure>
+        <div class="shot">
+          <img src="images/nextup-discover.webp"
+               alt="The Discover page in Nextup, a grid of film covers each with a tick, a question mark and a cross underneath."
+               width="1400" height="1089" loading="lazy" decoding="async">
+        </div>
+      </figure>
     </div>
   </div>
 </section>
 
 <section>
-  <div class="wrap">
-    <div class="feature-lead">
-      <div>
-        <h2>Not everything is a commitment</h2>
-        <p>
-          There is a difference between the shows you follow and the ones you have
-          half an eye on. Put the second sort on the <strong>Maybe</strong> list and
-          they stay out of Next up, out of the calendar and out of Coming soon,
-          so a dozen curiosities do not make it look as though you are twelve
-          episodes behind.
-        </p>
-        <p>
-          They keep their poster, their network and the date of their next episode,
-          so you can see at a glance whether one has started. When you decide to
-          watch it, one button moves it across and it behaves like any other show.
-        </p>
-      </div>
-      <figure>
-        <div class="shot">
-          <img src="images/nextup-maybe.webp"
-               alt="The Maybe page in Nextup, a grid of posters for shows not currently being followed, each with a Start watching button."
-               width="1400" height="972" loading="lazy" decoding="async">
-        </div>
-      </figure>
-    </div>
-  </div>
-</section>
-
-<section class="band">
   <div class="wrap">
     <div class="feature-lead flip">
       <figure>
         <div class="shot">
           <img src="images/nextup-films.webp"
-               alt="The Films page in Nextup, split into Ready to watch with service names under each poster, and Coming to streaming listing films with their streaming dates."
-               width="1400" height="1147" loading="lazy" decoding="async">
+               alt="The Films page in Nextup, split into Ready to watch with service names under each cover, and Coming to streaming listing films with the date they arrive."
+               width="1400" height="1089" loading="lazy" decoding="async">
         </div>
       </figure>
       <div>
         <h2>Films, and when you can actually watch them</h2>
         <p>
-          A cinema release date is not much use if you wait for things to arrive on
-          a service you already pay for. So Nextup reads the digital, physical and
-          television release dates a film has been given, prefers the UK one, and
-          shows you that date instead.
+          A cinema date is no use if you wait for things to reach a service you
+          already have. Nextup reads the digital, physical and television release
+          dates a film has been given, prefers the UK one, and shows you that
+          instead.
         </p>
         <p>
-          It also lists which UK services carry a film right now. Subscription,
-          free and ad-supported services are named. Rental and purchase are left
-          out on purpose, because the question is what you can put on tonight
-          without paying for it twice.
-        </p>
-        <p>
-          The Films page splits into three: ready to watch, coming to streaming,
-          and seen. Anything without a date yet has a button to ask TMDB again.
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <div class="section-head">
-      <h2>The rest of it</h2>
-    </div>
-    <div class="feature-grid">
-      <div class="card">
-        <span class="card-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
-        </span>
-        <h3>How much of your life</h3>
-        <p>
-          The dashboard adds up every episode you have ticked off and turns it
-          into days and hours. Read that figure however you like.
-        </p>
-      </div>
-      <div class="card">
-        <span class="card-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
-        </span>
-        <h3>Search that adds in one click</h3>
-        <p>
-          Type a title, press Add, and Nextup pulls in every season and episode
-          from TMDB straight away.
-        </p>
-      </div>
-      <div class="card">
-        <span class="card-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg>
-        </span>
-        <h3>Favourites and an archive</h3>
-        <p>
-          Pin the shows you care about to the top. Park the ones you have finished
-          without deleting what you watched.
-        </p>
-      </div>
-      <div class="card">
-        <span class="card-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
-        </span>
-        <h3>Light, dark, and twenty accents</h3>
-        <p>
-          It follows your system by default and you can override it. The accent
-          colour repaints the whole interface.
-        </p>
-      </div>
-      <div class="card">
-        <span class="card-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-        </span>
-        <h3>Your key, encrypted</h3>
-        <p>
-          The TMDB key goes in the Settings page, not an environment file. It is
-          checked against TMDB, then encrypted before it is stored.
-        </p>
-      </div>
-      <div class="card">
-        <span class="card-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-        </span>
-        <h3>Works on a phone</h3>
-        <p>
-          It is a website, so there is nothing to install on a device. The layout
-          reflows down to a small screen.
+          It also names which UK services carry a film right now. Subscription,
+          free and ad-supported ones are listed. Rental and purchase are left out,
+          because the question is what you can put on tonight without paying for
+          it twice.
         </p>
       </div>
     </div>
@@ -357,40 +277,76 @@
 
 <section class="band">
   <div class="wrap">
+    <div class="two-up">
+      <div>
+        <h3>The month at a glance</h3>
+        <p>
+          Every tracked show on the day it airs, in yellow, with films reaching
+          home viewing in blue. Each is labelled, so the two are told apart
+          without relying on colour, and anything you have watched fades back.
+        </p>
+        <figure>
+          <div class="shot">
+            <img src="images/nextup-calendar.webp"
+                 alt="A month calendar in Nextup with episodes marked in yellow and films in blue on the days they arrive."
+                 width="1400" height="972" loading="lazy" decoding="async">
+          </div>
+        </figure>
+      </div>
+      <div>
+        <h3>Not everything is a commitment</h3>
+        <p>
+          There is a difference between the shows you follow and the ones you have
+          half an eye on. The maybe list keeps the second sort out of your
+          dashboard, out of the calendar and out of the email, until you decide.
+        </p>
+        <figure>
+          <div class="shot">
+            <img src="images/nextup-maybe.webp"
+                 alt="The Maybe page in Nextup, a grid of covers for shows not currently being followed, each with a Start watching button."
+                 width="1400" height="894" loading="lazy" decoding="async">
+          </div>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
     <div class="section-head">
       <h2>Nothing leaves your server</h2>
       <p>
-        This is the part most trackers get wrong, so it is worth being precise
-        about what Nextup does and does not send anywhere.
+        Most trackers want an account. This one has nowhere to send anything, so
+        it is worth being exact about what it does and does not do.
       </p>
     </div>
     <ul class="plain-list">
-      <li><span class="tick" aria-hidden="true">&#10003;</span><span><strong>Artwork is fetched once and then served by Nextup itself.</strong> Posters are cached in your data directory, so no page in the app ever points your browser at a third-party host.</span></li>
-      <li><span class="tick" aria-hidden="true">&#10003;</span><span><strong>The only outbound calls are to TMDB</strong>, made by the server, to look up the shows and films you asked for, to fetch their artwork, and to ask when a film reaches streaming.</span></li>
-      <li><span class="cross" aria-hidden="true">&#10007;</span><span><strong>No analytics, no telemetry, no crash reporting</strong> and no third-party scripts, in the app or on this page.</span></li>
-      <li><span class="cross" aria-hidden="true">&#10007;</span><span><strong>No account with us</strong>, because there is no us. Nextup has no server of its own to phone.</span></li>
-      <li><span class="tick" aria-hidden="true">&#10003;</span><span><strong>Two cookies, both yours.</strong> One keeps you signed in, one remembers whether you chose light or dark. Neither leaves your server and neither tracks anything.</span></li>
-      <li><span class="tick" aria-hidden="true">&#10003;</span><span><strong>One directory to back up.</strong> The database, the encryption key and the cached artwork all sit in the folder you mounted.</span></li>
+      <li><span class="tick" aria-hidden="true">&#10003;</span><span><b>Artwork is fetched once and then served by Nextup itself.</b> Covers are cached in your data directory, so no page in the app ever points your browser at a third-party host, and the email carries its pictures inside the message.</span></li>
+      <li><span class="tick" aria-hidden="true">&#10003;</span><span><b>The only outbound calls are to TMDB</b>, made by your server, to look up the shows and films you asked for and to ask when a film reaches streaming.</span></li>
+      <li><span class="cross" aria-hidden="true">&#10007;</span><span><b>No analytics, no telemetry, no crash reporting</b> and no third-party scripts, in the app or on this page.</span></li>
+      <li><span class="cross" aria-hidden="true">&#10007;</span><span><b>No account with us</b>, because there is no us. Nextup has no server of its own to phone.</span></li>
+      <li><span class="tick" aria-hidden="true">&#10003;</span><span><b>Two cookies, both yours.</b> One keeps you signed in, one remembers whether you chose light or dark. Neither leaves your server and neither tracks anything.</span></li>
+      <li><span class="tick" aria-hidden="true">&#10003;</span><span><b>One directory to back up.</b> The database, the encryption key and the cached artwork all sit in the folder you mounted.</span></li>
+      <li><span class="tick" aria-hidden="true">&#10003;</span><span><b>One button to take it all with you.</b> Everything you added, everything you watched and how you like it set up comes out as a single file. Put that on another machine and you carry on where you left off.</span></li>
     </ul>
   </div>
 </section>
 
-<section id="install">
+<section id="install" class="band">
   <div class="wrap">
     <div class="section-head">
-      <h2>Getting it running</h2>
-      <p>
-        You need Docker and a free TMDB account. Allow about five minutes.
-      </p>
+      <h2>Running in about five minutes</h2>
+      <p>You need Docker and a free TMDB account.</p>
     </div>
     <ol class="steps">
       <li>
         <div>
           <h3>Make the data directory</h3>
           <p>
-            Nextup runs as a normal user inside the container, user ID 1000, so the
-            folder on the host has to belong to that same ID or the app cannot write
-            to it.
+            Nextup runs as a normal user inside the container, user ID 1000, so
+            the folder on the host has to belong to that same ID or the app
+            cannot write to it.
           </p>
           <pre><code>sudo mkdir -p /opt/nextup
 sudo chown -R 1000:1000 /opt/nextup</code></pre>
@@ -400,8 +356,8 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
         <div>
           <h3>Start it</h3>
           <p>
-            Save this as <code>docker-compose.yml</code> and bring it up. It listens
-            on port 4090 unless you change the left-hand number.
+            Save this as <code>docker-compose.yml</code> and bring it up. It
+            listens on port 4090 unless you change the left-hand number.
           </p>
           <pre><code>services:
   nextup:
@@ -411,7 +367,9 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
     ports:
       - "4090:8080"
     volumes:
-      - /opt/nextup:/data</code></pre>
+      - /opt/nextup:/data
+    environment:
+      TZ: "Europe/London"</code></pre>
           <pre><code>docker compose up -d</code></pre>
         </div>
       </li>
@@ -420,8 +378,8 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
           <h3>Sign in and change the password</h3>
           <p>
             Open it in a browser and sign in with <code>admin</code> and
-            <code>nextup</code>. The app will keep telling you off until you change
-            both on the Settings page, which is the idea.
+            <code>nextup</code>. The app keeps telling you off until you change
+            both, which is the idea.
           </p>
         </div>
       </li>
@@ -429,21 +387,22 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
         <div>
           <h3>Add your TMDB key</h3>
           <p>
-            Make a free account at
-            <a href="https://www.themoviedb.org/">themoviedb.org</a>, open Settings
-            then API, and copy the API Key for v3 auth. Paste it into the Settings
-            page in Nextup. It is checked against TMDB before it is saved, and
-            encrypted once it is.
+            Make a free account, then go straight to
+            <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a>
+            and copy the API Key for v3 auth. Paste it into the Settings page in
+            Nextup. It is checked against TMDB before it is saved, and encrypted
+            once it is.
           </p>
         </div>
       </li>
       <li>
         <div>
-          <h3>Start adding shows</h3>
+          <h3>Add a show and mark your place</h3>
           <p>
-            Search a title, press Add, and use <strong>Up to here</strong> on the
-            episode you last watched. From then on the front page is a list of what
-            is waiting.
+            Search a title, press Add, then use <b>Up to here</b> on the last
+            episode you watched. From then on the front page is a list of what is
+            waiting, and the morning email starts arriving once you fill in your
+            mail server.
           </p>
         </div>
       </li>
@@ -451,57 +410,23 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
   </div>
 </section>
 
-<section id="limits">
+<section>
   <div class="wrap">
     <div class="section-head">
       <h2>What it deliberately does not do</h2>
-      <p>
-        Worth knowing before you spend five minutes installing it.
-      </p>
+      <p>Worth knowing before you spend those five minutes.</p>
     </div>
     <ul class="plain-list">
-      <li><span class="cross" aria-hidden="true">&#10007;</span><span><strong>It does not play anything.</strong> No streams, no downloads, no links to either. It is a record of what you watched, wherever you watched it.</span></li>
-      <li><span class="cross" aria-hidden="true">&#10007;</span><span><strong>One person, one list.</strong> There is a single account. A household sharing it shares one watch history.</span></li>
-      <li><span class="cross" aria-hidden="true">&#10007;</span><span><strong>There is no import yet.</strong> If you are coming from another tracker, your history has to be re-entered. The season and "up to here" buttons make that quicker than it sounds.</span></li>
-      <li><span class="cross" aria-hidden="true">&#10007;</span><span><strong>No notifications.</strong> It will not email you or push to your phone when an episode airs. You look at the calendar.</span></li>
-      <li><span class="cross" aria-hidden="true">&#10007;</span><span><strong>It is not hosted for you.</strong> There is no signup page and no service to join. You run it yourself or you do not run it.</span></li>
+      <li><span class="cross" aria-hidden="true">&#10007;</span><span><b>It does not play anything.</b> No streams, no downloads, no links to either. It is a record of what you watched, wherever you watched it.</span></li>
+      <li><span class="cross" aria-hidden="true">&#10007;</span><span><b>One person, one list.</b> There is a single account. A household sharing it shares one watch history.</span></li>
+      <li><span class="cross" aria-hidden="true">&#10007;</span><span><b>There is no import yet.</b> Coming from another tracker means re-entering your history. The season and Up to here buttons make that quicker than it sounds.</span></li>
+      <li><span class="cross" aria-hidden="true">&#10007;</span><span><b>No push notifications.</b> One email in the morning, or nothing. It will not buzz your phone when an episode lands.</span></li>
+      <li><span class="cross" aria-hidden="true">&#10007;</span><span><b>It is not hosted for you.</b> There is no signup page and no service to join. You run it yourself or you do not run it.</span></li>
     </ul>
   </div>
 </section>
 
-<section class="band">
-  <div class="wrap">
-    <div class="section-head"><h2>A few more screens</h2></div>
-    <div class="gallery">
-      <figure>
-        <div class="shot">
-          <img src="images/nextup-shows.webp"
-               alt="The My shows page in Nextup, a grid of poster thumbnails with a progress bar and a count of episodes left under each."
-               width="1400" height="1050" loading="lazy" decoding="async">
-        </div>
-        <figcaption>My shows, with progress on every title.</figcaption>
-      </figure>
-      <figure>
-        <div class="shot">
-          <img src="images/nextup-upcoming.webp"
-               alt="The Coming soon page in Nextup, listing episodes grouped by the day they air."
-               width="1400" height="972" loading="lazy" decoding="async">
-        </div>
-        <figcaption>Coming soon, grouped by air date.</figcaption>
-      </figure>
-      <figure>
-        <div class="shot">
-          <img src="images/nextup-show.webp"
-               alt="A show page in Nextup, listing seasons with tick counts and the episodes of the current season."
-               width="1400" height="1147" loading="lazy" decoding="async">
-        </div>
-        <figcaption>A show page, season by season.</figcaption>
-      </figure>
-    </div>
-  </div>
-</section>
-
-<section id="faq">
+<section id="faq" class="band">
   <div class="wrap">
     <div class="section-head"><h2>Questions people ask</h2></div>
     <dl class="faq">
@@ -509,28 +434,28 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
       <dd>No. Nextup is a notebook, not a player. It records what you have watched and tells you what is next. It holds no video, links to no streams and downloads nothing except artwork from TMDB.</dd>
 
       <dt>Do I need a TMDB API key?</dt>
-      <dd>Yes, and it is free. Make an account at themoviedb.org, open Settings then API, and copy the API Key for v3 auth. You paste it into the Settings page inside Nextup, where it is stored encrypted.</dd>
+      <dd>Yes, and it is free. Make an account, then go straight to <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a> and copy the API Key for v3 auth. You paste it into the Settings page inside Nextup, where it is stored encrypted.</dd>
+
+      <dt>How does it know when a film reaches streaming?</dt>
+      <dd>TMDB records several release dates for a film, including the digital, physical and television ones. Nextup reads those, prefers a UK date, and falls back to Ireland then the United States. It also lists which UK subscription, free and ad-supported services carry the film, using the JustWatch data TMDB publishes. Rental and purchase are left out.</dd>
+
+      <dt>Can I keep a list of shows I might watch one day?</dt>
+      <dd>Yes, that is the maybe list. Anything on it keeps its cover and its next air date but stays out of your dashboard, the calendar and the email, so it never makes you look behind on something you never started.</dd>
 
       <dt>Can more than one person use it?</dt>
       <dd>No. Nextup has one account and one watch history. Two people sharing it would share a single list. If you want separate lists, run a second copy with its own data directory.</dd>
 
-      <dt>What does Nextup cost?</dt>
+      <dt>What does it cost?</dt>
       <dd>Nothing. It is released under the GPL version 3, so you can run it, read it and change it. There is no paid tier and no hosted version to buy.</dd>
 
       <dt>Where is my data kept?</dt>
       <dd>In one directory on your own server. A single SQLite database holds your shows and watch history, alongside the encryption key and the cached artwork. Backing up that directory backs up everything.</dd>
 
-      <dt>Can I keep a list of shows I might watch one day?</dt>
-      <dd>Yes, that is the Maybe list. Anything on it keeps its poster and its next air date but stays out of Next up, the calendar and Coming soon, so it never makes you look behind on something you never started. One button moves it across when you decide to watch it.</dd>
-
-      <dt>How does it know when a film reaches streaming?</dt>
-      <dd>TMDB records several release dates for a film, including the digital, physical and television ones. Nextup reads those, prefers a UK date, and falls back to Ireland then the United States. It also lists which UK subscription, free and ad-supported services carry the film, using the JustWatch data TMDB publishes. Rental and purchase are left out.</dd>
-
       <dt>How do I update it?</dt>
       <dd>Run <code>docker compose pull</code>, then <code>docker compose down</code> and <code>docker compose up -d</code>. A plain <code>up -d</code> will not fetch a newer image on its own.</dd>
 
       <dt>What is it built with?</dt>
-      <dd>Python and Flask, with SQLite for storage and plain CSS for the interface. There is no JavaScript framework and no build step. The whole thing is small enough to read.</dd>
+      <dd>Python and Flask, with SQLite for storage and plain CSS for the interface. There is no JavaScript framework and no build step. The whole thing is small enough to read in an evening.</dd>
     </dl>
   </div>
 </section>
@@ -559,9 +484,10 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
       <div>
         <h3>On this page</h3>
         <ul>
-          <li><a href="#what-it-does">What it does</a></li>
+          <li><a href="#email">The email</a></li>
+          <li><a href="#watching">Watching</a></li>
+          <li><a href="#deciding">Deciding</a></li>
           <li><a href="#install">Install</a></li>
-          <li><a href="#limits">Limits</a></li>
           <li><a href="#faq">Questions</a></li>
         </ul>
       </div>
@@ -583,7 +509,7 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
         respective owners.
       </p>
       <!-- Update this date whenever the content of this page changes. -->
-      <p>Page last updated 2 September 2026.</p>
+      <p>Page last updated 3 September 2026.</p>
       <nav aria-label="Legal">
         <a href="privacy.html">Privacy</a>
         <a href="cookies.html">Cookies</a>
@@ -594,5 +520,45 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
     </div>
   </div>
 </footer>
+<script>
+(function () {
+  'use strict';
+  var line = document.querySelector('.typed-line');
+  if (!line) { return; }
+
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (reduced && reduced.matches) { return; }   // leave the first answer standing
+
+  var lines;
+  try { lines = JSON.parse(line.dataset.lines); } catch (e) { return; }
+  if (!lines || lines.length < 2) { return; }
+
+  var index = 0, at = lines[0].length, deleting = false;
+
+  function tick() {
+    var text = lines[index];
+    if (deleting) {
+      at -= 1;
+      line.textContent = text.slice(0, at);
+      if (at === 0) {
+        deleting = false;
+        index = (index + 1) % lines.length;
+        return setTimeout(tick, 260);
+      }
+      return setTimeout(tick, 22);
+    }
+    at += 1;
+    line.textContent = text.slice(0, at);
+    if (at === text.length) {
+      deleting = true;
+      return setTimeout(tick, 2600);
+    }
+    // A touch of unevenness, so it reads as typing rather than a machine.
+    return setTimeout(tick, 45 + Math.random() * 55);
+  }
+
+  setTimeout(function () { deleting = true; tick(); }, 2600);
+})();
+</script>
 </body>
 </html>

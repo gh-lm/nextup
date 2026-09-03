@@ -101,6 +101,20 @@ def show(show_id):
     return _get(f"/tv/{show_id}")
 
 
+def show_detail(show_id):
+    """Everything the show page needs, in one request."""
+    return _get(f"/tv/{show_id}", {
+        "append_to_response": "aggregate_credits,watch/providers,external_ids,videos,content_ratings"
+    })
+
+
+def movie_detail(movie_id):
+    """Everything the film page needs, in one request."""
+    return _get(f"/movie/{movie_id}", {
+        "append_to_response": "credits,watch/providers,external_ids,videos,release_dates"
+    })
+
+
 def season(show_id, season_number):
     return _get(f"/tv/{show_id}/season/{season_number}")
 
@@ -215,6 +229,89 @@ def discover_returning_series(start, end, page=1):
         "include_adult": "false",
         "page": page,
     })
+
+
+def cast_from(payload, limit=14):
+    """Top-billed cast, from either a film's credits or a show's aggregate ones."""
+    credits = payload.get("aggregate_credits") or payload.get("credits") or {}
+    people = []
+    for person in (credits.get("cast") or [])[:limit]:
+        # A film gives one character; a show gives a list of roles across seasons.
+        role = person.get("character")
+        if not role:
+            roles = person.get("roles") or []
+            role = roles[0].get("character") if roles else None
+        people.append({
+            "name": person.get("name"),
+            "role": role,
+            "profile_path": person.get("profile_path"),
+        })
+    return [person for person in people if person["name"]]
+
+
+def crew_from(payload, jobs=("Director", "Writer", "Screenplay")):
+    credits = payload.get("credits") or {}
+    seen, people = set(), []
+    for person in credits.get("crew") or []:
+        if person.get("job") in jobs and person.get("name") not in seen:
+            seen.add(person.get("name"))
+            people.append({"name": person.get("name"), "role": person.get("job")})
+    return people[:6]
+
+
+def creators_from(payload):
+    return [
+        person.get("name")
+        for person in (payload.get("created_by") or [])
+        if person.get("name")
+    ]
+
+
+def genres_from(payload):
+    return [g.get("name") for g in (payload.get("genres") or []) if g.get("name")]
+
+
+def trailer_from(payload):
+    """A YouTube trailer, if TMDB knows of one. Linked, never embedded."""
+    for video in ((payload.get("videos") or {}).get("results") or []):
+        if video.get("site") == "YouTube" and video.get("type") in ("Trailer", "Teaser"):
+            return {
+                "name": video.get("name"),
+                "url": f"https://www.youtube.com/watch?v={video.get('key')}",
+            }
+    return None
+
+
+def imdb_from(payload):
+    imdb_id = payload.get("imdb_id") or (payload.get("external_ids") or {}).get("imdb_id")
+    return f"https://www.imdb.com/title/{imdb_id}/" if imdb_id else None
+
+
+def certification_from(payload):
+    """The UK age rating, falling back to Ireland then the US."""
+    ratings = (payload.get("content_ratings") or {}).get("results")
+    if ratings:
+        by_country = {r.get("iso_3166_1"): r.get("rating") for r in ratings}
+        for code in COUNTRIES:
+            if by_country.get(code):
+                return by_country[code]
+        return None
+
+    releases = (payload.get("release_dates") or {}).get("results") or []
+    by_country = {}
+    for entry in releases:
+        for release in entry.get("release_dates", []):
+            if release.get("certification"):
+                by_country.setdefault(entry.get("iso_3166_1"), release["certification"])
+    for code in COUNTRIES:
+        if by_country.get(code):
+            return by_country[code]
+    return None
+
+
+def providers_from(payload):
+    """Where to watch, read from an appended watch/providers block."""
+    return uk_providers(payload.get("watch/providers") or {})
 
 
 def trending_tv():

@@ -1,3 +1,4 @@
+{% import "partials/_note.html" as n %}
 <!doctype html>
 <html lang="en-GB"{% if accent and accent != 'brand' %} data-accent="{{ accent }}"{% endif %}{% if theme %} data-theme="{{ theme }}"{% endif %}>
 <head>
@@ -12,7 +13,8 @@
 {% if user %}
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="{{ url_for('main.dashboard') }}">
+    <a class="brand" href="{{ url_for('main.dashboard') }}"
+       title="Next up" {% if request.endpoint == 'main.dashboard' %}aria-current="page"{% endif %}>
       <span class="brand-mark" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
              stroke-linecap="round" stroke-linejoin="round">
@@ -25,7 +27,6 @@
 
     <nav class="nav" aria-label="Main">
       {% set here = request.endpoint or '' %}
-      <a href="{{ url_for('main.dashboard') }}" {% if here == 'main.dashboard' %}class="current" aria-current="page"{% endif %}>Next up</a>
       <a href="{{ url_for('shows.index') }}" {% if here.startswith('shows.') and here != 'shows.maybe' %}class="current" aria-current="page"{% endif %}>My shows</a>
       <a href="{{ url_for('discover.films') }}" {% if here.startswith('discover.') %}class="current" aria-current="page"{% endif %}>Discover</a>
       <a href="{{ url_for('shows.maybe') }}" {% if here == 'shows.maybe' %}class="current" aria-current="page"{% endif %}>Maybe</a>
@@ -52,18 +53,12 @@
 {% endif %}
 
 <main class="shell" id="content">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div role="status">
-        {% for category, message in messages %}
-          <div class="flash flash-{{ 'error' if category == 'error' else ('success' if category == 'success' else 'info') }}">
-            <strong>{{ '!' if category == 'error' else '✓' }}</strong>
-            <span>{{ message }}</span>
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
+  {% set loose = notes | rejectattr('panel') | list %}
+  {% if loose %}
+    <div role="status" class="notes">
+      {% for item in loose %}{{ n.note(item) }}{% endfor %}
+    </div>
+  {% endif %}
 
   {% block body %}{% endblock %}
 </main>

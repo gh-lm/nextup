@@ -50,6 +50,11 @@ def calendar_view():
     for episode in episodes:
         by_day.setdefault(episode["air_date"][:10], []).append(episode)
 
+    films = queries.films_between(grid_start.isoformat(), grid_end.isoformat())
+    films_by_day = {}
+    for film in films:
+        films_by_day.setdefault(film["digital_release"][:10], []).append(film)
+
     weeks, cursor = [], grid_start
     while cursor <= grid_end:
         week = []
@@ -60,6 +65,7 @@ def calendar_view():
                     "in_month": cursor.month == month,
                     "is_today": cursor == today,
                     "episodes": by_day.get(cursor.isoformat(), []),
+                    "films": films_by_day.get(cursor.isoformat(), []),
                 }
             )
             cursor += timedelta(days=1)
@@ -72,6 +78,7 @@ def calendar_view():
         "pages/calendar.html",
         weeks=weeks,
         month_label=first.strftime("%B %Y"),
+        film_count=len(films),
         prev_month=prev_month,
         next_month=next_month,
         today=today,

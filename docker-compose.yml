@@ -10,3 +10,6 @@ services:
     environment:
       # Hours between automatic refreshes of tracked shows.
       NEXTUP_SYNC_HOURS: "12"
+      # The morning email and "what is available today" both read the clock,
+      # so set this to your own timezone rather than leaving it on UTC.
+      TZ: "Europe/London"

@@ -6,9 +6,29 @@ Specials are still visible on the show page.
 """
 from datetime import date, timedelta
 
-from . import db
+from . import db, secretstore
 
-TODAY = "date('now')"
+# How many days after something airs before it counts as watchable. A programme
+# that goes out at eleven at night is not really available until the next day,
+# so the default is one. Nought means the day it airs.
+DEFAULT_AVAILABLE_AFTER = 1
+
+
+def available_after_days():
+    raw = secretstore.get("available_after_days", str(DEFAULT_AVAILABLE_AFTER))
+    try:
+        return max(0, min(14, int(raw)))
+    except (TypeError, ValueError):
+        return DEFAULT_AVAILABLE_AFTER
+
+
+def available_cutoff():
+    """The latest air date that counts as watchable right now."""
+    return date.today() - timedelta(days=available_after_days())
+
+
+def available_cutoff_iso():
+    return available_cutoff().isoformat()
 
 
 def tracked_shows(include_archived=False, shortlist=False, everything=False):
@@ -81,11 +101,11 @@ def next_unwatched(show_id):
         SELECT e.* FROM episode e
         LEFT JOIN watched_episode w ON w.episode_id = e.id
         WHERE e.show_id = ? AND e.season_number > 0 AND w.episode_id IS NULL
-          AND e.air_date IS NOT NULL AND e.air_date <= date('now')
+          AND e.air_date IS NOT NULL AND e.air_date <= ?
         ORDER BY e.season_number, e.episode_number
         LIMIT 1
         """,
-        (show_id,),
+        (show_id, available_cutoff_iso()),
         one=True,
     )
 
@@ -117,6 +137,39 @@ def to_watch():
     return out
 
 
+def available_today():
+    """Everything that becomes watchable today, given the offset.
+
+    This is what the morning email is built from: episodes that aired on the
+    cutoff day, and films that reached home viewing on it.
+    """
+    cutoff = available_cutoff_iso()
+    episodes = db.query(
+        """
+        SELECT e.*, s.name AS show_name, s.network, s.poster_path AS show_poster,
+               (w.episode_id IS NOT NULL) AS watched
+        FROM episode e
+        JOIN show s ON s.id = e.show_id
+        JOIN tracked_show t ON t.show_id = e.show_id
+             AND t.archived = 0 AND t.shortlist = 0
+        LEFT JOIN watched_episode w ON w.episode_id = e.id
+        WHERE e.air_date = ?
+        ORDER BY s.name COLLATE NOCASE, e.season_number, e.episode_number
+        """,
+        (cutoff,),
+    )
+    films = db.query(
+        """
+        SELECT m.* FROM movie m
+        JOIN tracked_movie t ON t.movie_id = m.id
+        WHERE t.watched_at IS NULL AND t.shortlist = 0 AND m.digital_release = ?
+        ORDER BY m.title COLLATE NOCASE
+        """,
+        (cutoff,),
+    )
+    return {"date": cutoff, "episodes": episodes, "films": films}
+
+
 def upcoming(days=30, limit=None):
     """Episodes of tracked shows airing between today and `days` ahead."""
     end = (date.today() + timedelta(days=days)).isoformat()
@@ -146,6 +199,21 @@ def episodes_between(start_iso, end_iso):
         LEFT JOIN watched_episode w ON w.episode_id = e.id
         WHERE e.air_date IS NOT NULL AND e.air_date >= ? AND e.air_date <= ?
         ORDER BY e.air_date, s.name COLLATE NOCASE, e.season_number, e.episode_number
+        """,
+        (start_iso, end_iso),
+    )
+
+
+def films_between(start_iso, end_iso):
+    """Films reaching home viewing inside a date range, for the calendar."""
+    return db.query(
+        """
+        SELECT m.*, t.watched_at FROM movie m
+        JOIN tracked_movie t ON t.movie_id = m.id
+        WHERE t.shortlist = 0
+          AND m.digital_release IS NOT NULL
+          AND m.digital_release >= ? AND m.digital_release <= ?
+        ORDER BY m.digital_release, m.title COLLATE NOCASE
         """,
         (start_iso, end_iso),
     )
@@ -280,7 +348,7 @@ def is_streamable(row):
     if provider_names(row):
         return True
     digital = row["digital_release"] if "digital_release" in row.keys() else None
-    return bool(digital and digital <= date.today().isoformat())
+    return bool(digital and digital <= available_cutoff_iso())
 
 
 def films_by_state():
