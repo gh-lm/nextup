@@ -14,6 +14,8 @@
       <h1>{{ show.name }}</h1>
       <div class="show-hero-meta">
         {% if show.first_air_date %}<span class="badge">{{ show.first_air_date|year }}</span>{% endif %}
+        {% if extras.certification %}<span class="badge">{{ extras.certification }}</span>{% endif %}
+        {% for genre in extras.genres %}<span class="badge">{{ genre }}</span>{% endfor %}
         {% if show.network %}<span class="badge">{{ show.network }}</span>{% endif %}
         {% if show.status %}<span class="badge">{{ show.status }}</span>{% endif %}
         {% if show.vote_average %}<span class="badge">★ {{ '%.1f'|format(show.vote_average) }}</span>{% endif %}
@@ -27,7 +29,15 @@
         {% endif %}
       </div>
 
+      {% if extras.tagline %}<p class="tagline">{{ extras.tagline }}</p>{% endif %}
       {% if show.overview %}<p>{{ show.overview }}</p>{% endif %}
+
+      {% if extras.providers %}
+        <p class="subtle" style="margin-bottom:6px">
+          <strong>Watch it on:</strong>
+          {% for name in extras.providers %}<span class="badge badge-success">✓ {{ name }}</span> {% endfor %}
+        </p>
+      {% endif %}
 
       {% if tracked and not shortlisted %}
         <div class="progress" style="max-width: 420px;" role="img"
@@ -91,6 +101,49 @@
     </div>
   </div>
 </article>
+
+{% if extras.cast or extras.creators or extras.imdb or extras.trailer %}
+<div class="split">
+  {% with cast=extras.cast %}{% include 'partials/_cast.html' %}{% endwith %}
+  <section class="panel">
+    <div class="panel-head"><h2 style="font-size:1.25rem">Details</h2></div>
+    <dl class="fact-list">
+      {% if extras.creators %}
+        <dt>Created by</dt><dd>{{ extras.creators|join(', ') }}</dd>
+      {% endif %}
+      {% if show.network %}<dt>Network</dt><dd>{{ show.network }}</dd>{% endif %}
+      {% if show.status %}<dt>Status</dt><dd>{{ show.status }}</dd>{% endif %}
+      {% if show.first_air_date %}
+        <dt>First aired</dt><dd>{{ show.first_air_date|pretty_date }}</dd>
+      {% endif %}
+      {% if show.last_air_date %}
+        <dt>Last aired</dt><dd>{{ show.last_air_date|pretty_date }}</dd>
+      {% endif %}
+      {% if show.episode_runtime %}
+        <dt>Episode</dt><dd>About {{ show.episode_runtime }} minutes</dd>
+      {% endif %}
+      <dt>Episodes</dt><dd>{{ progress.total }} across {{ seasons|length }} season{{ '' if seasons|length == 1 else 's' }}</dd>
+    </dl>
+    {% if extras.trailer or extras.imdb or extras.provider_link or extras.homepage %}
+      <div class="btn-row" style="margin-top:16px">
+        {% if extras.trailer %}
+          <a class="btn btn-small" href="{{ extras.trailer.url }}" rel="noopener noreferrer">Trailer</a>
+        {% endif %}
+        {% if extras.imdb %}
+          <a class="btn btn-small" href="{{ extras.imdb }}" rel="noopener noreferrer">IMDb</a>
+        {% endif %}
+        {% if extras.provider_link %}
+          <a class="btn btn-small" href="{{ extras.provider_link }}" rel="noopener noreferrer">Where to watch</a>
+        {% endif %}
+        {% if extras.homepage %}
+          <a class="btn btn-small" href="{{ extras.homepage }}" rel="noopener noreferrer">Official site</a>
+        {% endif %}
+      </div>
+      <p class="hint" style="margin-top:10px">These open on other people's websites.</p>
+    {% endif %}
+  </section>
+</div>
+{% endif %}
 
 {% for season in seasons %}
   <details class="season panel" {% if season.number == (next_up.season_number if next_up else 1) %}open{% endif %}>

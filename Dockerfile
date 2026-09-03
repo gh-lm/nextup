@@ -14,6 +14,7 @@ FROM python:3.12-slim-bookworm
 # Patch OS packages at build time.
 RUN apt-get update \
  && apt-get upgrade -y \
+ && apt-get install -y --no-install-recommends tzdata \
  && rm -rf /var/lib/apt/lists/*
 
 RUN useradd --uid 1000 --create-home --shell /usr/sbin/nologin nextup

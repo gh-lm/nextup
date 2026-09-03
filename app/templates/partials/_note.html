@@ -1,0 +1,12 @@
+{# A quiet line of confirmation, shown beside whatever caused it rather than as
+   a banner at the top of the page. #}
+{% macro note(item) -%}
+<p class="note note-{{ item.kind }}" role="status">
+  <span class="note-mark" aria-hidden="true">{{ '!' if item.kind == 'error' else '✓' }}</span>
+  <span>{{ item.message }}</span>
+</p>
+{%- endmacro %}
+
+{% macro notes_for(items, panel) -%}
+  {% for item in items if item.panel == panel %}{{ note(item) }}{% endfor %}
+{%- endmacro %}

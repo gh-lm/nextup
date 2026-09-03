@@ -20,6 +20,7 @@
   --accent-container: #fff8e2;  --on-accent-container: #5f4c06;
 
   --brand-navy: #111827;
+  --code-fg: #f4f4f5;
   --link: #1a72ba;
   --danger: #cc372d;   --danger-bg: #fef2f1;
   --success: #367e38;  --success-bg: #f2f9f3;
@@ -96,10 +97,6 @@ p:last-child { margin-bottom: 0; }
   border-radius: 6px;
 }
 
-.visually-hidden {
-  position: absolute; width: 1px; height: 1px; overflow: hidden;
-  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
-}
 
 .skip {
   position: absolute; left: 12px; top: -60px; z-index: 100;
@@ -110,7 +107,6 @@ p:last-child { margin-bottom: 0; }
 .skip:focus { top: 12px; }
 
 .wrap { width: min(1120px, 100% - 2.5rem); margin-inline: auto; }
-.narrow { width: min(760px, 100% - 2.5rem); margin-inline: auto; }
 
 /* ------------------------------------------------------------------- nav */
 
@@ -120,7 +116,7 @@ p:last-child { margin-bottom: 0; }
   padding: 0.875rem 0; flex-wrap: wrap;
 }
 .wordmark {
-  display: inline-flex; align-items: center; gap: 0.625rem;
+  display: inline-flex; align-items: center; gap: 0.625rem; min-height: 44px;
   font-weight: 800; font-size: 1.1875rem; letter-spacing: -0.03em;
   color: var(--fg); text-decoration: none;
 }
@@ -139,12 +135,6 @@ p:last-child { margin-bottom: 0; }
 
 .hero { padding: clamp(3rem, 9vw, 6rem) 0 clamp(2rem, 5vw, 3.5rem); }
 .hero-inner { display: grid; gap: 2rem; max-width: 44rem; }
-.eyebrow {
-  display: inline-flex; align-items: center; gap: 0.5rem; align-self: start;
-  padding: 0.3125rem 0.75rem; border-radius: 999px;
-  background: var(--accent-container); color: var(--on-accent-container);
-  font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.01em;
-}
 .hero p.lede {
   font-size: clamp(1.125rem, 2.2vw, 1.375rem);
   color: var(--muted-fg); max-width: 40rem; line-height: 1.55;
@@ -183,50 +173,42 @@ section { padding: clamp(2.75rem, 6vw, 4.5rem) 0; }
 .section-head { max-width: 42rem; margin-bottom: 2.25rem; }
 .section-head p { color: var(--muted-fg); margin-top: 0.75rem; }
 
-/* Deliberately uneven: the lead feature gets the room, the rest share a row. */
+/* The lead feature gets the room; a picture carries each one. */
 .feature-lead {
-  display: grid; grid-template-columns: 1fr 1.15fr; gap: clamp(1.5rem, 4vw, 3rem);
+  display: grid; grid-template-columns: 1fr 1.15fr; gap: clamp(1.5rem, 4vw, 3.25rem);
   align-items: center;
 }
 .feature-lead.flip > figure { order: -1; }
+.feature-lead > * { min-width: 0; }
 
-.feature-grid {
-  display: grid; gap: 1.25rem;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  margin-top: 2rem;
+/* Two features side by side where neither needs the whole width. */
+.two-up {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: clamp(1.75rem, 4vw, 3rem);
 }
-.card {
-  background: var(--panel);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--panel-radius);
-  box-shadow: var(--shadow-panel);
-  padding: 1.625rem;
-}
-.card h3 { margin-bottom: 0.5rem; }
-.card p { color: var(--muted-fg); font-size: 0.9875rem; }
-.card-mark {
-  width: 40px; height: 40px; border-radius: 12px; margin-bottom: 1rem;
-  display: grid; place-items: center;
-  background: var(--accent-container); color: var(--on-accent-container);
-}
-.card-mark svg { width: 21px; height: 21px; }
+.two-up > * { min-width: 0; }
+.two-up h3 { margin-bottom: 0.5rem; }
+.two-up p { color: var(--muted-fg); }
+.two-up figure { margin-top: 1.25rem; }
 
 .band { background: var(--muted); border-block: 1px solid var(--border); }
 
 .plain-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.875rem; }
 .plain-list li { display: grid; grid-template-columns: 1.5rem 1fr; gap: 0.625rem; align-items: start; }
+.plain-list li > * { min-width: 0; }
 .plain-list .tick { color: var(--success); font-weight: 800; }
 .plain-list .cross { color: var(--danger); font-weight: 800; }
 
 pre {
-  margin: 0; padding: 1.125rem 1.25rem; overflow-x: auto;
-  background: var(--brand-navy); color: #f4f4f5;
+  margin: 0; padding: 1.125rem 1.25rem; overflow-x: auto; max-width: 100%;
+  background: var(--brand-navy); color: var(--code-fg);
   border-radius: var(--radius);
   font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, Consolas, monospace;
   font-size: 0.9rem; line-height: 1.65;
 }
 :root[data-theme="dark"] pre, :root:not([data-theme="light"]) pre { border: 1px solid var(--border); }
 code { font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, Consolas, monospace; font-size: 0.925em; }
+.prose, .card p, dl.faq dd { overflow-wrap: anywhere; }
 p code, li code, dd code {
   padding: 0.125rem 0.375rem; border-radius: 6px;
   background: var(--muted); border: 1px solid var(--border);
@@ -234,6 +216,12 @@ p code, li code, dd code {
 
 .steps { counter-reset: step; display: grid; gap: 1.5rem; margin: 0; padding: 0; list-style: none; }
 .steps > li { counter-increment: step; display: grid; grid-template-columns: 2.5rem 1fr; gap: 1rem; align-items: start; }
+/* A grid track will not shrink below its content unless told to. Without this
+   the widest code block sets the width of the whole list, and the page scrolls
+   sideways instead of the block scrolling inside itself. Every level between
+   the list and the block needs it. */
+.steps, .steps > li, .steps > li > div { min-width: 0; }
+.steps > li > div > * { min-width: 0; max-width: 100%; }
 .steps > li::before {
   content: counter(step);
   width: 2.5rem; height: 2.5rem; border-radius: 50%;
@@ -244,7 +232,6 @@ p code, li code, dd code {
 .steps h3 { margin-bottom: 0.375rem; }
 .steps p { color: var(--muted-fg); }
 
-.gallery { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
 
 dl.faq { margin: 0; display: grid; gap: 1.75rem; }
 dl.faq dt { font-weight: 700; font-size: 1.0625rem; margin-bottom: 0.375rem; letter-spacing: -0.01em; }
@@ -269,6 +256,7 @@ dl.faq dd { margin: 0; color: var(--muted-fg); max-width: var(--measure); }
   grid-template-columns: 1.4fr 1fr 1fr;
   padding-bottom: 2.5rem;
 }
+.footer-cols > * { min-width: 0; }
 .footer-cols h3 {
   font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.07em;
   color: var(--muted-fg); margin-bottom: 0.875rem;
@@ -300,10 +288,48 @@ dl.faq dd { margin: 0; color: var(--muted-fg); max-width: var(--measure); }
 }
 @media (max-width: 560px) {
   body { font-size: 1rem; }
-  .wrap, .narrow { width: min(100% - 1.75rem, 1120px); }
+  .wrap { width: min(100% - 1.75rem, 1120px); }
   .footer-cols { grid-template-columns: 1fr; }
   .site-nav .wrap { gap: 0.75rem; }
   .site-nav nav { margin-left: 0; width: 100%; }
   .btn { width: 100%; justify-content: center; }
   .hero-actions { width: 100%; }
 }
+
+/* ------------------------------------------------------------- headline */
+
+.hero h1 { max-width: 15ch; }
+/* The headline asks a question; this line answers it, typed out and cycling
+   through real examples. Without scripting the first answer simply stands. */
+.answer {
+  margin: 0.75rem 0 0;
+  font-size: clamp(1.125rem, 2.6vw, 1.625rem);
+  font-weight: 600; letter-spacing: -0.015em; line-height: 1.35;
+  min-height: 2.7em;
+}
+.typed { display: inline; }
+.caret {
+  display: inline-block; width: 0.075em; height: 1em;
+  margin-left: 0.06em; vertical-align: -0.13em;
+  background: var(--accent);
+  animation: caret 1.05s steps(1) infinite;
+}
+@keyframes caret { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+.hero-note {
+  margin-top: 0.25rem; font-size: 0.9375rem; color: var(--muted-fg);
+}
+
+/* A screenshot wide enough to read, sitting under the headline. */
+.stage { padding-bottom: clamp(1rem, 3vw, 2rem); }
+.stage .shot { max-width: 1000px; margin-inline: auto; }
+
+/* The email, shown at the size it actually arrives. */
+.letter { max-width: 420px; }
+.letter .shot { border-radius: 16px; }
+

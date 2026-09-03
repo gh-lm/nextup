@@ -39,9 +39,26 @@ def detail(movie_id):
         row = db.query("SELECT * FROM movie WHERE id = ?", (movie_id,), one=True)
         if row is None:
             abort(404)
+    extras = {"cast": [], "crew": [], "genres": [], "trailer": None,
+              "imdb": None, "certification": None, "tagline": None}
+    try:
+        payload = tmdb.movie_detail(movie_id)
+        extras.update(
+            cast=tmdb.cast_from(payload),
+            crew=tmdb.crew_from(payload),
+            genres=tmdb.genres_from(payload),
+            trailer=tmdb.trailer_from(payload),
+            imdb=tmdb.imdb_from(payload),
+            certification=tmdb.certification_from(payload),
+            tagline=payload.get("tagline") or None,
+        )
+    except tmdb.TmdbError:
+        pass
+
     tracked = queries.movie_list_state(movie_id)
     return render_template(
         "pages/movie.html",
+        extras=extras,
         movie=row,
         tracked=tracked,
         shortlisted=bool(tracked and tracked["shortlist"]),
