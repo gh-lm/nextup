@@ -1,0 +1,44 @@
+# Nextup
+
+> A self-hosted tracker for the TV shows and films you watch. It records which
+> episodes you have seen, works out which one is next, says when the next
+> episode airs, and says when a film reaches streaming in the UK. It runs on
+> your own server and sends nothing anywhere except requests to TMDB.
+
+Nextup is free software published by Lightmorphic Ltd under the GNU General
+Public Licence version 3. There is no hosted version, no account to create and
+no paid tier. You install it yourself with Docker.
+
+## What it does
+
+- Next up: every tracked show with an aired episode you have not watched, oldest first.
+- Ticking off: one episode, a whole season, or everything up to a chosen episode.
+- Calendar and Coming soon: when your shows air, over 14 to 180 days.
+- Discover: what is arriving, with a tick, question mark and cross on each item. Films are filtered to home releases, not cinema ones.
+- Maybe list: shows and films you are curious about, kept out of Next up.
+- Films: split into ready to watch, coming to streaming, and seen, with the UK services that carry each one.
+- Episode pages: still, synopsis, air date, runtime, guest cast and director.
+- Show and film pages: cast with photographs, genres, certificate, who made it, where to watch it.
+
+## What it does not do
+
+- It does not play, stream or download video, and links to no source of it.
+- It has one account and one watch history. It is not multi-user.
+- It has no notifications, and no import from another tracker.
+- It is not hosted for you. You run it or you do not use it.
+
+## Requirements
+
+Docker, and a free TMDB API key entered in the app's own Settings page, where it
+is stored encrypted rather than in an environment file.
+
+## Links
+
+- Site: https://nextup.lightmorphic.com/
+- Source: https://github.com/lightmorphic/nextup
+- Licence: https://github.com/lightmorphic/nextup/blob/main/LICENSE
+- Contact: hello@lightmorphic.co.uk
+
+Published by Lightmorphic Ltd, registered in England and Wales, company number
+17423646, 82A James Carter Road, Mildenhall, IP28 7DE.
+Last updated 2026-09-02.

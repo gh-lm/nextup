@@ -9,3 +9,4 @@ services:
       - /opt/nextup:/data
     environment:
       NEXTUP_SYNC_HOURS: "12"
+      TZ: "Europe/London"

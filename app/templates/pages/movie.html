@@ -14,6 +14,8 @@
       <div class="show-hero-meta">
         {% if movie.release_date %}<span class="badge">{{ movie.release_date|year }}</span>{% endif %}
         {% if movie.runtime %}<span class="badge">{{ movie.runtime }} min</span>{% endif %}
+        {% if extras.certification %}<span class="badge">{{ extras.certification }}</span>{% endif %}
+        {% for genre in extras.genres %}<span class="badge">{{ genre }}</span>{% endfor %}
         {% if movie.vote_average %}<span class="badge">★ {{ '%.1f'|format(movie.vote_average) }}</span>{% endif %}
         {% if tracked and tracked.watched_at %}<span class="badge badge-success">✓ Watched</span>{% endif %}
         {% if shortlisted %}<span class="badge badge-accent">On your maybe list</span>{% endif %}
@@ -32,6 +34,7 @@
           <span class="badge badge-warning">! No streaming date announced yet</span>
         {% endif %}
       </div>
+      {% if extras.tagline %}<p class="tagline">{{ extras.tagline }}</p>{% endif %}
       {% if movie.overview %}<p>{{ movie.overview }}</p>{% endif %}
       {% if tracked and movie.provider_link %}
         <p class="hint">
@@ -68,4 +71,39 @@
     </div>
   </div>
 </article>
+
+{% if extras.cast or extras.crew or extras.imdb or extras.trailer %}
+<div class="split">
+  {% with cast=extras.cast %}{% include 'partials/_cast.html' %}{% endwith %}
+  <section class="panel">
+    <div class="panel-head"><h2 style="font-size:1.25rem">Details</h2></div>
+    <dl class="fact-list">
+      {% for person in extras.crew %}
+        <dt>{{ person.role }}</dt><dd>{{ person.name }}</dd>
+      {% endfor %}
+      {% if movie.release_date %}
+        <dt>Released</dt><dd>{{ movie.release_date|pretty_date }}</dd>
+      {% endif %}
+      {% if movie.digital_release %}
+        <dt>At home</dt><dd>{{ movie.digital_release|pretty_date }}</dd>
+      {% endif %}
+      {% if movie.runtime %}<dt>Runtime</dt><dd>{{ movie.runtime }} minutes</dd>{% endif %}
+    </dl>
+    {% if extras.trailer or extras.imdb or movie.provider_link %}
+      <div class="btn-row" style="margin-top:16px">
+        {% if extras.trailer %}
+          <a class="btn btn-small" href="{{ extras.trailer.url }}" rel="noopener noreferrer">Trailer</a>
+        {% endif %}
+        {% if extras.imdb %}
+          <a class="btn btn-small" href="{{ extras.imdb }}" rel="noopener noreferrer">IMDb</a>
+        {% endif %}
+        {% if movie.provider_link %}
+          <a class="btn btn-small" href="{{ movie.provider_link }}" rel="noopener noreferrer">Where to watch</a>
+        {% endif %}
+      </div>
+      <p class="hint" style="margin-top:10px">These open on other people's websites.</p>
+    {% endif %}
+  </section>
+</div>
+{% endif %}
 {% endblock %}

@@ -57,6 +57,27 @@ def detail(show_id):
         if row is None:
             abort(404)
 
+    extras = {"cast": [], "genres": [], "creators": [], "providers": [],
+              "provider_link": None, "trailer": None, "imdb": None,
+              "certification": None, "tagline": None, "homepage": None}
+    try:
+        payload = tmdb.show_detail(show_id)
+        names, link = tmdb.providers_from(payload)
+        extras.update(
+            cast=tmdb.cast_from(payload),
+            genres=tmdb.genres_from(payload),
+            creators=tmdb.creators_from(payload),
+            providers=names,
+            provider_link=link,
+            trailer=tmdb.trailer_from(payload),
+            imdb=tmdb.imdb_from(payload),
+            certification=tmdb.certification_from(payload),
+            tagline=payload.get("tagline") or None,
+            homepage=payload.get("homepage") or None,
+        )
+    except tmdb.TmdbError:
+        pass
+
     tracked_row = queries.show_list_state(show_id)
     return render_template(
         "pages/show.html",
@@ -69,6 +90,7 @@ def detail(show_id):
         progress=queries.show_progress(show_id),
         next_up=queries.next_unwatched(show_id),
         next_air=queries.next_airing(show_id),
+        extras=extras,
     )
 
 @bp.route("/show/<int:show_id>/track", methods=["POST"])

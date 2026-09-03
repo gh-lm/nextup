@@ -32,6 +32,29 @@
     });
   });
 
+  document.querySelectorAll('form[data-autosave]').forEach(function (form) {
+    var button = form.querySelector('button[type="submit"], button:not([type])');
+    if (button) { button.hidden = true; }
+    var pending = null;
+    form.addEventListener('change', function () {
+      window.clearTimeout(pending);
+
+      pending = window.setTimeout(function () { form.submit(); }, 250);
+    });
+  });
+
+  var clockToggle = document.querySelector('.clock-toggle');
+  if (clockToggle) {
+    var go = clockToggle.querySelector('.clock-toggle-go');
+    if (go) { go.hidden = true; }
+    clockToggle.addEventListener('change', function (event) {
+      if (event.target && event.target.name === 'clock_format') {
+        var form = document.getElementById('clock-form');
+        if (form) { form.submit(); }
+      }
+    });
+  }
+
   document.addEventListener('keydown', function (event) {
     if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) { return; }
     var tag = (document.activeElement && document.activeElement.tagName) || '';
