@@ -2,6 +2,45 @@
 
 All notable changes to Nextup are recorded here.
 
+## [1.0.0] — 2026-09-03
+
+The first release. Everything below has been in daily use on a real library of
+93 shows and 964 watched episodes before being called finished.
+
+### What it does
+- **Next up**: every show with an aired episode you have not watched, oldest
+  first, with a one-press Watched button and a count of how far behind you are.
+- **Catching up**: tick one episode, a whole season, or everything up to a given
+  episode. Unaired episodes cannot be ticked by accident and progress counts only
+  what has actually been broadcast.
+- **Episode pages** with the still, synopsis, air date, runtime, guest cast and
+  director, linked from everywhere an episode is named.
+- **Discover**: what is arriving, with a tick, a question mark and a cross on
+  each. Films are filtered to home releases rather than cinema ones. A cross
+  hides a title from Discover without deleting it.
+- **Maybe list** for shows and films you are curious about but not following.
+  They stay out of Next up, the calendar and the email.
+- **Films** split into ready to watch, coming to streaming, and seen, with the
+  UK services that carry each one.
+- **Calendar** of the month: episodes in yellow, films reaching home viewing in
+  blue, each labelled so colour is never the only signal.
+- **A morning email** with the cover, a description and a link for each thing
+  that has become watchable. Covers travel inside the message. Any send time, to
+  the minute.
+- **A watchable-after setting**, because a programme going out at eleven at
+  night is not really available until the next day.
+- **Backup and restore**: one file holds everything, and restoring is all of it
+  or none of it.
+
+### How it behaves
+- Artwork is fetched once and served by Nextup, so no page ever points a browser
+  at another host.
+- The TMDB key and the mail password are entered in the app and stored
+  encrypted, never in an environment file.
+- No analytics, no telemetry, no account with anyone.
+- Light and dark, following the system by default, with twenty accent colours.
+- Runs as a non-root user in the container, with all state in one directory.
+
 ## [0.13.1] — 2026-09-03
 
 ### Fixed
