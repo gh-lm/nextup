@@ -2,6 +2,79 @@
 
 All notable changes to Nextup are recorded here.
 
+## [1.3.0] — 2026-09-05
+
+A security and quality pass over the whole project.
+
+### Security
+- **Dependencies updated**, clearing 16 known vulnerabilities: Flask 3.0.3 to
+  3.1.3, Werkzeug 3.0.4 to 3.1.8, requests 2.32.3 to 2.34.2, cryptography 43.0.1
+  to 50.0.1, gunicorn 23 to 26.
+- **The sign-in page can no longer be used to bounce you off the site.** A
+  `next` value beginning with two slashes is a whole other website, and it was
+  being accepted. Only a plain path is now kept.
+- **Security headers on every response**: a content security policy that allows
+  scripts from nowhere but this app, plus `nosniff`, a referrer policy and a
+  refusal to be framed.
+- **The sign-in cookie can be marked Secure** with `NEXTUP_HTTPS_ONLY=1`, for
+  installations where every way in is HTTPS.
+- **Restoring a backup is now all or nothing.** Settings were written after the
+  transaction had already been committed, so a failure at that point could leave
+  you with your data back but no settings at all.
+- **The container runs read-only**, with no extra privileges and no Linux
+  capabilities. Gunicorn's control socket, the one thing that wanted to write
+  outside the data directory, is switched off.
+- **The installer is removed from the finished image.** Nothing installs
+  anything at runtime, and pip and setuptools were the only remaining things a
+  vulnerability scanner objected to. The image now scans clean.
+
+### Quality
+- **No typed glyphs anywhere.** Thirty pasted symbols in the app and twelve on
+  the website have gone. Where the shape carried meaning, such as a rating star,
+  it is now drawn; everywhere else the words already said it.
+- **Tooltips are short.** Several grew with the length of a film title, one
+  reaching 106 characters, which is what pushed them off a narrow screen. The
+  longest is now well under half that, and the full wording is still there for a
+  screen reader.
+- **Everything you tap on a phone is at least 44 pixels tall.** Buttons were 31.
+- The website said the front page listed shows oldest first, and still called
+  itself version 1.0.0.
+
+### Checked
+- Every page measured at every width from 3440 pixels down to 320, in twenty
+  pixel steps, in light and dark. No horizontal overflow anywhere.
+- 161 tests, twelve of them new and covering the security fixes above.
+
+## [1.2.0] — 2026-09-05
+
+- **Next up is one line per episode**, not one per show. A series you were eight
+  behind on took a single line, so the top of the list ran out of recent things
+  quickly and episodes from months back appeared inside the first twenty. It is
+  now a straight run of everything that has come out and is still waiting,
+  newest first, films among the episodes at the date they reached home viewing.
+- How far behind you are is shown once per show rather than on every line.
+- An **Up to here** button on every line, and long lists are paged sixty at a
+  time.
+
+## [1.1.2] — 2026-09-05
+
+- **The page stays where it was after you tick something off.** Every watched
+  button posts a form and comes back as a fresh page, which the browser drew
+  from the top, so marking off a run of episodes meant scrolling down again
+  after every click.
+
+## [1.1.1] — 2026-09-05
+
+- **Next up names the episode that has just aired**, rather than the next one
+  you had not ticked off. For a show never started that was the pilot, so a
+  series from years ago sat at the top.
+
+## [1.1.0] — 2026-09-05
+
+- **Films and episodes share one list on the front page**, newest first, each
+  saying the day it came out. Films had not been in that list at all.
+- A **Just out / Oldest first** switch, so catching up is still one click.
+
 ## [1.0.0] — 2026-09-03
 
 The first release. Everything below has been in daily use on a real library of

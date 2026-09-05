@@ -4,7 +4,7 @@
   <input type="hidden" name="theme" value="{{ next_theme }}">
   <input type="hidden" name="next" value="{{ request.full_path }}">
   <button class="btn btn-quiet btn-icon" type="submit"
-          title="Appearance: {{ theme or 'follows your system' }}. Switch to {{ next_theme or 'follow your system' }}."
+          title="Change appearance"
           aria-label="Appearance: {{ theme or 'follows your system' }}. Switch to {{ next_theme or 'follow your system' }}.">
     {% if theme == 'light' %}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">

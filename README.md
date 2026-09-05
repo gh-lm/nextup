@@ -96,6 +96,25 @@ listening publicly:
       - "127.0.0.1:4090:8080"
 ```
 
+### Locking the container down
+
+Nextup never needs to become root and only ever writes to `/data`, so the
+compose file in this repo runs it with no extra privileges, no Linux
+capabilities and a read-only filesystem:
+
+```yaml
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+```
+
+If you wrote your own compose file before, adding those four blocks is worth
+doing. Nothing else has to change.
+
 ## Configuration
 
 | Variable | Default | What it does |
@@ -103,6 +122,7 @@ listening publicly:
 | `NEXTUP_DATA_DIR` | `/data` | Where the database, encryption key and poster cache live |
 | `NEXTUP_PORT` | `8080` | Port inside the container |
 | `NEXTUP_SYNC_HOURS` | `12` | Hours between automatic refreshes |
+| `NEXTUP_HTTPS_ONLY` | `0` | Set to `1` only when every way in really is HTTPS. It marks the sign-in cookie Secure, so a browser will not send it over plain HTTP at all. Leave it off if you ever reach the container directly on `127.0.0.1:4090` |
 | `TZ` | unset | Your timezone, for example `Europe/London`. The morning email and the meaning of "today" both read the clock |
 
 Everything else — the TMDB key, your password, the accent colour — is set in the

@@ -16,8 +16,10 @@ def login():
             session.clear()
             session["logged_in"] = True
             session.permanent = True
-            target = request.args.get("next") or url_for("main.dashboard")
-            if not target.startswith("/"):
+            # A leading double slash is a protocol-relative URL, so "//evil"
+            # would send you off this site entirely. Only a plain path is kept.
+            target = request.args.get("next") or ""
+            if not target.startswith("/") or target.startswith("//"):
                 target = url_for("main.dashboard")
             return redirect(target)
         flash("Those details did not match.", "error")

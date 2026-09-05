@@ -48,10 +48,19 @@ def get(key, default=None):
         return default
 
 
+def encrypt(value):
+    """Lock a value ready for storing, without writing anything.
+
+    A restore needs this: it writes settings inside its own transaction, so it
+    cannot go through set(), which commits as it goes.
+    """
+    return _load_fernet().encrypt(value.encode()).decode()
+
+
 def set(key, value, encrypted=False):
     stored = value
     if encrypted and value:
-        stored = _load_fernet().encrypt(value.encode()).decode()
+        stored = encrypt(value)
     db.execute(
         "INSERT INTO settings (key, value, encrypted) VALUES (?, ?, ?)"
         " ON CONFLICT(key) DO UPDATE SET value = excluded.value,"

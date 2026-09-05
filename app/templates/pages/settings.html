@@ -15,11 +15,11 @@
   <h2 style="font-size:1.25rem">Morning email</h2>
   <span class="spacer"></span>
   {% if mail.enabled and mail_ready %}
-  <span class="badge badge-success">✓ On, at {{ mail.time_display }}</span>
+  <span class="badge badge-success">On, at {{ mail.time_display }}</span>
   {% elif mail_ready %}
   <span class="badge">Set up, but off</span>
   {% else %}
-  <span class="badge badge-warning">! Not set up</span>
+  <span class="badge badge-warning">Not set up</span>
   {% endif %}
   </div>
   <p class="subtle">
@@ -97,12 +97,12 @@
   Send a test
   </button>
   <button class="btn" type="submit" formaction="{{ url_for('settings.preview_mail') }}"
-  title="Build this morning's email from today's list and send it now">
+  title="Send this morning's email now">
   Send today's email now
   </button>
   <button class="btn btn-quiet" type="submit"
   formaction="{{ url_for('settings.clear_mail') }}"
-  title="Delete the mail server details, including the stored password"
+  title="Delete the mail details"
   aria-label="Delete the mail settings">Remove</button>
   {% endif %}
   </div>
@@ -183,8 +183,8 @@
   <div class="panel-head">
   <h2 style="font-size:1.25rem">TMDB key</h2>
   <span class="spacer"></span>
-  {% if has_key %}<span class="badge badge-success">✓ Saved and encrypted</span>
-  {% else %}<span class="badge badge-warning">! Not set</span>{% endif %}
+  {% if has_key %}<span class="badge badge-success">Saved and encrypted</span>
+  {% else %}<span class="badge badge-warning">Not set</span>{% endif %}
   </div>
   <p class="subtle">
   Every show, episode and cover comes from TMDB. Copy your API Key (v3 auth)
@@ -202,7 +202,7 @@
   {% if has_key %}
   <button class="btn btn-quiet" type="submit"
   formaction="{{ url_for('settings.clear_tmdb') }}"
-  title="Delete the saved key. Nothing will be able to look up shows until you add another."
+  title="Delete the saved key"
   aria-label="Delete the saved key">Remove key</button>
   {% endif %}
   </div>
@@ -219,7 +219,7 @@
   <p class="hint">
   Last run {{ last_sync.started_at[:16].replace('T', ' ') }} —
   {{ last_sync.shows_done }} show{{ '' if last_sync.shows_done == 1 else 's' }}.
-  {% if last_sync.message %}<br><span style="color:var(--danger)">! {{ last_sync.message }}</span>{% endif %}
+  {% if last_sync.message %}<br><span style="color:var(--danger)">{{ last_sync.message }}</span>{% endif %}
   </p>
   {% endif %}
   <form method="post" action="{{ url_for('settings.run_sync') }}">
@@ -296,7 +296,7 @@
   <div class="btn-row" style="margin-bottom:8px">
   <a class="btn btn-primary" href="{{ url_for('settings.export_data') }}">Download a backup</a>
   <a class="btn" href="{{ url_for('settings.export_data', secrets=1) }}"
-  title="The same file, with your TMDB key and mail password written into it as plain text">
+  title="Includes your keys in plain text">
   Include my keys
   </a>
   </div>
@@ -340,7 +340,7 @@
   <section class="panel" id="account">
   <div class="panel-head">
   <h2 style="font-size:1.25rem">Sign in</h2>
-  {% if default_password %}<span class="badge badge-warning">! Starter password</span>{% endif %}
+  {% if default_password %}<span class="badge badge-warning">Starter password</span>{% endif %}
   </div>
   <form method="post" action="{{ url_for('settings.save_account') }}">
   <div class="field">

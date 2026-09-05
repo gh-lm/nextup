@@ -1,0 +1,25 @@
+{# Line icons, drawn rather than typed. A glyph like a star or a tick pasted
+   into the markup is a font's idea of the shape, differs on every machine and
+   reads aloud as "white heavy check mark". These do not. Each is decorative:
+   the words beside it always carry the meaning. #}
+
+{% macro star() -%}
+<svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+  <path d="m12 3.6 2.5 5.3 5.7.8-4.1 4.1 1 5.8-5.1-2.8-5.1 2.8 1-5.8L3.8 9.7l5.7-.8z"/>
+</svg>
+{%- endmacro %}
+
+{% macro tick() -%}
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"
+     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="m5 13 4.5 4.5L19 7"/>
+</svg>
+{%- endmacro %}
+
+{% macro alert() -%}
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M12 4.5v9"/>
+  <path d="M12 18.4v.1"/>
+</svg>
+{%- endmacro %}

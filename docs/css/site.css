@@ -196,8 +196,9 @@ section { padding: clamp(2.75rem, 6vw, 4.5rem) 0; }
 .plain-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.875rem; }
 .plain-list li { display: grid; grid-template-columns: 1.5rem 1fr; gap: 0.625rem; align-items: start; }
 .plain-list li > * { min-width: 0; }
-.plain-list .tick { color: var(--success); font-weight: 800; }
-.plain-list .cross { color: var(--danger); font-weight: 800; }
+.plain-list .tick { color: var(--success); }
+.plain-list .cross { color: var(--danger); }
+.plain-list .tick svg, .plain-list .cross svg { width: 1.15rem; height: 1.15rem; display: block; margin-top: 0.15rem; }
 
 pre {
   margin: 0; padding: 1.125rem 1.25rem; overflow-x: auto; max-width: 100%;

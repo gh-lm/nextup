@@ -1,8 +1,9 @@
+{% import 'partials/_icons.html' as icons %}
 {# A quiet line of confirmation, shown beside whatever caused it rather than as
    a banner at the top of the page. #}
 {% macro note(item) -%}
 <p class="note note-{{ item.kind }}" role="status">
-  <span class="note-mark" aria-hidden="true">{{ '!' if item.kind == 'error' else '✓' }}</span>
+  <span class="note-mark">{{ icons.alert() if item.kind == 'error' else icons.tick() }}</span>
   <span>{{ item.message }}</span>
 </p>
 {%- endmacro %}
