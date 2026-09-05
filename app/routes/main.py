@@ -12,15 +12,20 @@ bp = Blueprint("main", __name__)
 @bp.route("/")
 @login_required
 def dashboard():
+    order = "oldest" if request.args.get("order") == "oldest" else "newest"
+    page = request.args.get("page", "1")
+    page = int(page) if page.isdigit() and 1 <= int(page) <= 10000 else 1
     return render_template(
         "pages/dashboard.html",
-        to_watch=queries.to_watch(),
+        ready=queries.ready_to_watch(order, page=page),
+        order=order,
         upcoming=queries.upcoming(days=21, limit=12),
         recent=queries.recently_watched(6),
         counts=queries.dashboard_counts(),
         has_key=secretstore.has("tmdb_api_key"),
         default_password=using_default_password(),
         last_sync=sync.last_run(),
+        provider_names=queries.provider_names,
     )
 
 

@@ -72,8 +72,9 @@ def test_status_is_still_distinguishable_without_colour():
     """Removing the edges must not leave colour as the only signal."""
     note = (CSS.parent.parent.parent / "templates" / "partials" / "_note.html").read_text()
     assert "note-mark" in note
-    # A tick for good news, an exclamation for bad, in the markup itself.
-    assert "'!' if item.kind == 'error' else" in note
+    # A drawn shape either way - alert for bad news, tick for good - so the
+    # kind of note is never carried by its colour alone.
+    assert "icons.alert() if item.kind == 'error' else icons.tick()" in note
 
 
 def test_no_decorative_underlines():

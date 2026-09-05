@@ -5,7 +5,7 @@
   <form method="post" action="{{ yes_url }}">
     <input type="hidden" name="next" value="{{ request.full_path }}">
     <button class="decide-btn decide-yes" type="submit"
-            title="Yes: add {{ title }} to my list"
+            title="Add to my list"
             aria-label="Yes, add {{ title }} to my list">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"
            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -17,7 +17,7 @@
   <form method="post" action="{{ maybe_url }}">
     <input type="hidden" name="next" value="{{ request.full_path }}">
     <button class="decide-btn decide-maybe" type="submit"
-            title="Maybe: put {{ title }} on the maybe list"
+            title="Save to the maybe list"
             aria-label="Maybe, put {{ title }} on the maybe list">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -30,7 +30,7 @@
   <form method="post" action="{{ no_url }}">
     <input type="hidden" name="next" value="{{ request.full_path }}">
     <button class="decide-btn decide-no" type="submit"
-            title="No: do not show {{ title }} here again. It will still turn up in a search."
+            title="Hide from Discover"
             aria-label="No, hide {{ title }} from Discover">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"
            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

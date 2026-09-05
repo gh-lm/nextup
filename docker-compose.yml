@@ -3,8 +3,18 @@ services:
     image: ghcr.io/lightmorphic/nextup:latest
     container_name: nextup
     restart: unless-stopped
+    # Bound to this machine only. Something in front of it - Tailscale Serve, a
+    # reverse proxy - is what makes it reachable, and does the TLS.
     ports:
-      - "4090:8080"
+      - "127.0.0.1:4090:8080"
+    # It never needs to become root, and it only ever writes to /data.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
     volumes:
       - /opt/nextup:/data
     environment:

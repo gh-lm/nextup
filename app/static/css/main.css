@@ -290,6 +290,10 @@ textarea { min-height: 120px; resize: vertical; }
   background: var(--muted); color: var(--muted-fg);
   white-space: nowrap;
 }
+/* Drawn icons, sized to sit on the line of the text beside them. */
+.icon { width: 1em; height: 1em; flex: none; }
+.badge .icon { width: 0.95em; height: 0.95em; }
+
 .badge-accent { background: var(--accent-container); color: var(--on-accent-container); }
 .badge-success { background: var(--success-bg); color: var(--success); }
 .badge-warning { background: var(--warning-bg); color: var(--warning); }
@@ -311,7 +315,7 @@ textarea { min-height: 120px; resize: vertical; }
   animation: note-in .16s ease-out;
 }
 .notes .note:first-child { margin-top: 0; }
-.note-mark { flex: none; font-weight: 800; }
+.note-mark { flex: none; display: inline-flex; align-items: center; height: 1.35em; }
 .note-success .note-mark { color: var(--success); }
 .note-error .note-mark { color: var(--danger); }
 .note-info .note-mark { color: var(--info); }
@@ -561,6 +565,22 @@ textarea { min-height: 120px; resize: vertical; }
 
 /* Below this the poster and the text are both too narrow side by side, so the
    poster goes above and the synopsis gets the full width. */
+/* On a phone every control is at least 44px tall, so it can be hit with a
+   thumb. Plain text links inside a sentence are left alone - stretching those
+   would put gaps through the prose. */
+@media (max-width: 560px) {
+  .btn, .btn-small, .tabs a { min-height: 44px; }
+  .btn-small { padding-top: 0; padding-bottom: 0; }
+  .tabs a { display: inline-flex; align-items: center; }
+  .tick { width: 44px; height: 44px; }
+  /* Card titles are links in their own right rather than words in a sentence,
+     so they need to clear the 24px minimum too. Their line height alone left
+     them a couple of pixels short. */
+  .watch-card-show, .show-tile-name, .discover-card-name {
+    display: inline-block; padding: 3px 0;
+  }
+}
+
 @media (max-width: 520px) {
   .show-hero { grid-template-columns: 1fr; gap: 16px; }
   .show-hero .poster { width: 148px; }

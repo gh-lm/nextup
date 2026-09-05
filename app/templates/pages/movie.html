@@ -1,4 +1,5 @@
 {% extends 'layout/base.html' %}
+{% import 'partials/_icons.html' as icons %}
 {% block title %}{{ movie.title }} — Nextup{% endblock %}
 {% block body %}
 <article class="panel">
@@ -16,22 +17,22 @@
         {% if movie.runtime %}<span class="badge">{{ movie.runtime }} min</span>{% endif %}
         {% if extras.certification %}<span class="badge">{{ extras.certification }}</span>{% endif %}
         {% for genre in extras.genres %}<span class="badge">{{ genre }}</span>{% endfor %}
-        {% if movie.vote_average %}<span class="badge">★ {{ '%.1f'|format(movie.vote_average) }}</span>{% endif %}
-        {% if tracked and tracked.watched_at %}<span class="badge badge-success">✓ Watched</span>{% endif %}
+        {% if movie.vote_average %}<span class="badge">{{ icons.star() }}{{ '%.1f'|format(movie.vote_average) }}</span>{% endif %}
+        {% if tracked and tracked.watched_at %}<span class="badge badge-success">Watched</span>{% endif %}
         {% if shortlisted %}<span class="badge badge-accent">On your maybe list</span>{% endif %}
       </div>
 
       <div class="show-hero-meta">
         {% if providers %}
-          {% for name in providers %}<span class="badge badge-success">✓ On {{ name }}</span>{% endfor %}
+          {% for name in providers %}<span class="badge badge-success">On {{ name }}</span>{% endfor %}
         {% elif movie.digital_release %}
           {% if streamable %}
-            <span class="badge badge-success">✓ Out for home viewing since {{ movie.digital_release|pretty_date }}</span>
+            <span class="badge badge-success">Out for home viewing since {{ movie.digital_release|pretty_date }}</span>
           {% else %}
             <span class="badge badge-info">Streaming {{ movie.digital_release|relative_day }}, {{ movie.digital_release|pretty_date }}</span>
           {% endif %}
         {% elif tracked %}
-          <span class="badge badge-warning">! No streaming date announced yet</span>
+          <span class="badge badge-warning">No streaming date announced yet</span>
         {% endif %}
       </div>
       {% if extras.tagline %}<p class="tagline">{{ extras.tagline }}</p>{% endif %}

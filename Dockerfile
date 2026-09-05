@@ -5,8 +5,12 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir --upgrade pip \
- && pip install --no-cache-dir -r /tmp/requirements.txt
+RUN pip install --no-cache-dir --upgrade pip setuptools \
+ && pip install --no-cache-dir -r /tmp/requirements.txt \
+ # Nothing installs anything at runtime, so the installer itself is dropped.
+ # It is the only reason setuptools and pip's vendored libraries were in the
+ # finished image, and they were the bulk of what a scanner complained about.
+ && pip uninstall -y pip setuptools wheel 2>/dev/null || true
 
 # ---- Final stage: runtime only ----
 FROM python:3.12-slim-bookworm
@@ -40,5 +44,9 @@ HEALTHCHECK --interval=60s --timeout=10s --start-period=20s --retries=3 \
 
 # One worker, several threads: the background refresh thread should exist once,
 # and SQLite is happiest with a single writer process.
+# --no-control-socket: nothing here drives gunicorn through its control
+# interface, and it is the one thing that wants to write outside /data, which
+# stops the container running with a read-only filesystem.
 CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "8", \
-     "--timeout", "180", "--access-logfile", "-", "wsgi:application"]
+     "--timeout", "180", "--no-control-socket", "--access-logfile", "-", \
+     "wsgi:application"]

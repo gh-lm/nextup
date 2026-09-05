@@ -36,7 +36,7 @@
       "operatingSystem": "Linux, via Docker",
       "description": "A self-hosted tracker for TV shows and films. It records which episodes you have watched, shows the next one to watch, lists when new episodes air, tells you when a film reaches streaming in the UK, and emails you each morning.",
       "license": "https://www.gnu.org/licenses/gpl-3.0.html",
-      "softwareVersion": "1.0.0",
+      "softwareVersion": "1.2.0",
       "codeRepository": "https://github.com/lightmorphic/nextup",
       "programmingLanguage": "Python",
       "isAccessibleForFree": true,
@@ -153,10 +153,10 @@
   <figure>
     <div class="shot">
       <img src="images/nextup-dashboard.webp"
-           alt="The Nextup dashboard. A list of shows, each with the exact episode to watch next, how many you are behind, a progress bar and a Watched button. A panel beside it lists episodes airing in the next few days."
+           alt="The Nextup dashboard. A list of everything waiting, newest first, each line naming the episode or film and the day it came out, with how far behind you are, a progress bar and a Watched button. A panel beside it lists episodes airing in the next few days."
            width="1800" height="1250" fetchpriority="high" decoding="async">
     </div>
-    <figcaption>The first screen. Every show with something waiting, oldest first.</figcaption>
+    <figcaption>The first screen. Everything that has come out and is still waiting, newest first, films among the episodes.</figcaption>
   </figure>
 </div>
 
@@ -322,13 +322,13 @@
       </p>
     </div>
     <ul class="plain-list">
-      <li><span class="tick" aria-hidden="true">&#10003;</span><span><b>Artwork is fetched once and then served by Nextup itself.</b> Covers are cached in your data directory, so no page in the app ever points your browser at a third-party host, and the email carries its pictures inside the message.</span></li>
-      <li><span class="tick" aria-hidden="true">&#10003;</span><span><b>The only outbound calls are to TMDB</b>, made by your server, to look up the shows and films you asked for and to ask when a film reaches streaming.</span></li>
-      <li><span class="cross" aria-hidden="true">&#10007;</span><span><b>No analytics, no telemetry, no crash reporting</b> and no third-party scripts, in the app or on this page.</span></li>
-      <li><span class="cross" aria-hidden="true">&#10007;</span><span><b>No account with us</b>, because there is no us. Nextup has no server of its own to phone.</span></li>
-      <li><span class="tick" aria-hidden="true">&#10003;</span><span><b>Two cookies, both yours.</b> One keeps you signed in, one remembers whether you chose light or dark. Neither leaves your server and neither tracks anything.</span></li>
-      <li><span class="tick" aria-hidden="true">&#10003;</span><span><b>One directory to back up.</b> The database, the encryption key and the cached artwork all sit in the folder you mounted.</span></li>
-      <li><span class="tick" aria-hidden="true">&#10003;</span><span><b>One button to take it all with you.</b> Everything you added, everything you watched and how you like it set up comes out as a single file. Put that on another machine and you carry on where you left off.</span></li>
+      <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>Artwork is fetched once and then served by Nextup itself.</b> Covers are cached in your data directory, so no page in the app ever points your browser at a third-party host, and the email carries its pictures inside the message.</span></li>
+      <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>The only outbound calls are to TMDB</b>, made by your server, to look up the shows and films you asked for and to ask when a film reaches streaming.</span></li>
+      <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>No analytics, no telemetry, no crash reporting</b> and no third-party scripts, in the app or on this page.</span></li>
+      <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>No account with us</b>, because there is no us. Nextup has no server of its own to phone.</span></li>
+      <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>Two cookies, both yours.</b> One keeps you signed in, one remembers whether you chose light or dark. Neither leaves your server and neither tracks anything.</span></li>
+      <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>One directory to back up.</b> The database, the encryption key and the cached artwork all sit in the folder you mounted.</span></li>
+      <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>One button to take it all with you.</b> Everything you added, everything you watched and how you like it set up comes out as a single file. Put that on another machine and you carry on where you left off.</span></li>
     </ul>
   </div>
 </section>
@@ -417,11 +417,11 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
       <p>Worth knowing before you spend those five minutes.</p>
     </div>
     <ul class="plain-list">
-      <li><span class="cross" aria-hidden="true">&#10007;</span><span><b>It does not play anything.</b> No streams, no downloads, no links to either. It is a record of what you watched, wherever you watched it.</span></li>
-      <li><span class="cross" aria-hidden="true">&#10007;</span><span><b>One person, one list.</b> There is a single account. A household sharing it shares one watch history.</span></li>
-      <li><span class="cross" aria-hidden="true">&#10007;</span><span><b>There is no import yet.</b> Coming from another tracker means re-entering your history. The season and Up to here buttons make that quicker than it sounds.</span></li>
-      <li><span class="cross" aria-hidden="true">&#10007;</span><span><b>No push notifications.</b> One email in the morning, or nothing. It will not buzz your phone when an episode lands.</span></li>
-      <li><span class="cross" aria-hidden="true">&#10007;</span><span><b>It is not hosted for you.</b> There is no signup page and no service to join. You run it yourself or you do not run it.</span></li>
+      <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>It does not play anything.</b> No streams, no downloads, no links to either. It is a record of what you watched, wherever you watched it.</span></li>
+      <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>One person, one list.</b> There is a single account. A household sharing it shares one watch history.</span></li>
+      <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>There is no import yet.</b> Coming from another tracker means re-entering your history. The season and Up to here buttons make that quicker than it sounds.</span></li>
+      <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>No push notifications.</b> One email in the morning, or nothing. It will not buzz your phone when an episode lands.</span></li>
+      <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>It is not hosted for you.</b> There is no signup page and no service to join. You run it yourself or you do not run it.</span></li>
     </ul>
   </div>
 </section>

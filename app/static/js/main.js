@@ -1,7 +1,55 @@
-/* Two small conveniences. Everything works without this file. */
+/* A few small conveniences. Everything works without this file. */
 
 (function () {
   'use strict';
+
+  // Ticking something off posts the form and comes back as a fresh page, which
+  // the browser draws from the top. Marking off a run of episodes then means
+  // scrolling down again after every click. So we note where the page was as it
+  // leaves and put it back where it was on the way in.
+  var SCROLL_KEY = 'nextup:scroll';
+
+  function rememberScroll() {
+    try {
+      window.sessionStorage.setItem(SCROLL_KEY, JSON.stringify({
+        path: window.location.pathname,
+        y: window.scrollY || document.documentElement.scrollTop || 0
+      }));
+    } catch (error) { /* private browsing, or storage turned off */ }
+  }
+
+  function takeRememberedScroll() {
+    var raw = null;
+    try {
+      raw = window.sessionStorage.getItem(SCROLL_KEY);
+      window.sessionStorage.removeItem(SCROLL_KEY);
+    } catch (error) { return 0; }
+    if (!raw) { return 0; }
+    var saved = null;
+    try { saved = JSON.parse(raw); } catch (error) { return 0; }
+    if (!saved || saved.path !== window.location.pathname) { return 0; }
+    return saved.y > 0 ? saved.y : 0;
+  }
+
+  // Every ordinary form post, plus the two places below that submit a form
+  // themselves, since doing that in script raises no submit event.
+  document.addEventListener('submit', rememberScroll, true);
+
+  var wanted = takeRememberedScroll();
+  if (wanted) {
+    window.scrollTo(0, wanted);
+
+    // Posters arrive late and can make the page taller, so put it back once
+    // more when everything has loaded, unless you have already moved on.
+    var moved = false;
+    var noteMove = function () { moved = true; };
+    ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(function (name) {
+      window.addEventListener(name, noteMove, { passive: true, once: true });
+    });
+    window.addEventListener('load', function () {
+      if (!moved) { window.scrollTo(0, wanted); }
+    });
+  }
 
   // Destructive buttons ask for a second, deliberate click rather than
   // throwing up a browser dialog. Reverts on its own after a few seconds.
@@ -45,7 +93,7 @@
     form.addEventListener('change', function () {
       window.clearTimeout(pending);
       // A moment's grace, so typing into a number box does not save twice.
-      pending = window.setTimeout(function () { form.submit(); }, 250);
+      pending = window.setTimeout(function () { rememberScroll(); form.submit(); }, 250);
     });
   });
 
@@ -58,7 +106,7 @@
     clockToggle.addEventListener('change', function (event) {
       if (event.target && event.target.name === 'clock_format') {
         var form = document.getElementById('clock-form');
-        if (form) { form.submit(); }
+        if (form) { rememberScroll(); form.submit(); }
       }
     });
   }

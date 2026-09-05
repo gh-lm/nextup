@@ -17,7 +17,7 @@
       {% set names = provider_names(film) %}
       <div class="show-tile-badges">
         {% if names %}
-          {% for name in names[:3] %}<span class="badge badge-success">✓ {{ name }}</span>{% endfor %}
+          {% for name in names[:3] %}<span class="badge badge-success">{{ name }}</span>{% endfor %}
         {% elif film.digital_release %}
           <span class="badge badge-info">Streaming {{ film.digital_release|short_date }}</span>
         {% else %}
@@ -95,7 +95,7 @@
           <form method="post" action="{{ url_for('movies.refresh', movie_id=film.id) }}">
             <input type="hidden" name="next" value="{{ request.full_path }}">
             <button class="btn btn-small btn-quiet" type="submit"
-                    title="Ask TMDB again whether a streaming date has been set"
+                    title="Check TMDB for a date"
                     aria-label="Check {{ film.title }} for a streaming date">Check now</button>
           </form>
         </div>

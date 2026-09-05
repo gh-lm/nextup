@@ -38,17 +38,17 @@
                 {% for ep in day.episodes %}
                   <a class="cal-ep {{ 'done' if ep.watched else '' }}"
                      href="{{ url_for('shows.episode', episode_id=ep.id) }}"
-                     title="TV: {{ ep.show_name }} {{ ep|episode_code }} — {{ ep.name or '' }}">
+                     title="{{ ep.show_name }} {{ ep|episode_code }}">
                     {{ ep.show_name }}
-                    <small>{{ ep|episode_code }}{% if ep.watched %} ✓ watched{% endif %}</small>
+                    <small>{{ ep|episode_code }}{% if ep.watched %} watched{% endif %}</small>
                   </a>
                 {% endfor %}
                 {% for film in day.films %}
                   <a class="cal-ep cal-film {{ 'done' if film.watched_at else '' }}"
                      href="{{ url_for('movies.detail', movie_id=film.id) }}"
-                     title="Film: {{ film.title }} reaches home viewing on {{ film.digital_release|pretty_date }}">
+                     title="{{ film.title }}">
                     {{ film.title }}
-                    <small>Film{% if film.watched_at %} ✓ watched{% endif %}</small>
+                    <small>Film{% if film.watched_at %} watched{% endif %}</small>
                   </a>
                 {% endfor %}
               </td>

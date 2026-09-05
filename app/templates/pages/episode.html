@@ -1,4 +1,5 @@
 {% extends 'layout/base.html' %}
+{% import 'partials/_icons.html' as icons %}
 {% block title %}{{ show.name }} {{ episode|episode_code }} — Nextup{% endblock %}
 {% block body %}
 
@@ -30,8 +31,8 @@
       <span class="badge">Date to be announced</span>
     {% endif %}
     {% if episode.runtime %}<span class="badge">{{ episode.runtime }} min</span>{% endif %}
-    {% if rating %}<span class="badge">★ {{ '%.1f'|format(rating) }}</span>{% endif %}
-    {% if episode.watched %}<span class="badge badge-success">✓ Watched</span>{% endif %}
+    {% if rating %}<span class="badge">{{ icons.star() }}{{ '%.1f'|format(rating) }}</span>{% endif %}
+    {% if episode.watched %}<span class="badge badge-success">Watched</span>{% endif %}
   </div>
 
   {% if episode.overview %}
@@ -52,7 +53,7 @@
         <form method="post" action="{{ url_for('shows.watch_through', show_id=show.id, episode_id=episode.id) }}">
           <input type="hidden" name="next" value="{{ request.full_path }}">
           <button class="btn" type="submit"
-                  title="Mark this episode and everything before it as watched">Up to here</button>
+                  title="Marks this and everything before it">Up to here</button>
         </form>
       {% endif %}
       <a class="btn btn-quiet" href="{{ url_for('shows.detail', show_id=show.id) }}">All episodes</a>

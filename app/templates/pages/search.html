@@ -1,4 +1,5 @@
 {% extends 'layout/base.html' %}
+{% import 'partials/_icons.html' as icons %}
 {% block title %}{{ 'Search: ' ~ term if term else 'Search' }} — Nextup{% endblock %}
 {% block body %}
 <div class="page-head">
@@ -39,8 +40,8 @@
             <div class="watch-card-meta">
               <span class="badge {{ 'badge-accent' if item.kind == 'tv' else '' }}">{{ 'TV show' if item.kind == 'tv' else 'Film' }}</span>
               {% if item.date %}<span class="badge">{{ item.date|year }}</span>{% endif %}
-              {% if item.vote_average %}<span class="badge">★ {{ '%.1f'|format(item.vote_average) }}</span>{% endif %}
-              {% if item.tracked %}<span class="badge badge-success">✓ On your list</span>{% endif %}
+              {% if item.vote_average %}<span class="badge">{{ icons.star() }}{{ '%.1f'|format(item.vote_average) }}</span>{% endif %}
+              {% if item.tracked %}<span class="badge badge-success">On your list</span>{% endif %}
             </div>
             {% if item.overview %}<p>{{ item.overview }}</p>{% endif %}
           </div>
@@ -56,7 +57,7 @@
                   <input type="hidden" name="next" value="{{ request.full_path }}">
                   <input type="hidden" name="list" value="maybe">
                   <button class="btn btn-small" type="submit"
-                          title="Save it for later without it appearing in Next up">Maybe</button>
+                          title="Save for later, out of Next up">Maybe</button>
                 </form>
               {% endif %}
             {% else %}
