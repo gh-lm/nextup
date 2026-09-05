@@ -34,13 +34,13 @@
       </div>
       <div class="show-tile-meta">{{ item.progress.watched }} of {{ item.progress.aired }} aired</div>
       <div class="show-tile-badges">
-        {% if show.favourite %}<span class="badge badge-accent">★ Favourite</span>{% endif %}
+        {% if show.favourite %}<span class="badge badge-accent">Favourite</span>{% endif %}
         {% if item.progress.remaining %}
-          <span class="badge badge-warning">! {{ item.progress.remaining }} to watch</span>
+          <span class="badge badge-warning">{{ item.progress.remaining }} to watch</span>
         {% elif item.next_air %}
           <span class="badge badge-info">Next {{ item.next_air.air_date|short_date }}</span>
         {% elif item.progress.complete %}
-          <span class="badge badge-success">✓ Caught up</span>
+          <span class="badge badge-success">Caught up</span>
         {% endif %}
       </div>
     </article>

@@ -111,6 +111,67 @@ def to_watch():
     out.sort(key=lambda item: (item["episode"]["air_date"] or "9999-99-99"))
     return out
 
+def ready_to_watch(order="newest", page=1, per_page=60):
+    cutoff = available_cutoff_iso()
+    episodes = db.query(
+        """
+        SELECT e.*, s.name AS show_name, s.poster_path AS show_poster
+        FROM episode e
+        JOIN show s ON s.id = e.show_id
+        JOIN tracked_show t ON t.show_id = e.show_id
+             AND t.archived = 0 AND t.shortlist = 0
+        LEFT JOIN watched_episode w ON w.episode_id = e.id
+        WHERE w.episode_id IS NULL AND e.season_number > 0
+          AND e.air_date IS NOT NULL AND e.air_date <= ?
+        ORDER BY e.air_date DESC
+        """,
+        (cutoff,),
+    )
+
+    items = [
+        {
+            "kind": "episode",
+            "date": row["air_date"],
+            "show_id": row["show_id"],
+            "show_name": row["show_name"],
+            "poster_path": row["show_poster"],
+            "episode": row,
+        }
+        for row in episodes
+    ]
+    for film in movies(watched=False, shortlist=False):
+        if is_streamable(film):
+            items.append({"kind": "film", "date": film["digital_release"], "film": film})
+
+    missing = "0000-00-00" if order == "newest" else "9999-99-99"
+    items.sort(key=lambda item: (item["date"] or missing), reverse=(order == "newest"))
+
+    total = len(items)
+    pages = max(1, -(-total // per_page))
+    page = max(1, min(page, pages))
+    start = (page - 1) * per_page
+    window = items[start : start + per_page]
+
+    progress_cache, seen = {}, set()
+    for item in window:
+        if item["kind"] != "episode":
+            continue
+        show_id = item["show_id"]
+        if show_id not in progress_cache:
+            progress_cache[show_id] = show_progress(show_id)
+        item["progress"] = progress_cache[show_id]
+        item["lead"] = show_id not in seen
+        seen.add(show_id)
+
+    return {
+        "rows": window,
+        "total": total,
+        "page": page,
+        "pages": pages,
+        "first": start + 1 if window else 0,
+        "last": start + len(window),
+    }
+
 def available_today():
     cutoff = available_cutoff_iso()
     episodes = db.query(

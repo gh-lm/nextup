@@ -265,6 +265,10 @@ textarea { min-height: 120px; resize: vertical; }
   background: var(--muted); color: var(--muted-fg);
   white-space: nowrap;
 }
+
+.icon { width: 1em; height: 1em; flex: none; }
+.badge .icon { width: 0.95em; height: 0.95em; }
+
 .badge-accent { background: var(--accent-container); color: var(--on-accent-container); }
 .badge-success { background: var(--success-bg); color: var(--success); }
 .badge-warning { background: var(--warning-bg); color: var(--warning); }
@@ -282,7 +286,7 @@ textarea { min-height: 120px; resize: vertical; }
   animation: note-in .16s ease-out;
 }
 .notes .note:first-child { margin-top: 0; }
-.note-mark { flex: none; font-weight: 800; }
+.note-mark { flex: none; display: inline-flex; align-items: center; height: 1.35em; }
 .note-success .note-mark { color: var(--success); }
 .note-error .note-mark { color: var(--danger); }
 .note-info .note-mark { color: var(--info); }
@@ -502,6 +506,17 @@ textarea { min-height: 120px; resize: vertical; }
   .split { grid-template-columns: 1fr; }
   .show-hero { grid-template-columns: 132px 1fr; gap: 18px; }
   .show-hero .poster { width: 132px; }
+}
+
+@media (max-width: 560px) {
+  .btn, .btn-small, .tabs a { min-height: 44px; }
+  .btn-small { padding-top: 0; padding-bottom: 0; }
+  .tabs a { display: inline-flex; align-items: center; }
+  .tick { width: 44px; height: 44px; }
+
+  .watch-card-show, .show-tile-name, .discover-card-name {
+    display: inline-block; padding: 3px 0;
+  }
 }
 
 @media (max-width: 520px) {

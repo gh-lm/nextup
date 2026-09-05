@@ -39,10 +39,13 @@ def get(key, default=None):
     except (InvalidToken, ValueError):
         return default
 
+def encrypt(value):
+    return _load_fernet().encrypt(value.encode()).decode()
+
 def set(key, value, encrypted=False):
     stored = value
     if encrypted and value:
-        stored = _load_fernet().encrypt(value.encode()).decode()
+        stored = encrypt(value)
     db.execute(
         "INSERT INTO settings (key, value, encrypted) VALUES (?, ?, ?)"
         " ON CONFLICT(key) DO UPDATE SET value = excluded.value,"

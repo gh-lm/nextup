@@ -1,6 +1,46 @@
-/* Two small conveniences. Everything works without this file. */
+/* A few small conveniences. Everything works without this file. */
 (function () {
   'use strict';
+
+  var SCROLL_KEY = 'nextup:scroll';
+
+  function rememberScroll() {
+    try {
+      window.sessionStorage.setItem(SCROLL_KEY, JSON.stringify({
+        path: window.location.pathname,
+        y: window.scrollY || document.documentElement.scrollTop || 0
+      }));
+    } catch (error) {  }
+  }
+
+  function takeRememberedScroll() {
+    var raw = null;
+    try {
+      raw = window.sessionStorage.getItem(SCROLL_KEY);
+      window.sessionStorage.removeItem(SCROLL_KEY);
+    } catch (error) { return 0; }
+    if (!raw) { return 0; }
+    var saved = null;
+    try { saved = JSON.parse(raw); } catch (error) { return 0; }
+    if (!saved || saved.path !== window.location.pathname) { return 0; }
+    return saved.y > 0 ? saved.y : 0;
+  }
+
+  document.addEventListener('submit', rememberScroll, true);
+
+  var wanted = takeRememberedScroll();
+  if (wanted) {
+    window.scrollTo(0, wanted);
+
+    var moved = false;
+    var noteMove = function () { moved = true; };
+    ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(function (name) {
+      window.addEventListener(name, noteMove, { passive: true, once: true });
+    });
+    window.addEventListener('load', function () {
+      if (!moved) { window.scrollTo(0, wanted); }
+    });
+  }
 
   document.querySelectorAll('form[data-confirm] button').forEach(function (button) {
     var original = button.textContent.trim();
@@ -39,7 +79,7 @@
     form.addEventListener('change', function () {
       window.clearTimeout(pending);
 
-      pending = window.setTimeout(function () { form.submit(); }, 250);
+      pending = window.setTimeout(function () { rememberScroll(); form.submit(); }, 250);
     });
   });
 
@@ -50,7 +90,7 @@
     clockToggle.addEventListener('change', function (event) {
       if (event.target && event.target.name === 'clock_format') {
         var form = document.getElementById('clock-form');
-        if (form) { form.submit(); }
+        if (form) { rememberScroll(); form.submit(); }
       }
     });
   }

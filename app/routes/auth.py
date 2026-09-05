@@ -15,8 +15,8 @@ def login():
             session.clear()
             session["logged_in"] = True
             session.permanent = True
-            target = request.args.get("next") or url_for("main.dashboard")
-            if not target.startswith("/"):
+            target = request.args.get("next") or ""
+            if not target.startswith("/") or target.startswith("//"):
                 target = url_for("main.dashboard")
             return redirect(target)
         flash("Those details did not match.", "error")

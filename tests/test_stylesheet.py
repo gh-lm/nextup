@@ -52,7 +52,7 @@ def test_no_coloured_edges_anywhere():
 def test_status_is_still_distinguishable_without_colour():
     note = (CSS.parent.parent.parent / "templates" / "partials" / "_note.html").read_text()
     assert "note-mark" in note
-    assert "'!' if item.kind == 'error' else" in note
+    assert "icons.alert() if item.kind == 'error' else icons.tick()" in note
 
 def test_no_decorative_underlines():
     offenders = []

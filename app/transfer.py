@@ -93,6 +93,14 @@ def _insert(conn, table, rows):
         written += 1
     return written
 
+def _put_setting(conn, key, stored_value, encrypted):
+    conn.execute(
+        "INSERT INTO settings (key, value, encrypted) VALUES (?, ?, ?)"
+        " ON CONFLICT(key) DO UPDATE SET value = excluded.value,"
+        " encrypted = excluded.encrypted",
+        (str(key), stored_value, 1 if encrypted else 0),
+    )
+
 def import_data(payload):
     _check(payload)
     data = payload["data"]
@@ -116,22 +124,22 @@ def import_data(payload):
             )
             restored["account"] = 1
 
+        settings = data.get("settings")
+        if isinstance(settings, dict):
+            for key, value in settings.items():
+                _put_setting(conn, key, str(value), encrypted=False)
+            restored["settings"] = len(settings)
+
+        secrets = data.get("secrets")
+        if isinstance(secrets, dict):
+            for key, value in secrets.items():
+                _put_setting(conn, key, secretstore.encrypt(str(value)), encrypted=True)
+            restored["secrets"] = len(secrets)
+
         conn.commit()
     except Exception as exc:  # noqa: BLE001 - anything at all means put it back
         conn.rollback()
         raise ImportError_(f"Nothing was changed. The backup could not be read: {exc}") from exc
-
-    settings = data.get("settings")
-    if isinstance(settings, dict):
-        for key, value in settings.items():
-            secretstore.set(key, str(value))
-        restored["settings"] = len(settings)
-
-    secrets = data.get("secrets")
-    if isinstance(secrets, dict):
-        for key, value in secrets.items():
-            secretstore.set(key, str(value), encrypted=True)
-        restored["secrets"] = len(secrets)
 
     return restored
 

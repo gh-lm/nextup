@@ -9,6 +9,8 @@ KEY_PATH = os.path.join(DATA_DIR, "secret.key")
 HOST = os.environ.get("NEXTUP_HOST", "0.0.0.0")
 PORT = int(os.environ.get("NEXTUP_PORT", "8080"))
 
+HTTPS_ONLY = os.environ.get("NEXTUP_HTTPS_ONLY", "0").strip().lower() in {"1", "true", "yes", "on"}
+
 SYNC_INTERVAL_HOURS = int(os.environ.get("NEXTUP_SYNC_HOURS", "12"))
 
 DEFAULT_USERNAME = "admin"

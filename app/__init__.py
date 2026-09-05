@@ -37,6 +37,7 @@ def create_app(start_sync=True):
         SECRET_KEY=_session_secret(),
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
+        SESSION_COOKIE_SECURE=config.HTTPS_ONLY,
         MAX_CONTENT_LENGTH=64 * 1024 * 1024,
         JSON_SORT_KEYS=False,
         TEMPLATES_AUTO_RELOAD=False,
@@ -63,6 +64,7 @@ def create_app(start_sync=True):
 
     _register_filters(app)
     _register_context(app)
+    _register_headers(app)
 
     if start_sync:
         from . import mailer, sync
@@ -71,6 +73,28 @@ def create_app(start_sync=True):
         mailer.start_background(app)
 
     return app
+
+CSP = (
+    "default-src 'self'; "
+    "script-src 'self'; "
+    "style-src 'self' 'unsafe-inline'; "
+    "img-src 'self'; "
+    "font-src 'self'; "
+    "connect-src 'self'; "
+    "form-action 'self'; "
+    "frame-ancestors 'none'; "
+    "base-uri 'none'; "
+    "object-src 'none'"
+)
+
+def _register_headers(app):
+    @app.after_request
+    def security_headers(response):
+        response.headers.setdefault("Content-Security-Policy", CSP)
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("Referrer-Policy", "same-origin")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        return response
 
 def _register_filters(app):
     @app.template_filter("pretty_date")

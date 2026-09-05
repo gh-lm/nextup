@@ -1,4 +1,5 @@
 {% extends 'layout/base.html' %}
+{% import 'partials/_icons.html' as icons %}
 {% block title %}{{ show.name }} — Nextup{% endblock %}
 {% block body %}
 
@@ -18,13 +19,13 @@
         {% for genre in extras.genres %}<span class="badge">{{ genre }}</span>{% endfor %}
         {% if show.network %}<span class="badge">{{ show.network }}</span>{% endif %}
         {% if show.status %}<span class="badge">{{ show.status }}</span>{% endif %}
-        {% if show.vote_average %}<span class="badge">★ {{ '%.1f'|format(show.vote_average) }}</span>{% endif %}
+        {% if show.vote_average %}<span class="badge">{{ icons.star() }}{{ '%.1f'|format(show.vote_average) }}</span>{% endif %}
         {% if shortlisted %}<span class="badge badge-accent">On your maybe list</span>{% endif %}
         {% if tracked and not shortlisted %}
           {% if progress.remaining %}
-            <span class="badge badge-warning">! {{ progress.remaining }} to watch</span>
+            <span class="badge badge-warning">{{ progress.remaining }} to watch</span>
           {% elif progress.complete %}
-            <span class="badge badge-success">✓ Caught up</span>
+            <span class="badge badge-success">Caught up</span>
           {% endif %}
         {% endif %}
       </div>
@@ -35,7 +36,7 @@
       {% if extras.providers %}
         <p class="subtle" style="margin-bottom:6px">
           <strong>Watch it on:</strong>
-          {% for name in extras.providers %}<span class="badge badge-success">✓ {{ name }}</span> {% endfor %}
+          {% for name in extras.providers %}<span class="badge badge-success">{{ name }}</span> {% endfor %}
         </p>
       {% endif %}
 
@@ -66,12 +67,12 @@
           {% endif %}
           <form method="post" action="{{ url_for('shows.toggle_maybe', show_id=show.id) }}">
             <button class="btn" type="submit"
-                    title="{{ 'Follow this show properly, so it appears in Next up' if shortlisted else 'Park this on the maybe list, out of Next up and the calendar' }}">
+                    title="{{ 'Follow this show' if shortlisted else 'Move to the maybe list' }}">
               {{ 'Start watching' if shortlisted else 'Move to maybe' }}
             </button>
           </form>
           <form method="post" action="{{ url_for('shows.favourite', show_id=show.id) }}">
-            <button class="btn" type="submit">{{ '★ Favourite' if not show_favourite else '☆ Unfavourite' }}</button>
+            <button class="btn" type="submit">{{ 'Favourite' if not show_favourite else 'Unfavourite' }}</button>
           </form>
           <form method="post" action="{{ url_for('shows.refresh', show_id=show.id) }}">
             <button class="btn" type="submit">Refresh from TMDB</button>
@@ -82,7 +83,7 @@
           <form method="post" action="{{ url_for('shows.untrack', show_id=show.id) }}" data-confirm>
             <button class="btn btn-quiet" type="submit"
                     data-confirm-label="Really remove? This deletes your watched history for this show."
-                    title="Remove this show and delete every episode you have ticked off. This cannot be undone."
+                    title="Cannot be undone"
                     aria-label="Remove this show and delete every episode you have ticked off. This cannot be undone.">
               Remove
             </button>
@@ -94,7 +95,7 @@
           <form method="post" action="{{ url_for('shows.track', show_id=show.id) }}">
             <input type="hidden" name="list" value="maybe">
             <button class="btn" type="submit"
-                    title="Save it for later without it appearing in Next up">Add to maybe</button>
+                    title="Save for later, out of Next up">Add to maybe</button>
           </form>
         {% endif %}
       </div>
@@ -152,7 +153,7 @@
            stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
       {{ 'Specials' if season.number == 0 else 'Season ' ~ season.number }}
       <span class="badge">{{ season.watched_count }} / {{ season.aired_count }} aired</span>
-      {% if season.complete %}<span class="badge badge-success">✓ Done</span>{% endif %}
+      {% if season.complete %}<span class="badge badge-success">Done</span>{% endif %}
       <span class="spacer"></span>
       {% if tracked %}
         <span class="btn-row">
@@ -182,14 +183,14 @@
               {% if aired %}{{ ep.air_date|pretty_date }}
               {% elif ep.air_date %}Airs {{ ep.air_date|relative_day }}
               {% else %}Date to be announced{% endif %}
-              {% if ep.watched %} · <span class="badge badge-success">✓ Watched</span>{% endif %}
+              {% if ep.watched %} · <span class="badge badge-success">Watched</span>{% endif %}
             </div>
           </div>
           <div class="ep-actions">
             {% if tracked and aired %}
               <form method="post" action="{{ url_for('shows.watch_through', show_id=show.id, episode_id=ep.id) }}">
                 <button class="btn btn-small btn-quiet" type="submit"
-                        title="Mark this episode and everything before it as watched"
+                        title="Marks this and everything before it"
                         aria-label="Mark {{ ep|episode_code }} and everything before it as watched">Up to here</button>
               </form>
               <form method="post" action="{{ url_for('shows.watch_episode', episode_id=ep.id) }}">
