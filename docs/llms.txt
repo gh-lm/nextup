@@ -37,8 +37,8 @@ is stored encrypted rather than in an environment file.
 - Site: https://nextup.lightmorphic.com/
 - Source: https://github.com/lightmorphic/nextup
 - Licence: https://github.com/lightmorphic/nextup/blob/main/LICENSE
-- Contact: hello@lightmorphic.co.uk
+- Contact: https://nextup.lightmorphic.com/complaints.html
 
 Published by Lightmorphic Ltd, registered in England and Wales, company number
 17423646, 82A James Carter Road, Mildenhall, IP28 7DE.
-Last updated 2026-09-02.
+Last updated 2026-09-06.

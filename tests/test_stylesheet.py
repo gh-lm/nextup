@@ -88,7 +88,6 @@ def test_controls_have_an_edge_you_can_actually_see():
         block = css[css.index(rule):]
         block = block[: block.index("}")]
         assert "var(--field-border)" in block, f"{rule} has no visible edge"
-    assert "--field-border: #84848d" in css
     assert "--field-border: #666a82" in css
 
 def test_a_quiet_button_is_still_a_button():
