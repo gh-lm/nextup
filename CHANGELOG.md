@@ -2,6 +2,38 @@
 
 All notable changes to Nextup are recorded here.
 
+## [1.4.0] — 2026-09-06
+
+### Dark, and only dark
+- **Light mode and the appearance switch are gone**, from the app and from the
+  website, along with everything behind them: the switch itself, the route and
+  cookie it used, the light half of every colour token, the light half of all
+  nineteen accent colours, and the button style that existed only for the
+  switch. Pages stay dark whatever the browser asks for.
+- Because the theme cookie has gone, **Nextup sets one cookie, not two**. The
+  cookies page, the front page and the accessibility page all said two.
+
+### Legal sub-footer
+- The company details, registered office and the date the page was last updated
+  sit on the left; **Privacy, Cookies, Terms, Accessibility and Complaints are
+  right-justified** on the same line. They drop underneath and align left on a
+  narrow screen.
+
+### Addresses
+- **No email address appears anywhere except the five legal pages**, and only
+  three are used: privacy@lightmorphic.com, terms@lightmorphic.com and
+  complaints@lightmorphic.com.
+- hello@lightmorphic.co.uk was in the footer of all seven pages, in the page's
+  structured data and in llms.txt. All gone; that domain no longer exists. The
+  terms address was on it too and has moved to lightmorphic.com.
+
+### Checked
+- Every page of the app and the site at every width from 3440 down to 320:
+  1,660 measurements, nothing overflows, every page dark even with the browser
+  asking for light, no errors.
+- 162 tests, including new ones that fail if a theme switch or a light theme
+  ever comes back.
+
 ## [1.3.0] — 2026-09-05
 
 A security and quality pass over the whole project.

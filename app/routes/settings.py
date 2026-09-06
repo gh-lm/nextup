@@ -1,8 +1,8 @@
 import json
 from datetime import date
 
-from flask import (Blueprint, Response, flash, make_response, redirect,
-                   render_template, request, url_for)
+from flask import (Blueprint, Response, flash, redirect, render_template,
+                   request, url_for)
 
 from .. import db, mailer, queries, secretstore, sync, tmdb, transfer
 from ..auth import login_required, set_password, set_username, using_default_password
@@ -308,17 +308,3 @@ def import_data():
         return notify("transfer", str(exc), "error")
 
     return notify("transfer", f"Restored {transfer.summarise(restored)}.", "success")
-
-
-@bp.route("/theme", methods=["POST"])
-def theme():
-    choice = request.form.get("theme", "")
-    target = request.form.get("next") or url_for("main.dashboard")
-    if not target.startswith("/"):
-        target = url_for("main.dashboard")
-    resp = make_response(redirect(target))
-    if choice in {"light", "dark"}:
-        resp.set_cookie("theme", choice, max_age=60 * 60 * 24 * 365, samesite="Lax")
-    else:
-        resp.delete_cookie("theme")
-    return resp

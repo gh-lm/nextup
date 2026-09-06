@@ -1,6 +1,6 @@
 {% import "partials/_note.html" as n %}
 <!doctype html>
-<html lang="en-GB"{% if accent and accent != 'brand' %} data-accent="{{ accent }}"{% endif %}{% if theme %} data-theme="{{ theme }}"{% endif %}>
+<html lang="en-GB"{% if accent and accent != 'brand' %} data-accent="{{ accent }}"{% endif %}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -46,7 +46,6 @@
                stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         </button>
       </form>
-      {% include 'partials/_theme_toggle.html' %}
     </div>
   </div>
 </header>
