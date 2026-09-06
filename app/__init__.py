@@ -182,7 +182,6 @@ def _register_context(app):
 
     @app.context_processor
     def inject():
-        theme = request.cookies.get("theme", "")
         accent = "brand"
         try:
             accent = secretstore.get("accent", "brand") or "brand"
@@ -200,7 +199,6 @@ def _register_context(app):
             "app_version": __version__,
             "notes": notes,
             "user": current_user() if session.get("logged_in") else None,
-            "theme": theme,
             "accent": accent,
             "today": date.today(),
         }

@@ -57,13 +57,21 @@ def test_the_search_box_is_still_reachable(signed_in):
     assert "Search shows and films" in body
 
 
-def test_the_theme_button_is_an_icon_with_a_spoken_label(signed_in):
+def test_there_is_no_appearance_switch_any_more(signed_in):
+    """Nextup is dark, full stop. Nothing offers to change that."""
     body = signed_in.get("/").data.decode()
-    toggle = body.split('action="/theme"')[1].split("</form>")[0]
-    assert "btn-icon" in toggle
-    # No visible word, but it still says what it does.
-    assert "<span>Auto</span>" not in toggle
-    assert "aria-label=" in toggle
+    assert "/theme" not in body
+    assert "data-theme" not in body
+
+
+def test_the_stylesheet_has_no_light_theme_left():
+    import pathlib
+
+    css = (pathlib.Path(__file__).resolve().parent.parent
+           / "app" / "static" / "css" / "main.css").read_text()
+    assert "prefers-color-scheme" not in css
+    assert 'data-theme' not in css
+    assert "color-scheme: dark;" in css
 
 
 def test_the_note_styling_is_not_a_banner():

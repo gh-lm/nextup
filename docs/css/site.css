@@ -9,61 +9,36 @@
 }
 
 :root {
-  color-scheme: light dark;
-  --bg: #ffffff;  --fg: #09090b;
-  --panel: #ffffff;  --panel-border: rgba(24, 24, 40, 0.10);
-  --border: #e4e4e7;  --muted: #f4f4f5;  --muted-fg: #6e6e77;
-  --shadow-panel: 0 1px 2px rgba(24,24,40,.05), 0 8px 24px -16px rgba(24,24,40,.18);
-  --shadow-lift: 0 2px 6px rgba(24,24,40,.06), 0 24px 60px -32px rgba(24,24,40,.30);
+  color-scheme: dark;
+  --bg: #09090b;  --fg: #fafafa;
+  --panel: #1b1d29;  --panel-border: rgba(255,255,255,.09);
+  --border: #27272a;  --muted: #1c1c1f;  --muted-fg: #a1a1aa;
+  --shadow-panel: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px -16px rgba(0,0,0,.6);
+  --shadow-lift: 0 2px 6px rgba(0,0,0,.4), 0 24px 60px -32px rgba(0,0,0,.85);
 
   --accent: #fbc711;  --accent-hover: #ddaf0f;  --on-accent: #645007;
-  --accent-container: #fff8e2;  --on-accent-container: #5f4c06;
+  --accent-container: #4b3c05;  --on-accent-container: #fde694;
 
   --brand-navy: #111827;
   --code-fg: #f4f4f5;
-  --link: #1a72ba;
-  --danger: #cc372d;   --danger-bg: #fef2f1;
-  --success: #367e38;  --success-bg: #f2f9f3;
-  --warning: #8f6c03;  --warning-bg: #fffbee;
-  --info: #1b74bc;     --info-bg: #f0f8fe;
+  --link: #2295f1;
+  --danger: #f34236;   --danger-bg: #350f0c;
+  --success: #4bae4f;  --success-bg: #102611;
+  --warning: #ffc006;  --warning-bg: #382a01;
+  --info: #2295f1;     --info-bg: #072135;
 
   --radius: 0.875rem;
   --panel-radius: 1.375rem;
   --measure: 65ch;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #09090b;  --fg: #fafafa;
-    --panel: #1b1d29;  --panel-border: rgba(255,255,255,.09);
-    --border: #27272a;  --muted: #1c1c1f;  --muted-fg: #a1a1aa;
-    --shadow-panel: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px -16px rgba(0,0,0,.6);
-    --shadow-lift: 0 2px 6px rgba(0,0,0,.4), 0 24px 60px -32px rgba(0,0,0,.85);
-    --accent-container: #4b3c05;  --on-accent-container: #fde694;
-    --link: #2295f1;
-    --danger: #f34236;   --danger-bg: #350f0c;
-    --success: #4bae4f;  --success-bg: #102611;
-    --warning: #ffc006;  --warning-bg: #382a01;
-    --info: #2295f1;     --info-bg: #072135;
-  }
-}
-
-:root[data-theme="dark"] {
-  --bg: #09090b;  --fg: #fafafa;
-  --panel: #1b1d29;  --panel-border: rgba(255,255,255,.09);
-  --border: #27272a;  --muted: #1c1c1f;  --muted-fg: #a1a1aa;
-  --shadow-panel: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px -16px rgba(0,0,0,.6);
-  --shadow-lift: 0 2px 6px rgba(0,0,0,.4), 0 24px 60px -32px rgba(0,0,0,.85);
-  --accent-container: #4b3c05;  --on-accent-container: #fde694;
-  --link: #2295f1;
-  --danger: #f34236;   --danger-bg: #350f0c;
-  --success: #4bae4f;  --success-bg: #102611;
-  --warning: #ffc006;  --warning-bg: #382a01;
-  --info: #2295f1;     --info-bg: #072135;
-}
-
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html {
+  -webkit-text-size-adjust: 100%; scroll-behavior: smooth;
+  /* Clears the bar that now sits over the top of the page, so a jump to
+     a section does not land underneath it. */
+  scroll-padding-top: 5.5rem;
+}
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
@@ -110,7 +85,12 @@ p:last-child { margin-bottom: 0; }
 
 /* ------------------------------------------------------------------- nav */
 
-.site-nav { border-bottom: 1px solid var(--border); background: var(--bg); }
+/* Stays put at the top as you scroll. It needs its own background, or the
+   page would show through it. */
+.site-nav {
+  position: sticky; top: 0; z-index: 100;
+  border-bottom: 1px solid var(--border); background: var(--bg);
+}
 .site-nav .wrap {
   display: flex; align-items: center; gap: 1.25rem;
   padding: 0.875rem 0; flex-wrap: wrap;
@@ -130,6 +110,7 @@ p:last-child { margin-bottom: 0; }
   text-decoration: none;
 }
 .site-nav nav a:hover { background: var(--muted); color: var(--fg); }
+.site-nav nav #all-apps { display: inline-flex; align-items: center; }
 
 /* ----------------------------------------------------------------- hero */
 
@@ -207,7 +188,7 @@ pre {
   font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, Consolas, monospace;
   font-size: 0.9rem; line-height: 1.65;
 }
-:root[data-theme="dark"] pre, :root:not([data-theme="light"]) pre { border: 1px solid var(--border); }
+pre { border: 1px solid var(--border); }
 code { font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, Consolas, monospace; font-size: 0.925em; }
 .prose, .card p, dl.faq dd { overflow-wrap: anywhere; }
 p code, li code, dd code {
@@ -276,10 +257,24 @@ dl.faq dd { margin: 0; color: var(--muted-fg); max-width: var(--measure); }
   font-size: 0.8125rem; color: var(--muted-fg);
 }
 .sub-footer p { margin-bottom: 0.5rem; }
-.sub-footer nav { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.625rem; }
-.sub-footer nav a {
+.sub-footer-note { max-width: var(--measure); }
+/* Company details on the left, the five legal pages hard right. They drop
+   underneath and align left once there is no room to sit side by side. */
+.sub-footer-inner {
+  display: flex; flex-wrap: wrap; gap: 0.5rem 2rem;
+  align-items: flex-end; justify-content: space-between;
+}
+.sub-footer-inner > p { margin: 0; line-height: 1.7; }
+.sub-footer-inner > nav {
+  display: flex; flex-wrap: wrap; gap: 0.25rem 1rem;
+  justify-content: flex-end; margin-left: auto;
+}
+.sub-footer-inner > nav a {
   display: inline-flex; align-items: center; min-height: 44px;
-  padding-right: 0.5rem; color: var(--muted-fg);
+  color: var(--muted-fg);
+}
+@media (max-width: 700px) {
+  .sub-footer-inner > nav { justify-content: flex-start; margin-left: 0; }
 }
 
 @media (max-width: 900px) {
@@ -291,8 +286,20 @@ dl.faq dd { margin: 0; color: var(--muted-fg); max-width: var(--measure); }
   body { font-size: 1rem; }
   .wrap { width: min(100% - 1.75rem, 1120px); }
   .footer-cols { grid-template-columns: 1fr; }
-  .site-nav .wrap { gap: 0.75rem; }
-  .site-nav nav { margin-left: 0; width: 100%; }
+  /* One row, always. The name keeps its size and the links slide under it. */
+  .site-nav .wrap { gap: 0.75rem; flex-wrap: nowrap; }
+  .wordmark { flex: none; }
+  /* The bar stays put as you scroll, so it must not grow to three rows of
+     links and eat a quarter of a phone screen. The links stay on one row and
+     slide sideways instead. */
+  .site-nav nav {
+    flex: 1 1 0; min-width: 0;
+    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+  }
+  .site-nav nav::-webkit-scrollbar { display: none; }
+  .site-nav nav a { white-space: nowrap; }
+  .site-nav nav #all-apps { position: sticky; right: 0; background: var(--bg); }
+  html { scroll-padding-top: 5.5rem; }
   .btn { width: 100%; justify-content: center; }
   .hero-actions { width: 100%; }
 }

@@ -36,7 +36,7 @@
       "operatingSystem": "Linux, via Docker",
       "description": "A self-hosted tracker for TV shows and films. It records which episodes you have watched, shows the next one to watch, lists when new episodes air, tells you when a film reaches streaming in the UK, and emails you each morning.",
       "license": "https://www.gnu.org/licenses/gpl-3.0.html",
-      "softwareVersion": "1.2.0",
+      "softwareVersion": "1.4.0",
       "codeRepository": "https://github.com/lightmorphic/nextup",
       "programmingLanguage": "Python",
       "isAccessibleForFree": true,
@@ -59,7 +59,7 @@
       "contactPoint": {
         "@type": "ContactPoint",
         "contactType": "customer support",
-        "email": "hello@lightmorphic.co.uk"
+        "url": "https://nextup.lightmorphic.com/complaints.html"
       },
       "sameAs": ["https://github.com/lightmorphic"]
     },
@@ -116,7 +116,7 @@
       <a href="#watching">Watching</a>
       <a href="#deciding">Deciding</a>
       <a href="#install">Install</a>
-      <a href="https://github.com/lightmorphic/nextup">Source</a>
+      <div id="all-apps"></div>
     </nav>
   </div>
 </header>
@@ -324,9 +324,9 @@
     <ul class="plain-list">
       <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>Artwork is fetched once and then served by Nextup itself.</b> Covers are cached in your data directory, so no page in the app ever points your browser at a third-party host, and the email carries its pictures inside the message.</span></li>
       <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>The only outbound calls are to TMDB</b>, made by your server, to look up the shows and films you asked for and to ask when a film reaches streaming.</span></li>
-      <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>No analytics, no telemetry, no crash reporting</b> and no third-party scripts, in the app or on this page.</span></li>
+      <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>No analytics, no telemetry, no crash reporting</b> and no third-party scripts, in the app or on this page. The only script here that is not part of the page is the Lightmorphic apps menu, which is ours and reports nothing.</span></li>
       <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>No account with us</b>, because there is no us. Nextup has no server of its own to phone.</span></li>
-      <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>Two cookies, both yours.</b> One keeps you signed in, one remembers whether you chose light or dark. Neither leaves your server and neither tracks anything.</span></li>
+      <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>One cookie, and it is yours.</b> It keeps you signed in. It never leaves your server and it tracks nothing.</span></li>
       <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>One directory to back up.</b> The database, the encryption key and the cached artwork all sit in the folder you mounted.</span></li>
       <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>One button to take it all with you.</b> Everything you added, everything you watched and how you like it set up comes out as a single file. Put that on another machine and you carry on where you left off.</span></li>
     </ul>
@@ -496,27 +496,27 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
 
   <div class="sub-footer">
     <div class="wrap">
-      <p>
-        &copy; Lightmorphic Ltd. Registered in England and Wales, company number
-        17423646. Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.
-        Nextup is released under the
-        <a href="https://github.com/lightmorphic/nextup/blob/main/LICENSE">GNU General Public Licence version 3</a>.
-      </p>
-      <p>
+      <p class="sub-footer-note">
         This product uses the TMDB API but is not endorsed or certified by TMDB.
         Streaming availability is supplied by JustWatch through TMDB. Show and
         film artwork in the screenshots comes from TMDB and belongs to its
         respective owners.
       </p>
-      <!-- Update this date whenever the content of this page changes. -->
-      <p>Page last updated 3 September 2026.</p>
-      <nav aria-label="Legal">
-        <a href="privacy.html">Privacy</a>
-        <a href="cookies.html">Cookies</a>
-        <a href="terms.html">Terms</a>
-        <a href="accessibility.html">Accessibility</a>
-        <a href="complaints.html">Complaints</a>
-      </nav>
+      <div class="sub-footer-inner">
+        <p>
+          &copy; Lightmorphic Ltd. Registered in England and Wales, company number
+          <a href="https://find-and-update.company-information.service.gov.uk/company/17423646">17423646</a>.<br>
+          Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.<br>
+          Page last updated: <time datetime="2026-09-06">6 September 2026</time>.
+        </p>
+        <nav aria-label="Legal">
+          <a href="privacy.html">Privacy</a>
+          <a href="cookies.html">Cookies</a>
+          <a href="terms.html">Terms</a>
+          <a href="accessibility.html">Accessibility</a>
+          <a href="complaints.html">Complaints</a>
+        </nav>
+      </div>
     </div>
   </div>
 </footer>
@@ -560,5 +560,6 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
   setTimeout(function () { deleting = true; tick(); }, 2600);
 })();
 </script>
+<script src="https://apps.lightmorphic.com/launcher.js" defer></script>
 </body>
 </html>
