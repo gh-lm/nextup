@@ -186,7 +186,7 @@ def _register_context(app):
         try:
             accent = secretstore.get("accent", "brand") or "brand"
         except Exception:
-            pass
+            app.logger.exception("Could not read the accent colour; using the default")
         # Read once here, because reading clears them. Both the layout and the
         # page itself need them: a message tagged with a panel is shown beside
         # that panel, and anything untagged falls back to the top of the page.

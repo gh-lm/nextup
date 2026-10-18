@@ -7,6 +7,7 @@ picture. Both need the same caching, so it lives here rather than in either.
 import hashlib
 import os
 import re
+import tempfile
 
 import requests
 
@@ -14,7 +15,7 @@ from . import config
 from .tmdb import IMAGE_BASE
 
 ALLOWED_SIZES = {"w92", "w154", "w185", "w300", "w342", "w500", "w780", "original"}
-PATH_RE = re.compile(r"^/?[A-Za-z0-9_-]+\.(jpg|png|svg|webp)$")
+PATH_RE = re.compile(r"/?[A-Za-z0-9_-]+\.(jpg|png|svg|webp)")
 
 
 def cache_name(size, clean_path):
@@ -27,7 +28,7 @@ def normalise(tmdb_path):
     if not tmdb_path:
         return None
     clean = "/" + str(tmdb_path).lstrip("/")
-    return clean if PATH_RE.match(clean) else None
+    return clean if PATH_RE.fullmatch(clean) else None
 
 
 def cached_file(size, tmdb_path):
@@ -54,11 +55,23 @@ def cached_file(size, tmdb_path):
         return None
     if not resp.ok or not resp.content:
         return None
+    if not resp.headers.get("Content-Type", "").startswith("image/"):
+        return None
+    expected = resp.headers.get("Content-Length")
+    if expected and expected.isdigit() and int(expected) != len(resp.content):
+        return None
 
-    tmp = path + ".part"
-    with open(tmp, "wb") as fh:
-        fh.write(resp.content)
-    os.replace(tmp, path)
+    # Each fetch writes its own temporary file, so two threads asking for the
+    # same picture cannot trample one another's half-written copy.
+    fd, tmp = tempfile.mkstemp(dir=config.CACHE_DIR, suffix=".part")
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(resp.content)
+        os.replace(tmp, path)
+    except OSError:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        return None
     return path
 
 

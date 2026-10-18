@@ -94,7 +94,7 @@ def test_a_backup_restores_onto_an_empty_copy(app):
         assert queries.tracked_shows()[0]["favourite"] == 1
         assert queries.show_progress(900)["watched"] == 1
         assert [r["id"] for r in queries.movies()] == [910]
-        assert queries.is_dismissed("tv", 555)
+        assert 555 in queries.dismissed_ids("tv")
         assert secretstore.get("accent") == "teal"
         assert secretstore.get("tmdb_api_key") == "the-key-itself"
 

@@ -1,6 +1,6 @@
 {% extends 'layout/base.html' %}
 {% import 'partials/_icons.html' as icons %}
-{% block title %}{{ show.name }} — Nextup{% endblock %}
+{% block title %}{{ show.name }} | Nextup{% endblock %}
 {% block body %}
 
 <article class="panel">
@@ -52,7 +52,7 @@
 
       {% if next_up %}
         <p class="subtle" style="margin-bottom:6px"><strong>Next up:</strong>
-          {{ next_up|episode_code }} — {{ next_up.name or 'Episode' }}</p>
+          {{ next_up|episode_code }}: {{ next_up.name or 'Episode' }}</p>
       {% elif next_air %}
         <p class="subtle" style="margin-bottom:6px"><strong>Next episode:</strong>
           {{ next_air|episode_code }} on {{ next_air.air_date|pretty_date }}</p>
@@ -66,19 +66,19 @@
             </form>
           {% endif %}
           <form method="post" action="{{ url_for('shows.toggle_maybe', show_id=show.id) }}">
-            <button class="btn" type="submit"
+            <button class="btn" type="submit" name="maybe" value="{{ '0' if shortlisted else '1' }}"
                     title="{{ 'Follow this show' if shortlisted else 'Move to the maybe list' }}">
               {{ 'Start watching' if shortlisted else 'Move to maybe' }}
             </button>
           </form>
           <form method="post" action="{{ url_for('shows.favourite', show_id=show.id) }}">
-            <button class="btn" type="submit">{{ 'Favourite' if not show_favourite else 'Unfavourite' }}</button>
+            <button class="btn" type="submit" name="to" value="{{ '0' if show_favourite else '1' }}">{{ 'Favourite' if not show_favourite else 'Unfavourite' }}</button>
           </form>
           <form method="post" action="{{ url_for('shows.refresh', show_id=show.id) }}">
             <button class="btn" type="submit">Refresh from TMDB</button>
           </form>
           <form method="post" action="{{ url_for('shows.archive', show_id=show.id) }}">
-            <button class="btn" type="submit">Archive</button>
+            <button class="btn" type="submit" name="to" value="{{ '0' if archived else '1' }}">{{ 'Unarchive' if archived else 'Archive' }}</button>
           </form>
           <form method="post" action="{{ url_for('shows.untrack', show_id=show.id) }}" data-confirm>
             <button class="btn btn-quiet" type="submit"
@@ -147,7 +147,8 @@
 {% endif %}
 
 {% for season in seasons %}
-  <details class="season panel" {% if season.number == (next_up.season_number if next_up else 1) %}open{% endif %}>
+  <details class="season panel" data-season="{{ season.number }}"
+           {% if season.number == (next_up.season_number if next_up else 1) %}open{% endif %}>
     <summary>
       <svg class="season-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
            stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
@@ -194,7 +195,7 @@
                         aria-label="Mark {{ ep|episode_code }} and everything before it as watched">Up to here</button>
               </form>
               <form method="post" action="{{ url_for('shows.watch_episode', episode_id=ep.id) }}">
-                <button class="tick {{ 'on' if ep.watched else '' }}" type="submit"
+                <button class="tick {{ 'on' if ep.watched else '' }}" type="submit" name="to" value="{{ '0' if ep.watched else '1' }}"
                         aria-label="{{ 'Mark ' ~ (ep|episode_code) ~ ' as not watched' if ep.watched else 'Mark ' ~ (ep|episode_code) ~ ' as watched' }}"
                         aria-pressed="{{ 'true' if ep.watched else 'false' }}">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"

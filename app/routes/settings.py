@@ -1,11 +1,12 @@
 import json
 from datetime import date
 
-from flask import (Blueprint, Response, flash, redirect, render_template,
-                   request, url_for)
+from flask import (Blueprint, Response, current_app, flash, redirect, render_template,
+                   request, session, url_for)
 
 from .. import db, mailer, queries, secretstore, sync, tmdb, transfer
-from ..auth import login_required, set_password, set_username, using_default_password
+from ..auth import change_account, check_current_password, keep_this_browser_signed_in, login_required
+from ..forms import whole_number
 
 bp = Blueprint("settings", __name__)
 
@@ -50,7 +51,8 @@ def index():
     return render_template(
         "pages/settings.html",
         has_key=secretstore.has("tmdb_api_key"),
-        backup=transfer.export_data()["counts"],
+        unreadable=secretstore.unreadable(),
+        backup=transfer.counts(),
         mail=mailer.config(),
         mail_ready=mailer.is_configured(),
         securities=mailer.SECURITIES,
@@ -59,7 +61,7 @@ def index():
         last_sync=sync.last_run(),
         syncing=sync.is_running(),
         stats=stats,
-        default_password=using_default_password(),
+        default_password=bool(session.get("starter")),
     )
 
 
@@ -88,21 +90,26 @@ def clear_tmdb():
 @login_required
 def save_account():
     username = (request.form.get("username") or "").strip()
+    current = request.form.get("current") or ""
     password = request.form.get("password") or ""
     confirm = request.form.get("confirm") or ""
 
-    if username:
-        set_username(username)
+    # Everything is checked before anything is written, so a refusal changes
+    # nothing.
+    if not check_current_password(current):
+        return notify("account", "Your current password is not right.", "error")
+    if not username:
+        return notify("account", "The username cannot be empty.", "error")
     if password or confirm:
         if password != confirm:
             return notify("account", "The two passwords did not match.", "error")
         if len(password) < 8:
             return notify("account", "Use at least 8 characters.", "error")
-        set_password(password)
-        return notify("account", "Sign-in details updated.", "success")
-    if username:
-        return notify("account", "Username updated.", "success")
-    return redirect(url_for("settings.index", _anchor="account"))
+
+    change_account(username, password)
+    if password:
+        return notify("account", "Sign-in details updated. Other browsers were signed out.", "success")
+    return notify("account", "Username updated.", "success")
 
 
 @bp.route("/settings/accent", methods=["POST"])
@@ -119,12 +126,9 @@ def save_accent():
 def run_sync():
     if not secretstore.has("tmdb_api_key"):
         return notify("sync", "Add a TMDB key first.", "error")
-    done, skipped, errors = sync.sync_all(force=True)
-    if errors:
-        return notify("sync", f"Refreshed {done}, but hit problems: {errors[0]}", "error")
-    return notify(
-        "sync", f"Refreshed {done} show{'s' if done != 1 else ''}, skipped {skipped}.", "success"
-    )
+    if not sync.start_now(current_app._get_current_object()):
+        return notify("sync", "A refresh is already running.", "error")
+    return notify("sync", "Refresh started. Reload this page in a minute to see how it went.", "success")
 
 
 @bp.route("/settings/availability", methods=["POST"])
@@ -165,8 +169,8 @@ def save_mail():
 
     if security not in mailer.SECURITIES:
         security = "starttls"
-    if port and not port.isdigit():
-        return notify("mail", "The port has to be a number.", "error")
+    if port and whole_number(port, 1, 65535, None) is None:
+        return notify("mail", "The port has to be a number between 1 and 65535.", "error")
     for label, value in (("from", from_address), ("to", to_address)):
         if value and "@" not in value:
             return notify("mail", f"That {label} address does not look like an email address.", "error")
@@ -197,9 +201,9 @@ def save_mail_schedule():
     minute = (request.form.get("send_minute") or "0").strip()
     meridiem = (request.form.get("send_meridiem") or "").strip().lower()
 
-    if not hour.isdigit() or not minute.isdigit():
+    hour, minute = whole_number(hour, 0, 99, None), whole_number(minute, 0, 99, None)
+    if hour is None or minute is None:
         return notify("mail", "Give the time as numbers.", "error")
-    hour, minute = int(hour), int(minute)
     if not 0 <= minute <= 59:
         return notify("mail", "Minutes have to be between 0 and 59.", "error")
 
@@ -277,6 +281,8 @@ def export_data():
         headers={
             "Content-Disposition": f'attachment; filename="{name}"',
             "Content-Length": str(len(body.encode("utf-8"))),
+            # The file can hold the account hash and, if asked for, the keys.
+            "Cache-Control": "no-store",
         },
     )
 
@@ -307,4 +313,9 @@ def import_data():
     except transfer.ImportError_ as exc:
         return notify("transfer", str(exc), "error")
 
-    return notify("transfer", f"Restored {transfer.summarise(restored)}.", "success")
+    # A restore swaps the account and every setting, so no old sign-in is kept.
+    keep_this_browser_signed_in()
+    message = f"Restored {transfer.summarise(restored)}."
+    if not restored.get("secrets"):
+        message += " The file had no keys in it, so type your TMDB key and mail password in again."
+    return notify("transfer", message, "success")

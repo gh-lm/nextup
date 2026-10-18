@@ -1,0 +1,115 @@
+<!doctype html>
+<!--
+  The README banner, drawn at exactly 1280 by 360 and saved as
+  docs/images/banner.png. Open it with the little saver running
+  (scratchpad/pngserver.py on port 4174) and it writes the PNG itself.
+-->
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Nextup banner source</title>
+<style>
+  @font-face {
+    font-family: 'Manrope';
+    src: url('../../fonts/manrope.woff2') format('woff2');
+    font-weight: 200 800;
+  }
+  body { margin: 0; background: #18181b; }
+  canvas { display: block; width: 1280px; height: 360px; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1280" height="360"></canvas>
+<script>
+const W = 1280, H = 360;
+const BG = '#09090b', FG = '#fafafa', MUTED = '#a1a1aa';
+const ACCENT = '#fbc711', ON_ACCENT = '#645007';
+const CHIP = '#1b1d29', CHIP_LINE = 'rgba(255,255,255,.09)';
+const CHIP_ON = '#4b3c05', CHIP_ON_FG = '#fde694', CHIP_FG = '#e4e4e7';
+
+function roundRect(x, y, w, h, r) {
+  const p = new Path2D();
+  p.moveTo(x + r, y);
+  p.arcTo(x + w, y, x + w, y + h, r);
+  p.arcTo(x + w, y + h, x, y + h, r);
+  p.arcTo(x, y + h, x, y, r);
+  p.arcTo(x, y, x + w, y, r);
+  p.closePath();
+  return p;
+}
+
+function draw() {
+  const g = document.getElementById('c').getContext('2d');
+  g.fillStyle = BG;
+  g.fillRect(0, 0, W, H);
+
+  // A soft wash of the accent colour in the top right corner.
+  const glow = g.createRadialGradient(1120, 60, 0, 1120, 60, 420);
+  glow.addColorStop(0, 'rgba(251,199,17,.17)');
+  glow.addColorStop(1, 'rgba(251,199,17,0)');
+  g.fillStyle = glow;
+  g.fillRect(0, 0, W, H);
+
+  // The mark: the same television as the favicon.
+  const M = 132, mx = 72, my = (H - M) / 2, s = M / 32;
+  g.fillStyle = ACCENT;
+  g.fill(roundRect(mx, my, M, M, 8 * s));
+  g.save();
+  g.translate(mx, my);
+  g.scale(s, s);
+  g.strokeStyle = ON_ACCENT;
+  g.lineWidth = 2.4;
+  g.lineCap = 'round';
+  g.lineJoin = 'round';
+  g.stroke(roundRect(6, 12, 20, 14, 3));
+  g.beginPath();
+  g.moveTo(11, 6); g.lineTo(16, 11); g.lineTo(21, 6);
+  g.stroke();
+  g.restore();
+
+  const x = mx + M + 40;
+
+  g.fillStyle = FG;
+  g.font = '800 86px Manrope, system-ui, sans-serif';
+  g.textBaseline = 'alphabetic';
+  g.fillText('Nextup', x - 4, 150);
+
+  g.fillStyle = MUTED;
+  g.font = '500 25px Manrope, system-ui, sans-serif';
+  g.fillText('Which episode were you on? A tracker for the television', x, 196);
+  g.fillText('and films you watch, kept on your own server.', x, 230);
+
+  const chips = [
+    ['Self-hosted', true], ['No account', false],
+    ['Nothing phones home', false], ['GPL v3', false],
+  ];
+  g.font = '600 16px Manrope, system-ui, sans-serif';
+  let cx = x;
+  for (const [label, on] of chips) {
+    const w = g.measureText(label).width + 32, h = 38, y = 264;
+    g.fillStyle = on ? CHIP_ON : CHIP;
+    g.fill(roundRect(cx, y, w, h, 19));
+    g.strokeStyle = on ? ON_ACCENT : CHIP_LINE;
+    g.lineWidth = 1;
+    g.stroke(roundRect(cx + .5, y + .5, w - 1, h - 1, 19));
+    g.fillStyle = on ? CHIP_ON_FG : CHIP_FG;
+    g.textBaseline = 'middle';
+    g.fillText(label, cx + 16, y + h / 2 + 1);
+    g.textBaseline = 'alphabetic';
+    cx += w + 10;
+  }
+}
+
+document.fonts.load('800 86px Manrope')
+  .then(() => document.fonts.ready)
+  .then(() => {
+    draw();
+    document.getElementById('c').toBlob(b => {
+      fetch('http://127.0.0.1:4174/save?name=banner.png', { method: 'POST', body: b })
+        .then(() => { document.title = 'saved'; })
+        .catch(() => { document.title = 'not saved'; });
+    }, 'image/png');
+  });
+</script>
+</body>
+</html>

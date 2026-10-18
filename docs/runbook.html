@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Runbook: Nextup</title>
+<meta name="description" content="The jobs you actually do with Nextup: updating, backing up, moving machine, forgotten passwords and what to check when something is wrong.">
+<link rel="canonical" href="https://nextup.lightmorphic.com/runbook.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/site.css?v=bdb6c43945">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nextup">
+<meta property="og:title" content="Runbook: Nextup">
+<meta property="og:description" content="The jobs you actually do with Nextup: updating, backing up, moving machine, forgotten passwords and what to check when something is wrong.">
+<meta property="og:url" content="https://nextup.lightmorphic.com/runbook.html">
+<meta property="og:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Nextup dashboard, listing TV shows with the next episode to watch.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Runbook: Nextup">
+<meta name="twitter:description" content="The jobs you actually do with Nextup: updating, backing up, moving machine, forgotten passwords and what to check when something is wrong.">
+<meta name="twitter:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-nav">
+  <div class="wrap">
+    <a class="wordmark" href="index.html">
+      <img src="favicon.svg" alt="" width="30" height="30">
+      Nextup
+    </a>
+    <nav aria-label="Main">
+      <a href="index.html#watching">Watching</a>
+      <a href="index.html#install">Install</a>
+      <a href="index.html#deciding">Deciding</a>
+      <a href="index.html#email">The email</a>
+      <div id="all-apps"></div>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="page-title">
+    <div class="wrap">
+      <h1>Runbook</h1>
+      <p>One job per box. Find the thing you are trying to do and do it.</p>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="prose">
+      <div class="prose-cards">
+        <section>
+          <h2>Update to a new version</h2>
+          <pre><code>docker compose pull
+docker compose down
+docker compose up -d</code></pre>
+          <p>
+            Your data is in the directory you mounted, not in the container, so it comes
+            through untouched. A plain <code>up -d</code> will not fetch a newer
+            <code>latest</code>.
+          </p>
+        </section>
+        <section>
+          <h2>Take a backup</h2>
+          <p>
+            Settings, then <strong>Download a backup</strong>. One JSON file, keep it
+            somewhere that is not the same machine.
+          </p>
+          <p>
+            Copying the whole data directory works as well and catches the cached artwork
+            too. Stop the container first so the database is not written to while you
+            copy:
+          </p>
+          <pre><code>docker compose stop
+sudo tar czf nextup-backup.tar.gz -C /opt nextup
+docker compose start</code></pre>
+        </section>
+        <section>
+          <h2>Move to another machine</h2>
+          <p>Install Nextup on the new machine first, then one of these.</p>
+          <ul>
+            <li>
+              <strong>From the JSON file.</strong> Settings, then restore the backup. If
+              you used the button that leaves the secrets out, type the TMDB key and the
+              mail password in again afterwards.
+            </li>
+            <li>
+              <strong>From the whole directory.</strong> Stop the container on both sides,
+              copy <code>/opt/nextup</code> across keeping the ownership, and start it. It
+              carries on exactly where it was, keys and all.
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h2>Change the password</h2>
+          <p>
+            Settings, then the account section. The same page changes the username. It
+            takes effect at once and does not sign you out.
+          </p>
+        </section>
+        <section>
+          <h2>Forgotten the password</h2>
+          <p>
+            There is no reset email, because there is no email address on the account.
+            Clear the one account out of the database and the app makes it again as
+            <code>admin</code> and <code>nextup</code> when it next starts. Nothing else
+            is lost.
+          </p>
+          <pre><code>docker compose stop
+sudo sqlite3 /opt/nextup/nextup.db "DELETE FROM admin_user;"
+docker compose start</code></pre>
+          <p>Then sign in with those and change them straight away.</p>
+        </section>
+        <section>
+          <h2>Put it behind Tailscale Serve or a proxy</h2>
+          <p>
+            Bind the container to this machine only, so the proxy is the one thing
+            listening on the outside:
+          </p>
+          <pre><code>ports:
+  - "127.0.0.1:4090:8080"</code></pre>
+          <p>
+            Leaving it on every interface while a proxy wants the same port means
+            whichever starts first wins, and the symptom is
+            <code>address already in use</code> on a restart that worked yesterday.
+          </p>
+        </section>
+        <section>
+          <h2>Turn on HTTPS only</h2>
+          <p>
+            Once every way in is HTTPS, add
+            <code>NEXTUP_HTTPS_ONLY=1</code> to the environment and recreate the
+            container. The login cookie is then marked Secure.
+          </p>
+          <p>
+            Turn it off again if you ever need to reach the container directly on plain
+            HTTP, or the sign-in page will take your password and send you back to itself.
+          </p>
+        </section>
+        <section>
+          <h2>Get the clock right</h2>
+          <p>
+            The morning email and the meaning of "today" both read the clock. The compose
+            file mounts <code>/etc/localtime</code> read only, so the container follows
+            the machine. If you want a different timezone, set <code>TZ</code> instead.
+          </p>
+        </section>
+        <section>
+          <h2>The morning email is not arriving</h2>
+          <ul>
+            <li>Check the switch is on and the time is one that has already passed today.</li>
+            <li>
+              Check the security setting matches the port: STARTTLS on 587, SSL on 465,
+              neither on 25.
+            </li>
+            <li>
+              Nothing is sent on a day when nothing became watchable. That is not a fault.
+            </li>
+            <li>
+              The watchable-after setting holds things back, so something that aired late
+              last night may be waiting until later today.
+            </li>
+          </ul>
+          <p>The container log says what the mail server replied:</p>
+          <pre><code>docker compose logs --tail 50 nextup</code></pre>
+        </section>
+        <section>
+          <h2>TMDB will not take the key</h2>
+          <p>
+            The key is checked against TMDB before it is saved, so a refusal means TMDB
+            itself said no. Make sure you copied the <strong>API Key for v3 auth</strong>
+            and not the read access token, which is much longer. A new key can take a few
+            minutes to start working.
+          </p>
+        </section>
+        <section>
+          <h2>Posters are missing</h2>
+          <p>
+            Artwork is fetched from TMDB once and then cached in
+            <code>images/</code> inside your data directory. If none of it appears, the
+            server either cannot reach TMDB or cannot write to that directory. The
+            directory has to belong to user 1000:
+          </p>
+          <pre><code>sudo chown -R 1000:1000 /opt/nextup</code></pre>
+        </section>
+        <section>
+          <h2>Changes do not save, and nothing says why</h2>
+          <p>
+            Almost always the same thing: the data directory does not belong to user 1000,
+            so the writes fail quietly. The command above fixes it. Restart afterwards.
+          </p>
+        </section>
+        <section>
+          <h2>The container will not start</h2>
+          <pre><code>docker compose logs --tail 50 nextup
+docker compose ps</code></pre>
+          <p>
+            <code>address already in use</code> means something else holds the port; see
+            the proxy note above. A permissions error on <code>/data</code> means the
+            ownership again. If it starts and then stops, the log says why on the last few
+            lines.
+          </p>
+        </section>
+        <section>
+          <h2>Check it is healthy</h2>
+          <p>
+            The image carries its own health check, so Docker knows whether it is really
+            answering:
+          </p>
+          <pre><code>docker ps --filter name=nextup --format "{{.Status}}"</code></pre>
+          <p>It should say <code>healthy</code> rather than only <code>Up</code>.</p>
+        </section>
+        <section>
+          <h2>Start again from nothing</h2>
+          <p>
+            Take a backup first if there is anything you want to keep. Then stop it,
+            delete the data directory and bring it back up. It builds a fresh database and
+            the default account.
+          </p>
+          <pre><code>docker compose down
+sudo rm -rf /opt/nextup
+sudo mkdir -p /opt/nextup
+sudo chown -R 1000:1000 /opt/nextup
+docker compose up -d</code></pre>
+        </section>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-cols">
+      <div>
+        <a class="wordmark" href="index.html" style="margin-bottom:.75rem"><img src="favicon.svg" alt="" width="30" height="30">Nextup</a>
+        <p>
+          A self-hosted tracker for the TV shows and films you watch. Made by
+          Lightmorphic and given away under the GPL.
+        </p>
+      </div>
+      <div class="col-mid">
+        <h3>The project</h3>
+        <ul>
+          <li><a href="whats-new.html">What's new</a></li>
+          <li><a href="security.html">Security</a></li>
+          <li><a href="licence.html">Licence</a></li>
+        </ul>
+      </div>
+      <div class="col-end">
+        <h3>Pages</h3>
+        <ul>
+          <li><a href="index.html#watching">Watching</a></li>
+          <li><a href="index.html#install">Install</a></li>
+          <li><a href="index.html#deciding">Deciding</a></li>
+          <li><a href="index.html#email">The email</a></li>
+          <li><a href="documentation.html">Documentation</a></li>
+          <li><a href="runbook.html">Runbook</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="oss-bar">
+      <div class="marks">
+        <a href="https://github.com/gh-lm/nextup" target="_blank" rel="noopener noreferrer"
+           aria-label="Nextup on GitHub (opens in a new tab)">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+        </a>
+        <a href="https://opensource.org" target="_blank" rel="noopener noreferrer"
+           aria-label="Open Source Initiative (opens in a new tab)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="5" r="2.6"/>
+            <circle cx="5.2" cy="17" r="2.6"/>
+            <circle cx="18.8" cy="17" r="2.6"/>
+            <path d="M10.7 7.3 6.5 14.7M13.3 7.3l4.2 7.4M7.8 17h8.4"/>
+          </svg>
+        </a>
+      </div>
+      <nav aria-label="Source code">
+        <a href="https://github.com/gh-lm/nextup" target="_blank" rel="noopener noreferrer" aria-label="Repository on GitHub (opens in a new tab)">Repository</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/README.md" target="_blank" rel="noopener noreferrer" aria-label="Documentation on GitHub (opens in a new tab)">Documentation</a>
+        <a href="https://github.com/gh-lm/nextup/security/policy" target="_blank" rel="noopener noreferrer" aria-label="Security on GitHub (opens in a new tab)">Security</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" aria-label="Licence on GitHub (opens in a new tab)">Licence</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" aria-label="Changelog on GitHub (opens in a new tab)">Changelog</a>
+        <a href="https://github.com/gh-lm/nextup/issues" target="_blank" rel="noopener noreferrer" aria-label="Issues on GitHub (opens in a new tab)">Issues</a>
+        <a href="https://github.com/gh-lm/nextup/releases" target="_blank" rel="noopener noreferrer" aria-label="Releases on GitHub (opens in a new tab)">Releases</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="sub-footer">
+    <div class="wrap">
+      <div class="sub-footer-inner">
+        <p>
+          &copy; Lightmorphic Ltd. Registered in England and Wales, company number
+          17423646.<br>
+          Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.<br>
+          Page last updated: <time datetime="2026-10-17">17 October 2026</time>.
+        </p>
+        <nav aria-label="Legal">
+          <a href="privacy.html">Privacy</a>
+          <a href="cookies.html">Cookies</a>
+          <a href="terms.html">Terms</a>
+          <a href="accessibility.html">Accessibility</a>
+          <a href="complaints.html">Complaints</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+</footer>
+<script src="https://apps.lightmorphic.com/launcher.js" defer></script>
+</body>
+</html>

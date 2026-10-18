@@ -1,16 +1,11 @@
-from datetime import datetime, timezone
-
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
-from .. import db, queries, sync, tmdb
+from .. import clock, db, queries, sync, tmdb
 from ..auth import login_required
+from ..forms import wanted_state
 from ..redirects import back_to
 
 bp = Blueprint("shows", __name__)
-
-
-def _now():
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 @bp.route("/shows")
@@ -21,11 +16,12 @@ def index():
     if view == "archived":
         rows = [row for row in rows if row["archived"]]
     shows = []
+    progress = queries.all_progress()
     for row in rows:
         shows.append(
             {
                 "show": row,
-                "progress": queries.show_progress(row["id"]),
+                "progress": progress.get(row["id"]) or queries.empty_progress(),
                 "next_up": queries.next_unwatched(row["id"]),
                 "next_air": queries.next_airing(row["id"]),
             }
@@ -116,7 +112,7 @@ def track(show_id):
         "INSERT INTO tracked_show (show_id, added_at, shortlist) VALUES (?, ?, ?)"
         " ON CONFLICT(show_id) DO UPDATE SET archived = 0,"
         " shortlist = excluded.shortlist",
-        (show_id, _now(), 1 if wants_maybe else 0),
+        (show_id, clock.now_iso(), 1 if wants_maybe else 0),
     )
     if wants_maybe:
         flash(f"Put {name} on your maybe list.", "success")
@@ -132,7 +128,7 @@ def toggle_maybe(show_id):
     row = queries.show_list_state(show_id)
     if row is None:
         abort(404)
-    moving_to_maybe = not row["shortlist"]
+    moving_to_maybe = wanted_state("maybe")
     db.execute(
         "UPDATE tracked_show SET shortlist = ?, archived = 0 WHERE show_id = ?",
         (1 if moving_to_maybe else 0, show_id),
@@ -156,12 +152,12 @@ def untrack(show_id):
 @bp.route("/show/<int:show_id>/archive", methods=["POST"])
 @login_required
 def archive(show_id):
-    row = db.query("SELECT archived FROM tracked_show WHERE show_id = ?", (show_id,), one=True)
-    if row is None:
+    archiving = wanted_state()
+    if queries.show_list_state(show_id) is None:
         abort(404)
     db.execute(
         "UPDATE tracked_show SET archived = ? WHERE show_id = ?",
-        (0 if row["archived"] else 1, show_id),
+        (1 if archiving else 0, show_id),
     )
     return back_to("shows.index")
 
@@ -169,12 +165,12 @@ def archive(show_id):
 @bp.route("/show/<int:show_id>/favourite", methods=["POST"])
 @login_required
 def favourite(show_id):
-    row = db.query("SELECT favourite FROM tracked_show WHERE show_id = ?", (show_id,), one=True)
-    if row is None:
+    favouring = wanted_state()
+    if queries.show_list_state(show_id) is None:
         abort(404)
     db.execute(
         "UPDATE tracked_show SET favourite = ? WHERE show_id = ?",
-        (0 if row["favourite"] else 1, show_id),
+        (1 if favouring else 0, show_id),
     )
     return back_to("shows.index")
 
@@ -183,8 +179,13 @@ def favourite(show_id):
 @login_required
 def refresh(show_id):
     try:
-        sync.sync_show(show_id)
-        flash("Refreshed from TMDB.", "success")
+        failed = []
+        sync.sync_show(show_id, failed)
+        if failed:
+            seasons = ", ".join(str(n) for n in failed)
+            flash(f"Refreshed, but TMDB would not serve season {seasons}. It will be tried again.", "error")
+        else:
+            flash("Refreshed from TMDB.", "success")
     except tmdb.TmdbError as exc:
         flash(str(exc), "error")
     return back_to("shows.detail", show_id=show_id)
@@ -250,16 +251,13 @@ def watch_episode(episode_id):
     row = db.query("SELECT id, show_id FROM episode WHERE id = ?", (episode_id,), one=True)
     if row is None:
         abort(404)
-    watched = db.query(
-        "SELECT 1 FROM watched_episode WHERE episode_id = ?", (episode_id,), one=True
-    )
-    if watched:
-        db.execute("DELETE FROM watched_episode WHERE episode_id = ?", (episode_id,))
-    else:
+    if wanted_state():
         db.execute(
-            "INSERT INTO watched_episode (episode_id, show_id, watched_at) VALUES (?, ?, ?)",
-            (episode_id, row["show_id"], _now()),
+            "INSERT OR IGNORE INTO watched_episode (episode_id, show_id, watched_at) VALUES (?, ?, ?)",
+            (episode_id, row["show_id"], clock.now_iso()),
         )
+    else:
+        db.execute("DELETE FROM watched_episode WHERE episode_id = ?", (episode_id,))
     return back_to("main.dashboard")
 
 
@@ -279,16 +277,16 @@ def watch_through(show_id, episode_id):
         SELECT e.id FROM episode e
         LEFT JOIN watched_episode w ON w.episode_id = e.id
         WHERE e.show_id = ? AND w.episode_id IS NULL AND e.season_number > 0
-          AND e.air_date IS NOT NULL AND e.air_date <= date('now')
+          AND e.air_date IS NOT NULL AND e.air_date <= ?
           AND (e.season_number < ? OR (e.season_number = ? AND e.episode_number <= ?))
         """,
-        (show_id, target["season_number"], target["season_number"], target["episode_number"]),
+        (show_id, clock.today(), target["season_number"], target["season_number"], target["episode_number"]),
     )
     conn = db.get_db()
     conn.executemany(
         "INSERT OR IGNORE INTO watched_episode (episode_id, show_id, watched_at)"
         " VALUES (?, ?, ?)",
-        [(row["id"], show_id, _now()) for row in rows],
+        [(row["id"], show_id, clock.now_iso()) for row in rows],
     )
     conn.commit()
     flash(f"Marked {len(rows)} episode{'s' if len(rows) != 1 else ''} as watched.", "success")
@@ -308,14 +306,14 @@ def watch_season(show_id, season_number):
     else:
         rows = db.query(
             "SELECT id FROM episode WHERE show_id = ? AND season_number = ?"
-            " AND air_date IS NOT NULL AND air_date <= date('now')",
-            (show_id, season_number),
+            " AND air_date IS NOT NULL AND air_date <= ?",
+            (show_id, season_number, clock.today()),
         )
         conn = db.get_db()
         conn.executemany(
             "INSERT OR IGNORE INTO watched_episode (episode_id, show_id, watched_at)"
             " VALUES (?, ?, ?)",
-            [(row["id"], show_id, _now()) for row in rows],
+            [(row["id"], show_id, clock.now_iso()) for row in rows],
         )
         conn.commit()
     return back_to("shows.detail", show_id=show_id)

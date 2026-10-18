@@ -4,12 +4,13 @@ Films are filtered to home releases rather than cinema ones, because a
 cinema date is no help if you wait for things to reach a service you
 already pay for.
 """
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, timedelta
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
-from .. import db, queries, sync, tmdb
+from .. import clock, db, queries, sync, tmdb
 from ..auth import login_required
+from ..forms import whole_number
 from ..redirects import back_to
 
 bp = Blueprint("discover", __name__, url_prefix="/discover")
@@ -19,13 +20,8 @@ DEFAULT_DAYS = 14
 MAX_PAGES = 3
 
 
-def _now():
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
-
-
 def _window(default=DEFAULT_DAYS):
-    raw = request.args.get("days", str(default))
-    days = int(raw) if raw.isdigit() and 1 <= int(raw) <= 180 else default
+    days = whole_number(request.args.get("days"), 1, 180, default)
     today = date.today()
     return days, today.isoformat(), (today + timedelta(days=days)).isoformat()
 
@@ -145,7 +141,7 @@ def decide_show(show_id, action):
         db.execute(
             "INSERT OR REPLACE INTO dismissed (kind, item_id, dismissed_at)"
             " VALUES ('tv', ?, ?)",
-            (show_id, _now()),
+            (show_id, clock.now_iso()),
         )
         return back_to("discover.tv")
 
@@ -158,7 +154,7 @@ def decide_show(show_id, action):
     db.execute(
         "INSERT INTO tracked_show (show_id, added_at, shortlist) VALUES (?, ?, ?)"
         " ON CONFLICT(show_id) DO UPDATE SET archived = 0, shortlist = excluded.shortlist",
-        (show_id, _now(), 1 if action == "maybe" else 0),
+        (show_id, clock.now_iso(), 1 if action == "maybe" else 0),
     )
     _undismiss("tv", show_id)
     flash(
@@ -178,7 +174,7 @@ def decide_film(movie_id, action):
         db.execute(
             "INSERT OR REPLACE INTO dismissed (kind, item_id, dismissed_at)"
             " VALUES ('movie', ?, ?)",
-            (movie_id, _now()),
+            (movie_id, clock.now_iso()),
         )
         return back_to("discover.films")
 
@@ -192,7 +188,7 @@ def decide_film(movie_id, action):
     db.execute(
         "INSERT INTO tracked_movie (movie_id, added_at, shortlist) VALUES (?, ?, ?)"
         " ON CONFLICT(movie_id) DO UPDATE SET shortlist = excluded.shortlist",
-        (movie_id, _now(), 1 if action == "maybe" else 0),
+        (movie_id, clock.now_iso(), 1 if action == "maybe" else 0),
     )
     _undismiss("movie", movie_id)
     try:

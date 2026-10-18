@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security: Nextup</title>
+<meta name="description" content="How Nextup keeps your password, your TMDB key and your data safe, what it does not do, and how to report a problem.">
+<link rel="canonical" href="https://nextup.lightmorphic.com/security.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/site.css?v=bdb6c43945">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nextup">
+<meta property="og:title" content="Security: Nextup">
+<meta property="og:description" content="How Nextup keeps your password, your TMDB key and your data safe, what it does not do, and how to report a problem.">
+<meta property="og:url" content="https://nextup.lightmorphic.com/security.html">
+<meta property="og:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Nextup dashboard, listing TV shows with the next episode to watch.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Security: Nextup">
+<meta name="twitter:description" content="How Nextup keeps your password, your TMDB key and your data safe, what it does not do, and how to report a problem.">
+<meta name="twitter:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-nav">
+  <div class="wrap">
+    <a class="wordmark" href="index.html">
+      <img src="favicon.svg" alt="" width="30" height="30">
+      Nextup
+    </a>
+    <nav aria-label="Main">
+      <a href="index.html#watching">Watching</a>
+      <a href="index.html#install">Install</a>
+      <a href="index.html#deciding">Deciding</a>
+      <a href="index.html#email">The email</a>
+      <div id="all-apps"></div>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="page-title">
+    <div class="wrap">
+      <h1>Security</h1>
+      <p>What Nextup protects, what it leaves to you, and how to tell us if you find a hole.</p>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="prose">
+      <div class="prose-cards">
+        <section>
+          <h2>Telling us about a problem</h2>
+          <p>
+            Write to <a href="mailto:complaints@lightmorphic.com">complaints@lightmorphic.com</a>.
+            Say what you found and how to make it happen, and give the version number from
+            the corner of any page in the app.
+          </p>
+          <p>
+            There is no public tracker, so nothing you send is published while it is being
+            looked at. If it turns out to be real, the fix goes into the next release and
+            the <a href="whats-new.html">what's new</a> page says what changed.
+          </p>
+        </section>
+        <section>
+          <h2>Where your secrets are kept</h2>
+          <p>
+            Your password is never stored. Only a hash of it is, and a hash cannot be
+            turned back into the password.
+          </p>
+          <p>
+            Your TMDB key and your mail password are encrypted before they go into the
+            database. The key that encrypts them sits beside the database as
+            <code>secret.key</code>, readable only by the user the app runs as. The login
+            cookie is signed with a second key, <code>session.key</code>, kept the same
+            way.
+          </p>
+          <p>
+            None of it is in the compose file, in an environment variable or in a config
+            file. Everything is typed into the Settings page inside the app.
+          </p>
+        </section>
+        <section>
+          <h2>How the container runs</h2>
+          <p>
+            As user 1000, never as root, and it only ever writes to the one directory you
+            mounted. The compose file in the project goes further and is worth copying:
+          </p>
+          <pre><code>security_opt:
+  - no-new-privileges:true
+cap_drop:
+  - ALL
+read_only: true
+tmpfs:
+  - /tmp</code></pre>
+          <p>
+            That drops every Linux capability, stops the process ever gaining new
+            privileges, and makes everything except your data directory and a small
+            <code>/tmp</code> read only.
+          </p>
+        </section>
+        <section>
+          <h2>The login cookie</h2>
+          <p>
+            One cookie, signed, marked HttpOnly so no script can read it, and SameSite Lax
+            so another site cannot ride on it. It holds nothing but the fact that you are
+            signed in.
+          </p>
+          <p>
+            Set <code>NEXTUP_HTTPS_ONLY=1</code> when every way in really is HTTPS and the
+            cookie is marked Secure as well, which stops a browser ever sending it over
+            plain HTTP. Leave it off if you still reach the container directly on
+            something like <code>127.0.0.1:4090</code>, or you will not be able to sign
+            in.
+          </p>
+        </section>
+        <section>
+          <h2>What it does not do</h2>
+          <p>Worth knowing before you decide where to put it.</p>
+          <ul>
+            <li>One account, no second user, and no two-factor.</li>
+            <li>
+              Only a simple limit on password guesses: eight wrong ones from one address
+              pause sign-in for fifteen minutes. The count lives in memory, so a restart
+              clears it, and behind a proxy every visitor shares the proxy's address. A
+              weak password on an open address would still be guessed in the end.
+            </li>
+            <li>No audit log of who signed in and when.</li>
+          </ul>
+        </section>
+        <section>
+          <h2>Where to put it</h2>
+          <p>
+            On your own network, or on a tailnet, is the easy answer. Nextup is a notebook
+            for one person and does not need to be on the public internet at all.
+          </p>
+          <p>
+            If something does sit in front of it, bind the container to this machine only
+            and let the proxy be the one listening:
+          </p>
+          <pre><code>ports:
+  - "127.0.0.1:4090:8080"</code></pre>
+          <p>
+            Then give the proxy a certificate, set
+            <code>NEXTUP_HTTPS_ONLY=1</code>, and change the password from the one it
+            ships with.
+          </p>
+        </section>
+        <section>
+          <h2>Which versions get fixes</h2>
+          <p>
+            The newest one. There is a single line of releases and no long-term branch, so
+            a fix goes into the next version and nowhere else. Updating is two commands
+            and your data is untouched, so there is little reason to sit on an old one.
+          </p>
+        </section>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-cols">
+      <div>
+        <a class="wordmark" href="index.html" style="margin-bottom:.75rem"><img src="favicon.svg" alt="" width="30" height="30">Nextup</a>
+        <p>
+          A self-hosted tracker for the TV shows and films you watch. Made by
+          Lightmorphic and given away under the GPL.
+        </p>
+      </div>
+      <div class="col-mid">
+        <h3>The project</h3>
+        <ul>
+          <li><a href="whats-new.html">What's new</a></li>
+          <li><a href="security.html">Security</a></li>
+          <li><a href="licence.html">Licence</a></li>
+        </ul>
+      </div>
+      <div class="col-end">
+        <h3>Pages</h3>
+        <ul>
+          <li><a href="index.html#watching">Watching</a></li>
+          <li><a href="index.html#install">Install</a></li>
+          <li><a href="index.html#deciding">Deciding</a></li>
+          <li><a href="index.html#email">The email</a></li>
+          <li><a href="documentation.html">Documentation</a></li>
+          <li><a href="runbook.html">Runbook</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="oss-bar">
+      <div class="marks">
+        <a href="https://github.com/gh-lm/nextup" target="_blank" rel="noopener noreferrer"
+           aria-label="Nextup on GitHub (opens in a new tab)">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+        </a>
+        <a href="https://opensource.org" target="_blank" rel="noopener noreferrer"
+           aria-label="Open Source Initiative (opens in a new tab)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="5" r="2.6"/>
+            <circle cx="5.2" cy="17" r="2.6"/>
+            <circle cx="18.8" cy="17" r="2.6"/>
+            <path d="M10.7 7.3 6.5 14.7M13.3 7.3l4.2 7.4M7.8 17h8.4"/>
+          </svg>
+        </a>
+      </div>
+      <nav aria-label="Source code">
+        <a href="https://github.com/gh-lm/nextup" target="_blank" rel="noopener noreferrer" aria-label="Repository on GitHub (opens in a new tab)">Repository</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/README.md" target="_blank" rel="noopener noreferrer" aria-label="Documentation on GitHub (opens in a new tab)">Documentation</a>
+        <a href="https://github.com/gh-lm/nextup/security/policy" target="_blank" rel="noopener noreferrer" aria-label="Security on GitHub (opens in a new tab)">Security</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" aria-label="Licence on GitHub (opens in a new tab)">Licence</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" aria-label="Changelog on GitHub (opens in a new tab)">Changelog</a>
+        <a href="https://github.com/gh-lm/nextup/issues" target="_blank" rel="noopener noreferrer" aria-label="Issues on GitHub (opens in a new tab)">Issues</a>
+        <a href="https://github.com/gh-lm/nextup/releases" target="_blank" rel="noopener noreferrer" aria-label="Releases on GitHub (opens in a new tab)">Releases</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="sub-footer">
+    <div class="wrap">
+      <div class="sub-footer-inner">
+        <p>
+          &copy; Lightmorphic Ltd. Registered in England and Wales, company number
+          17423646.<br>
+          Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.<br>
+          Page last updated: <time datetime="2026-10-17">17 October 2026</time>.
+        </p>
+        <nav aria-label="Legal">
+          <a href="privacy.html">Privacy</a>
+          <a href="cookies.html">Cookies</a>
+          <a href="terms.html">Terms</a>
+          <a href="accessibility.html">Accessibility</a>
+          <a href="complaints.html">Complaints</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+</footer>
+<script src="https://apps.lightmorphic.com/launcher.js" defer></script>
+</body>
+</html>

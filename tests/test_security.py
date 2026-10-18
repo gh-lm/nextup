@@ -23,6 +23,17 @@ def test_login_still_honours_an_ordinary_path(client):
     assert response.headers["Location"] == "/settings"
 
 
+def test_tabs_and_backslashes_in_next_cannot_hide_a_second_site(client):
+    """Browsers delete tabs and read a backslash as a slash."""
+    for sneaky in ("/%09/evil.example", "/%0A/evil.example", "/%5Cevil.example", "/%0D%0A/evil.example"):
+        response = client.post(
+            f"/login?next={sneaky}", data={"username": "admin", "password": "nextup"}
+        )
+        assert response.status_code == 302
+        assert response.headers["Location"] == "/", sneaky
+        client.post("/logout")
+
+
 def test_a_full_url_in_next_is_ignored(client):
     response = client.post(
         "/login?next=https://evil.example/", data={"username": "admin", "password": "nextup"}

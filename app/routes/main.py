@@ -4,17 +4,21 @@ from datetime import date, timedelta
 from flask import Blueprint, render_template, request
 
 from .. import queries, secretstore, sync, tmdb
-from ..auth import login_required, using_default_password
+from ..auth import login_required
+from ..forms import page_number, whole_number
 
 bp = Blueprint("main", __name__)
+
+# The calendar draws whole weeks around the month, so the years either end are
+# kept clear of the limits of the date type.
+MIN_YEAR, MAX_YEAR = 1970, 2100
 
 
 @bp.route("/")
 @login_required
 def dashboard():
     order = "oldest" if request.args.get("order") == "oldest" else "newest"
-    page = request.args.get("page", "1")
-    page = int(page) if page.isdigit() and 1 <= int(page) <= 10000 else 1
+    page = page_number(10000)
     return render_template(
         "pages/dashboard.html",
         ready=queries.ready_to_watch(order, page=page),
@@ -23,7 +27,7 @@ def dashboard():
         recent=queries.recently_watched(6),
         counts=queries.dashboard_counts(),
         has_key=secretstore.has("tmdb_api_key"),
-        default_password=using_default_password(),
+        unreadable=secretstore.unreadable(),
         last_sync=sync.last_run(),
         provider_names=queries.provider_names,
     )
@@ -33,15 +37,9 @@ def dashboard():
 @login_required
 def calendar_view():
     today = date.today()
-    try:
-        year = int(request.args.get("y", today.year))
-        month = int(request.args.get("m", today.month))
-        if not 1 <= month <= 12:
-            raise ValueError
-        first = date(year, month, 1)
-    except (TypeError, ValueError):
-        first = date(today.year, today.month, 1)
-        year, month = first.year, first.month
+    year = whole_number(request.args.get("y"), MIN_YEAR, MAX_YEAR, today.year)
+    month = whole_number(request.args.get("m"), 1, 12, today.month)
+    first = date(year, month, 1)
 
     last_day = pycalendar.monthrange(year, month)[1]
     last = date(year, month, last_day)
@@ -94,8 +92,7 @@ def calendar_view():
 @bp.route("/upcoming")
 @login_required
 def upcoming_view():
-    days = request.args.get("days", "60")
-    days = int(days) if days.isdigit() and 1 <= int(days) <= 365 else 60
+    days = whole_number(request.args.get("days"), 1, 365, 60)
     episodes = queries.upcoming(days=days)
     grouped = {}
     for episode in episodes:
@@ -112,8 +109,7 @@ def upcoming_view():
 @login_required
 def search():
     term = (request.args.get("q") or "").strip()
-    page = request.args.get("page", "1")
-    page = int(page) if page.isdigit() and 1 <= int(page) <= 500 else 1
+    page = page_number(500)
 
     results, error, total_pages = [], None, 1
     if term:

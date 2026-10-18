@@ -6,7 +6,7 @@ Specials are still visible on the show page.
 """
 from datetime import date, timedelta
 
-from . import db, secretstore
+from . import clock, db, secretstore
 
 # How many days after something airs before it counts as watchable. A programme
 # that goes out at eleven at night is not really available until the next day,
@@ -62,36 +62,70 @@ def is_tracked(show_id):
     return db.query("SELECT 1 FROM tracked_show WHERE show_id = ?", (show_id,), one=True) is not None
 
 
-def is_tracked_movie(movie_id):
-    return db.query("SELECT 1 FROM tracked_movie WHERE movie_id = ?", (movie_id,), one=True) is not None
-
-
 def show_progress(show_id):
     row = db.query(
         """
         SELECT
             (SELECT COUNT(*) FROM episode e
               WHERE e.show_id = ? AND e.season_number > 0
-                AND e.air_date IS NOT NULL AND e.air_date <= date('now')) AS aired,
+                AND e.air_date IS NOT NULL AND e.air_date <= ?) AS aired,
             (SELECT COUNT(*) FROM episode e
               JOIN watched_episode w ON w.episode_id = e.id
               WHERE e.show_id = ? AND e.season_number > 0) AS watched,
             (SELECT COUNT(*) FROM episode e
               WHERE e.show_id = ? AND e.season_number > 0) AS total
         """,
-        (show_id, show_id, show_id),
+        (show_id, clock.today(), show_id, show_id),
         one=True,
     )
-    aired = row["aired"] or 0
-    watched = row["watched"] or 0
+    return _progress(row["aired"], row["watched"], row["total"])
+
+
+def _progress(aired, watched, total):
+    aired, watched, total = aired or 0, watched or 0, total or 0
     return {
         "aired": aired,
         "watched": watched,
-        "total": row["total"] or 0,
+        "total": total,
         "remaining": max(0, aired - watched),
         "percent": round(100 * watched / aired) if aired else 0,
         "complete": aired > 0 and watched >= aired,
     }
+
+
+def all_progress():
+    """Progress for every show at once, as {show_id: progress}.
+
+    Two grouped queries instead of three per show on the Shows page. A show
+    with no episodes yet is simply absent; ask for it with `.get(id)` and
+    fall back to empty_progress().
+    """
+    today = clock.today()
+    totals = {
+        row["show_id"]: (row["aired"], row["total"])
+        for row in db.query(
+            "SELECT show_id, COUNT(*) AS total,"
+            " SUM(air_date IS NOT NULL AND air_date <= ?) AS aired"
+            " FROM episode WHERE season_number > 0 GROUP BY show_id",
+            (today,),
+        )
+    }
+    watched = {
+        row["show_id"]: row["n"]
+        for row in db.query(
+            "SELECT e.show_id, COUNT(*) AS n FROM episode e"
+            " JOIN watched_episode w ON w.episode_id = e.id"
+            " WHERE e.season_number > 0 GROUP BY e.show_id"
+        )
+    }
+    return {
+        show_id: _progress(aired, watched.get(show_id), total)
+        for show_id, (aired, total) in totals.items()
+    }
+
+
+def empty_progress():
+    return _progress(0, 0, 0)
 
 
 def next_unwatched(show_id):
@@ -115,26 +149,13 @@ def next_airing(show_id):
     return db.query(
         """
         SELECT e.* FROM episode e
-        WHERE e.show_id = ? AND e.air_date IS NOT NULL AND e.air_date > date('now')
+        WHERE e.show_id = ? AND e.air_date IS NOT NULL AND e.air_date > ?
         ORDER BY e.air_date, e.season_number, e.episode_number
         LIMIT 1
         """,
-        (show_id,),
+        (show_id, clock.today()),
         one=True,
     )
-
-
-def to_watch():
-    """Every tracked show with something aired and unwatched, oldest first."""
-    out = []
-    for show in tracked_shows():
-        episode = next_unwatched(show["id"])
-        if episode is None:
-            continue
-        progress = show_progress(show["id"])
-        out.append({"show": show, "episode": episode, "progress": progress})
-    out.sort(key=lambda item: (item["episode"]["air_date"] or "9999-99-99"))
-    return out
 
 
 def ready_to_watch(order="newest", page=1, per_page=60):
@@ -252,12 +273,12 @@ def upcoming(days=30, limit=None):
         JOIN show s ON s.id = e.show_id
         JOIN tracked_show t ON t.show_id = e.show_id
              AND t.archived = 0 AND t.shortlist = 0
-        WHERE e.air_date IS NOT NULL AND e.air_date >= date('now') AND e.air_date <= ?
+        WHERE e.air_date IS NOT NULL AND e.air_date >= ? AND e.air_date <= ?
         ORDER BY e.air_date, s.name COLLATE NOCASE, e.season_number, e.episode_number
     """
     if limit:
         sql += f" LIMIT {int(limit)}"
-    return db.query(sql, (end,))
+    return db.query(sql, (clock.today(), end))
 
 
 def episodes_between(start_iso, end_iso):
@@ -310,7 +331,7 @@ def show_seasons(show_id):
     ordered = []
     for number in sorted(seasons):
         episodes = seasons[number]
-        aired = [e for e in episodes if e["air_date"] and e["air_date"] <= date.today().isoformat()]
+        aired = [e for e in episodes if e["air_date"] and e["air_date"] <= clock.today()]
         watched = [e for e in episodes if e["watched"]]
         ordered.append(
             {
@@ -397,12 +418,6 @@ def dismissed_ids(kind):
     }
 
 
-def is_dismissed(kind, item_id):
-    return db.query(
-        "SELECT 1 FROM dismissed WHERE kind = ? AND item_id = ?", (kind, item_id), one=True
-    ) is not None
-
-
 def known_ids():
     """Every show and film already on a list, so Discover can skip them."""
     return (
@@ -447,10 +462,10 @@ def films_arriving(days=60):
         JOIN tracked_movie t ON t.movie_id = m.id
         WHERE t.watched_at IS NULL AND t.shortlist = 0
           AND m.digital_release IS NOT NULL
-          AND m.digital_release >= date('now') AND m.digital_release <= ?
+          AND m.digital_release >= ? AND m.digital_release <= ?
         ORDER BY m.digital_release
         """,
-        (end,),
+        (clock.today(), end),
     )
 
 

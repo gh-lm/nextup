@@ -169,6 +169,45 @@ def test_it_does_not_send_twice_in_one_day(app, monkeypatch):
         assert len(sent) == 1
 
 
+def test_a_failed_send_gives_the_day_back_and_waits_before_trying_again(app, monkeypatch):
+    import pytest
+
+    from app import mailer, secretstore
+
+    def refuse(*a, **k):
+        raise mailer.MailError("The server said no.")
+
+    with app.app_context():
+        secretstore.set("available_after_days", "1")
+        _seed(app, air_offset_days=1, digital_offset_days=1)
+        for key, value in [("smtp_host", "mail.invalid"), ("mail_from", "a@example.com"),
+                           ("mail_to", "b@example.com"), ("daily_email_enabled", "1")]:
+            secretstore.set(key, value)
+        monkeypatch.setattr(mailer, "send", refuse)
+
+        with pytest.raises(mailer.MailError):
+            mailer.send_daily()
+        assert not secretstore.get("daily_email_last_sent")
+        assert mailer._backed_off() is True
+
+
+def test_the_day_is_claimed_before_the_message_goes(app, monkeypatch):
+    from app import mailer, secretstore
+
+    seen = []
+    with app.app_context():
+        secretstore.set("available_after_days", "1")
+        _seed(app, air_offset_days=1, digital_offset_days=1)
+        for key, value in [("smtp_host", "mail.invalid"), ("mail_from", "a@example.com"),
+                           ("mail_to", "b@example.com"), ("daily_email_enabled", "1")]:
+            secretstore.set(key, value)
+        monkeypatch.setattr(
+            mailer, "send", lambda *a, **k: seen.append(secretstore.get("daily_email_last_sent"))
+        )
+        mailer.send_daily()
+    assert seen == [date.today().isoformat()]
+
+
 def test_an_empty_day_is_recorded_so_it_does_not_retry(app):
     from app import mailer, secretstore
 

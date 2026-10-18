@@ -73,7 +73,7 @@ def test_saying_no_hides_a_show_from_discover(signed_in, app):
 
     signed_in.post("/discover/show/1234/no")
     with app.app_context():
-        assert queries.is_dismissed("tv", 1234)
+        assert 1234 in queries.dismissed_ids("tv")
         assert 1234 in queries.dismissed_ids("tv")
         # Films are a separate list.
         assert queries.dismissed_ids("movie") == set()
@@ -128,11 +128,11 @@ def test_adding_something_clears_its_dismissal(signed_in, app, monkeypatch):
     _fake_sync_show(monkeypatch)
     signed_in.post("/discover/show/700/no")
     with app.app_context():
-        assert queries.is_dismissed("tv", 700)
+        assert 700 in queries.dismissed_ids("tv")
 
     signed_in.post("/discover/show/700/yes")
     with app.app_context():
-        assert not queries.is_dismissed("tv", 700)
+        assert 700 not in queries.dismissed_ids("tv")
 
 
 def test_maybe_films_stay_out_of_the_films_page(app):

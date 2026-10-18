@@ -10,6 +10,7 @@
 
 :root {
   color-scheme: dark;
+  --bm-content-width: min(1120px, 100% - 2.5rem);
   --bg: #09090b;  --fg: #fafafa;
   --panel: #1b1d29;  --panel-border: rgba(255,255,255,.09);
   --border: #27272a;  --muted: #1c1c1f;  --muted-fg: #a1a1aa;
@@ -110,15 +111,30 @@ p:last-child { margin-bottom: 0; }
   text-decoration: none;
 }
 .site-nav nav a:hover { background: var(--muted); color: var(--fg); }
+.site-nav nav a.nav-join { color: var(--accent); }
+.site-nav nav a.nav-join:hover { color: var(--fg); }
 .site-nav nav #all-apps { display: inline-flex; align-items: center; }
 
 /* ----------------------------------------------------------------- hero */
 
-.hero { padding: clamp(3rem, 9vw, 6rem) 0 clamp(2rem, 5vw, 3.5rem); }
-.hero-inner { display: grid; gap: 2rem; max-width: 44rem; }
+.hero { padding: clamp(2.25rem, 6vw, 4rem) 0 clamp(1.5rem, 4vw, 2.5rem); }
+/* Two columns across the width of the site: the question and its answer on
+   the left, what it does and the way in on the right. Each column keeps the
+   text to a readable measure, which one full-width column could not. */
+.hero-inner {
+  display: grid; gap: 1.75rem 3.5rem;
+  grid-template-columns: 1.05fr 1fr;
+  align-items: center;
+}
+.hero-inner > * { min-width: 0; }
+.hero-side { display: grid; gap: 1.25rem; justify-items: start; }
+.hero-side .hero-note { margin-top: 0; }
 .hero p.lede {
-  font-size: clamp(1.125rem, 2.2vw, 1.375rem);
-  color: var(--muted-fg); max-width: 40rem; line-height: 1.55;
+  font-size: clamp(1.0625rem, 1.5vw, 1.25rem);
+  color: var(--muted-fg); line-height: 1.55; margin: 0;
+}
+@media (max-width: 900px) {
+  .hero-inner { grid-template-columns: 1fr; gap: 1.25rem; }
 }
 .hero-actions { display: flex; gap: 0.875rem; flex-wrap: wrap; align-items: center; }
 
@@ -213,31 +229,132 @@ p code, li code, dd code {
 }
 .steps h3 { margin-bottom: 0.375rem; }
 .steps p { color: var(--muted-fg); }
+/* A step that carries commands puts them beside the wording rather than
+   underneath it, so neither side is left with an empty half. The heading runs
+   across both. Steps with nothing to type keep the full width for the words. */
+.steps > li > div:has(pre) {
+  display: grid; gap: 0.75rem 2rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+  align-items: start;
+}
+.steps > li > div:has(pre) > h3 { grid-column: 1 / -1; }
+.steps > li > div:has(pre) > p { grid-column: 1; }
+.steps > li > div:has(pre) > pre { grid-column: 2; }
+@media (max-width: 900px) {
+  .steps > li > div:has(pre) { grid-template-columns: minmax(0, 1fr); }
+  .steps > li > div:has(pre) > p,
+  .steps > li > div:has(pre) > pre { grid-column: 1; }
+}
 
 
-dl.faq { margin: 0; display: grid; gap: 1.75rem; }
-dl.faq dt { font-weight: 700; font-size: 1.0625rem; margin-bottom: 0.375rem; letter-spacing: -0.01em; }
-dl.faq dd { margin: 0; color: var(--muted-fg); max-width: var(--measure); }
+/* Nine questions across the full width rather than one narrow column with
+   the right-hand side empty: three cards to a row on a desktop, two on a
+   tablet, one on a phone. Each card is darker than the band behind it so it
+   reads as a box in daylight. */
+dl.faq {
+  margin: 0; display: grid; gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+}
+dl.faq > div {
+  min-width: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.375rem 1.375rem;
+}
+dl.faq dt { font-weight: 700; font-size: 1.0625rem; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+dl.faq dd { margin: 0; color: var(--muted-fg); max-width: none; }
 
 /* ----------------------------------------------------------- legal pages */
 
-.prose { max-width: var(--measure); }
+/* Legal and licence pages. The sections stand side by side as cards across
+   the full width instead of one narrow column with the right-hand side empty.
+   Each card is a step lighter than the page behind it so it reads as a box. */
+.prose { max-width: none; }
+.prose-cards {
+  display: grid; gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(430px, 100%), 1fr));
+}
+.prose-cards > section {
+  min-width: 0;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem 1.625rem 1.625rem;
+}
+.prose-cards > section > :first-child { margin-top: 0; }
+.prose-cards > section > :last-child { margin-bottom: 0; }
+
+/* The 404 page: four ways back, side by side across the width. */
+.lead-line { color: var(--muted-fg); margin: 0 0 1.25rem; }
+.choices {
+  display: grid; gap: 1.25rem; margin-bottom: 3rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+}
+.choices a {
+  display: grid; gap: 0.25rem; align-content: start;
+  background: var(--muted); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.25rem 1.375rem;
+  text-decoration: none; color: var(--fg);
+}
+.choices a:hover { background: var(--border); }
+.choices span { color: var(--muted-fg); font-size: 0.9375rem; }
+
+/* The changelog: a sticky list of versions down the left, the entries beside
+   it two across, so the page is used rather than one narrow column. */
+.changelog {
+  display: grid; gap: 2rem;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  align-items: start;
+}
+.changelog-index { position: sticky; top: 5.5rem; }
+.changelog-index h2 {
+  font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--muted-fg); margin: 0 0 0.5rem;
+}
+.changelog-index ul {
+  list-style: none; margin: 0; padding: 0;
+  max-height: calc(100vh - 9rem); overflow-y: auto;
+}
+.changelog-index a {
+  display: block; padding: 0.3rem 0; color: var(--muted-fg);
+  text-decoration: none; font-size: 0.9375rem;
+}
+.changelog-index a:hover { color: var(--fg); text-decoration: underline; }
+.changelog-entries { grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); }
+@media (max-width: 900px) {
+  /* No room for a column of its own, so the list goes above the entries and
+     stops sticking. */
+  .changelog { grid-template-columns: 1fr; }
+  .changelog-index { position: static; }
+  .changelog-index ul { display: flex; flex-wrap: wrap; gap: 0 1rem; max-height: none; }
+}
 .prose h2 { margin-top: 2.5rem; margin-bottom: 0.75rem; font-size: 1.5rem; }
 .prose h2:first-of-type { margin-top: 1.5rem; }
 .prose h3 { margin-top: 1.75rem; margin-bottom: 0.5rem; }
 .prose ul { padding-left: 1.25rem; }
 .prose li { margin-bottom: 0.5rem; }
+.prose h2 .when { color: var(--muted-fg); font-weight: 400; font-size: 0.8em; white-space: nowrap; }
+.prose li pre, .prose li p { margin: 0.6rem 0; }
 .page-title { padding: clamp(2.5rem, 6vw, 4rem) 0 1rem; }
 .page-title p { color: var(--muted-fg); margin-top: 0.75rem; }
 
 /* --------------------------------------------------------------- footer */
 
 .site-footer { border-top: 1px solid var(--border); padding: 3rem 0 0; margin-top: 2rem; }
+/* Three blocks spread across the width with the same gap either side of the
+   middle one: the name and blurb left, the project links in the middle, the
+   site links hard right against the same edge as everything else. Equal
+   columns would not do it, because each block is a different width and the
+   space left over would land unevenly. */
 .footer-cols {
-  display: grid; gap: 2rem;
-  grid-template-columns: 1.4fr 1fr 1fr;
+  display: flex; flex-wrap: wrap; gap: 2rem;
+  justify-content: space-between;
   padding-bottom: 2.5rem;
 }
+.footer-cols > :first-child { max-width: 24rem; }
+.footer-cols .col-mid { text-align: center; }
+.footer-cols .col-end { text-align: right; }
 .footer-cols > * { min-width: 0; }
 .footer-cols h3 {
   font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.07em;
@@ -249,7 +366,65 @@ dl.faq dd { margin: 0; color: var(--muted-fg); max-width: var(--measure); }
   color: var(--fg); text-decoration: none; font-size: 0.9375rem;
 }
 .footer-cols a:hover { text-decoration: underline; }
-.footer-cols p { color: var(--muted-fg); font-size: 0.9375rem; max-width: 28rem; }
+.footer-cols p { color: var(--muted-fg); font-size: 0.9375rem; }
+
+/* The licence, re-wrapped so the words fill the box instead of sitting in a
+   70 character strip down the left. The wording is untouched; only the line
+   breaks are, and licence.txt keeps the original line for line. */
+.licence-doc {
+  margin-top: 1.25rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem 2.25rem;
+  margin-bottom: 3rem;
+}
+.licence-doc > :first-child { margin-top: 0; }
+.licence-doc > :last-child { margin-bottom: 0; }
+.licence-doc p { margin: 0 0 1rem; }
+.licence-doc h3 { margin: 2rem 0 0.75rem; font-size: 1.1875rem; }
+.licence-title { margin: 0 0 0.25rem; font-size: 1.5rem; }
+.licence-sub { color: var(--muted-fg); }
+.licence-item { margin-left: 1.75rem; }
+/* The example notice at the end is a thing you copy, so its lines stay. */
+.licence-notice {
+  white-space: pre-wrap;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+/* The open source strip: two round marks on the left, the seven links to the
+   code host on the right. It is the only place on the site that links there,
+   and it sits between the footer columns and the legal block. */
+.oss-bar {
+  margin-top: 1.75rem; padding-top: 1.375rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted-fg); font-size: 0.9375rem;
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: 0.5rem 1rem;
+  padding-bottom: 0.5rem;
+}
+.oss-bar .marks { display: flex; align-items: center; gap: 2px; margin-left: -10px; }
+.oss-bar .marks a {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: 8px;
+  color: var(--muted-fg); text-decoration: none;
+}
+.oss-bar .marks a:hover { color: var(--fg); background: var(--panel); }
+.oss-bar .marks svg { width: 21px; height: 21px; display: block; }
+.oss-bar nav {
+  flex: 0 1 auto; max-width: 100%;
+  display: flex; flex-wrap: wrap; justify-content: flex-end; margin-right: -6px;
+}
+.oss-bar nav a {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0.75rem 0.375rem; min-width: 44px; min-height: 44px;
+  color: var(--muted-fg); font-size: 0.9375rem; text-decoration: none;
+}
+.oss-bar nav a:hover { color: var(--fg); }
+@media (max-width: 700px) {
+  .oss-bar nav { justify-content: flex-start; margin-left: -6px; margin-right: 0; }
+}
 
 .sub-footer {
   border-top: 1px solid var(--border);
@@ -257,7 +432,14 @@ dl.faq dd { margin: 0; color: var(--muted-fg); max-width: var(--measure); }
   font-size: 0.8125rem; color: var(--muted-fg);
 }
 .sub-footer p { margin-bottom: 0.5rem; }
-.sub-footer-note { max-width: var(--measure); }
+/* The TMDB credit runs the full width of the footer and is ruled off from the
+   company details underneath it. */
+.sub-footer-note {
+  max-width: none;
+  margin: 0 0 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
 /* Company details on the left, the five legal pages hard right. They drop
    underneath and align left once there is no room to sit side by side. */
 .sub-footer-inner {
@@ -280,12 +462,16 @@ dl.faq dd { margin: 0; color: var(--muted-fg); max-width: var(--measure); }
 @media (max-width: 900px) {
   .feature-lead { grid-template-columns: 1fr; }
   .feature-lead.flip > figure { order: 0; }
-  .footer-cols { grid-template-columns: 1fr 1fr; }
+  /* Stacked or paired up, centred and right-aligned columns read badly, so
+     everything goes back to the left edge. */
+  .footer-cols { justify-content: flex-start; gap: 2rem 3rem; }
+  .footer-cols .col-mid, .footer-cols .col-end { text-align: left; }
 }
 @media (max-width: 560px) {
   body { font-size: 1rem; }
   .wrap { width: min(100% - 1.75rem, 1120px); }
-  .footer-cols { grid-template-columns: 1fr; }
+  :root { --bm-content-width: min(100% - 1.75rem, 1120px); }
+  .footer-cols { flex-direction: column; }
   /* One row, always. The name keeps its size and the links slide under it. */
   .site-nav .wrap { gap: 0.75rem; flex-wrap: nowrap; }
   .wordmark { flex: none; }
@@ -306,7 +492,7 @@ dl.faq dd { margin: 0; color: var(--muted-fg); max-width: var(--measure); }
 
 /* ------------------------------------------------------------- headline */
 
-.hero h1 { max-width: 15ch; }
+.hero h1 { max-width: 18ch; margin: 0; }
 /* The headline asks a question; this line answers it, typed out and cycling
    through real examples. Without scripting the first answer simply stands. */
 .answer {
@@ -337,7 +523,10 @@ dl.faq dd { margin: 0; color: var(--muted-fg); max-width: var(--measure); }
 .stage { padding-bottom: clamp(1rem, 3vw, 2rem); }
 .stage .shot { max-width: 1000px; margin-inline: auto; }
 
-/* The email, shown at the size it actually arrives. */
+/* The email, shown at the size it actually arrives. Its column is sized to
+   the picture so the text beside it gets the rest of the room instead of
+   leaving a gap between the two. */
+.feature-lead:has(.letter) { grid-template-columns: minmax(0, 1fr) 420px; }
 .letter { max-width: 420px; }
 .letter .shot { border-radius: 16px; }
 

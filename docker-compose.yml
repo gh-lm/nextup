@@ -1,6 +1,6 @@
 services:
   nextup:
-    image: ghcr.io/lightmorphic/nextup:latest
+    image: ghcr.io/gh-lm/nextup:latest
     container_name: nextup
     restart: unless-stopped
     # Bound to this machine only. Something in front of it - Tailscale Serve, a
@@ -17,9 +17,6 @@ services:
       - /tmp
     volumes:
       - /opt/nextup:/data
-    environment:
-      # Hours between automatic refreshes of tracked shows.
-      NEXTUP_SYNC_HOURS: "12"
-      # The morning email and "what is available today" both read the clock,
-      # so set this to your own timezone rather than leaving it on UTC.
-      TZ: "Europe/London"
+      # The morning email and the meaning of "today" both read the clock, so
+      # the container follows whatever timezone this machine is set to.
+      - /etc/localtime:/etc/localtime:ro

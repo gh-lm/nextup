@@ -46,4 +46,7 @@ def client(app):
 @pytest.fixture()
 def signed_in(client):
     client.post("/login", data={"username": "admin", "password": "nextup"})
+    # Most tests are not about the starter-password lock, so lift it here.
+    with client.session_transaction() as sess:
+        sess["starter"] = False
     return client
