@@ -1,0 +1,125 @@
+<!doctype html>
+<!--
+  The three steps picture, drawn at 1280 by 320 and saved as
+  docs/images/how-it-works.png. Same saver as the banner.
+-->
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Nextup how it works source</title>
+<style>
+  @font-face {
+    font-family: 'Manrope';
+    src: url('../../fonts/manrope.woff2') format('woff2');
+    font-weight: 200 800;
+  }
+  body { margin: 0; background: #18181b; }
+  canvas { display: block; width: 1280px; height: 320px; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1280" height="320"></canvas>
+<script>
+const W = 1280, H = 320;
+const BG = '#09090b', FG = '#fafafa', MUTED = '#a1a1aa';
+const ACCENT = '#fbc711', ON_ACCENT = '#645007';
+const CARD = '#1b1d29', LINE = 'rgba(255,255,255,.09)';
+
+function roundRect(x, y, w, h, r) {
+  const p = new Path2D();
+  p.moveTo(x + r, y);
+  p.arcTo(x + w, y, x + w, y + h, r);
+  p.arcTo(x + w, y + h, x, y + h, r);
+  p.arcTo(x, y + h, x, y, r);
+  p.arcTo(x, y, x + w, y, r);
+  p.closePath();
+  return p;
+}
+
+function wrap(g, text, x, y, max, lh) {
+  const words = text.split(' ');
+  let line = '';
+  for (const word of words) {
+    const test = line ? line + ' ' + word : word;
+    if (g.measureText(test).width > max && line) {
+      g.fillText(line, x, y);
+      y += lh;
+      line = word;
+    } else {
+      line = test;
+    }
+  }
+  g.fillText(line, x, y);
+}
+
+function draw() {
+  const g = document.getElementById('c').getContext('2d');
+  g.fillStyle = BG;
+  g.fillRect(0, 0, W, H);
+
+  const steps = [
+    ['1', 'Add what you watch',
+     'Search TMDB and add a show or a film in one click.'],
+    ['2', 'Say where you are',
+     'Tick the last episode you remember and the rest catches up.'],
+    ['3', 'Open it tomorrow',
+     'A list of what is waiting, and one short email each morning.'],
+  ];
+
+  const pad = 72, gap = 36;
+  const cw = (W - pad * 2 - gap * 2) / 3, ch = 196, cy = (H - ch) / 2;
+
+  steps.forEach(([n, title, body], i) => {
+    const x = pad + i * (cw + gap);
+
+    g.fillStyle = CARD;
+    g.fill(roundRect(x, cy, cw, ch, 18));
+    g.strokeStyle = LINE;
+    g.lineWidth = 1;
+    g.stroke(roundRect(x + .5, cy + .5, cw - 1, ch - 1, 18));
+
+    g.fillStyle = ACCENT;
+    g.beginPath();
+    g.arc(x + 34, cy + 42, 19, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = ON_ACCENT;
+    g.font = '800 20px Manrope, system-ui, sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(n, x + 34, cy + 43);
+    g.textAlign = 'left';
+    g.textBaseline = 'alphabetic';
+
+    g.fillStyle = FG;
+    g.font = '700 24px Manrope, system-ui, sans-serif';
+    g.fillText(title, x + 28, cy + 104);
+
+    g.fillStyle = MUTED;
+    g.font = '400 18px Manrope, system-ui, sans-serif';
+    wrap(g, body, x + 28, cy + 138, cw - 56, 26);
+
+    if (i < 2) {
+      const ax = x + cw + gap / 2, ay = cy + ch / 2;
+      g.strokeStyle = '#3f3f46';
+      g.lineWidth = 2;
+      g.lineCap = 'round';
+      g.beginPath();
+      g.moveTo(ax - 9, ay - 8); g.lineTo(ax + 1, ay); g.lineTo(ax - 9, ay + 8);
+      g.stroke();
+    }
+  });
+}
+
+document.fonts.load('700 24px Manrope')
+  .then(() => document.fonts.ready)
+  .then(() => {
+    draw();
+    document.getElementById('c').toBlob(b => {
+      fetch('http://127.0.0.1:4174/save?name=how-it-works.png', { method: 'POST', body: b })
+        .then(() => { document.title = 'saved'; })
+        .catch(() => { document.title = 'not saved'; });
+    }, 'image/png');
+  });
+</script>
+</body>
+</html>

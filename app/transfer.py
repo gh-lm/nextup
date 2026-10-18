@@ -33,6 +33,18 @@ def _rows(table):
     return [dict(row) for row in db.query(f"SELECT * FROM {table}")]
 
 
+def counts():
+    """How many rows a backup would hold, without building the backup."""
+    found = {
+        table: db.query(f"SELECT COUNT(*) AS n FROM {table}", one=True)["n"]
+        for table, _key in TABLES
+    }
+    found["settings"] = db.query(
+        "SELECT COUNT(*) AS n FROM settings WHERE encrypted = 0 AND value IS NOT NULL", one=True
+    )["n"]
+    return found
+
+
 def export_data(include_secrets=False):
     """Everything, as a plain dictionary ready to be written out as JSON."""
     payload = {

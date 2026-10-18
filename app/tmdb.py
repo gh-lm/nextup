@@ -30,6 +30,31 @@ def api_key():
     return key
 
 
+def _unreachable(exc):
+    """The error for a failed request, with nothing from the URL in it.
+
+    A requests exception prints the full address, and the address carries the
+    API key as a query parameter. The class name says enough.
+    """
+    return TmdbError(f"Could not reach TMDB ({type(exc).__name__}).")
+
+
+MAX_WAIT = 10
+
+
+def _wait_seconds(retry_after):
+    """How long to pause after a 429: what TMDB asked for, within reason.
+
+    The header may be missing, a date instead of a number, or very large; a
+    web request must not sit for minutes because of it.
+    """
+    try:
+        asked = int(retry_after)
+    except (TypeError, ValueError):
+        asked = 2
+    return min(max(asked, 0), MAX_WAIT) + 1
+
+
 def _get(path, params=None, **kwargs):
     """GET a TMDB endpoint.
 
@@ -46,11 +71,11 @@ def _get(path, params=None, **kwargs):
             resp = requests.get(url, params=params, timeout=TIMEOUT)
         except requests.RequestException as exc:
             if attempt == 2:
-                raise TmdbError(f"Could not reach TMDB: {exc}") from exc
+                raise _unreachable(exc) from None
             time.sleep(1 + attempt)
             continue
         if resp.status_code == 429:
-            time.sleep(int(resp.headers.get("Retry-After", "2")) + 1)
+            time.sleep(_wait_seconds(resp.headers.get("Retry-After")))
             continue
         if resp.status_code == 401:
             raise TmdbError("TMDB rejected the API key. Check it on the Settings page.")
@@ -314,10 +339,6 @@ def providers_from(payload):
     return uk_providers(payload.get("watch/providers") or {})
 
 
-def trending_tv():
-    return _get("/trending/tv/week").get("results", [])
-
-
 def verify_key(candidate):
     """Check a key works before saving it."""
     try:
@@ -325,7 +346,7 @@ def verify_key(candidate):
             f"{BASE}/configuration", params={"api_key": candidate}, timeout=TIMEOUT
         )
     except requests.RequestException as exc:
-        raise TmdbError(f"Could not reach TMDB: {exc}") from exc
+        raise _unreachable(exc) from None
     if resp.status_code == 401:
         raise TmdbError("TMDB rejected that key.")
     if not resp.ok:

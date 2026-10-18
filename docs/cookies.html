@@ -7,7 +7,7 @@
 <meta name="description" content="This website sets no cookies at all. The Nextup software sets two on your own server, and neither tracks you.">
 <link rel="canonical" href="https://nextup.lightmorphic.com/cookies.html">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/site.css?v=bdb6c43945">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Nextup">
 <meta property="og:title" content="Cookies: Nextup">
@@ -50,43 +50,48 @@
   </div>
   <div class="wrap">
     <div class="prose">
-
-      <h2>On this website</h2>
-      <p>
-        None. Not one, first-party or otherwise. There is no consent banner here
-        because there is nothing to consent to. The pages are static files with a
-        stylesheet, a font and some images, all served from this domain, plus the
-        Lightmorphic apps menu in the corner, which is a script and some icons
-        from apps.lightmorphic.com. That is ours, it sets no cookies and it
-        stores nothing.
-      </p>
-      <p>
-        There is no analytics, no tag manager, no advertising pixel, no embedded
-        video and no social widget. Nothing on these pages reports back to us or to
-        anyone else.
-      </p>
-
-      <h2>In the Nextup software</h2>
-      <p>
-        Your own installation sets one cookie, served by your own server, which
-        never leaves it.
-      </p>
-      <ul>
-        <li>
-          <strong>A session cookie.</strong> It keeps you signed in. It holds a
-          signed session identifier, nothing more, and it is marked HttpOnly and
-          SameSite Lax. It is deleted when you sign out.
-        </li>
-      </ul>
-      <p>
-        It is not used for tracking, profiling or measurement, and it is not
-        readable by anyone but your own server.
-      </p>
-
-      <h2>Questions</h2>
-      <p>
-        Write to <a href="mailto:privacy@lightmorphic.com">privacy@lightmorphic.com</a>.
-      </p>
+      <div class="prose-cards">
+        <section>
+        <h2>On this website</h2>
+        <p>
+          None. Not one, first-party or otherwise. There is no consent banner here
+          because there is nothing to consent to. The pages are static files with a
+          stylesheet, a font and some images, all served from this domain, plus the
+          Lightmorphic apps menu in the corner, which is a script and some icons
+          from apps.lightmorphic.com. That is ours, it sets no cookies and it
+          stores nothing.
+        </p>
+        <p>
+          There is no analytics, no tag manager, no advertising pixel, no embedded
+          video and no social widget. Nothing on these pages reports back to us or to
+          anyone else.
+        </p>
+        </section>
+        <section>
+        <h2>In the Nextup software</h2>
+        <p>
+          Your own installation sets one cookie, served by your own server, which
+          never leaves it.
+        </p>
+        <ul>
+          <li>
+            <strong>A session cookie.</strong> It keeps you signed in. It holds a
+            signed session identifier, nothing more, and it is marked HttpOnly and
+            SameSite Lax. It is deleted when you sign out.
+          </li>
+        </ul>
+        <p>
+          It is not used for tracking, profiling or measurement, and it is not
+          readable by anyone but your own server.
+        </p>
+        </section>
+        <section>
+        <h2>Questions</h2>
+        <p>
+          Write to <a href="mailto:privacy@lightmorphic.com">privacy@lightmorphic.com</a>.
+        </p>
+        </section>
+      </div>
     </div>
   </div>
 </main>
@@ -101,24 +106,55 @@
           Lightmorphic and given away under the GPL.
         </p>
       </div>
-      <div>
+      <div class="col-mid">
         <h3>The project</h3>
         <ul>
-          <li><a href="https://github.com/lightmorphic/nextup">Source code</a></li>
-          <li><a href="https://github.com/lightmorphic/nextup/releases">Releases</a></li>
-          <li><a href="https://github.com/lightmorphic/nextup/issues">Report a problem</a></li>
-          <li><a href="https://github.com/lightmorphic/nextup/blob/main/LICENSE">Licence</a></li>
+          <li><a href="whats-new.html">What's new</a></li>
+          <li><a href="security.html">Security</a></li>
+          <li><a href="licence.html">Licence</a></li>
         </ul>
       </div>
-      <div>
-        <h3>On this site</h3>
+      <div class="col-end">
+        <h3>Pages</h3>
         <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="privacy.html">Privacy</a></li>
-          <li><a href="terms.html">Terms</a></li>
-          <li><a href="accessibility.html">Accessibility</a></li>
+          <li><a href="index.html#watching">Watching</a></li>
+          <li><a href="index.html#install">Install</a></li>
+          <li><a href="index.html#deciding">Deciding</a></li>
+          <li><a href="index.html#email">The email</a></li>
+          <li><a href="documentation.html">Documentation</a></li>
+          <li><a href="runbook.html">Runbook</a></li>
         </ul>
       </div>
+    </div>
+
+    <div class="oss-bar">
+      <div class="marks">
+        <a href="https://github.com/gh-lm/nextup" target="_blank" rel="noopener noreferrer"
+           aria-label="Nextup on GitHub (opens in a new tab)">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+        </a>
+        <a href="https://opensource.org" target="_blank" rel="noopener noreferrer"
+           aria-label="Open Source Initiative (opens in a new tab)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="5" r="2.6"/>
+            <circle cx="5.2" cy="17" r="2.6"/>
+            <circle cx="18.8" cy="17" r="2.6"/>
+            <path d="M10.7 7.3 6.5 14.7M13.3 7.3l4.2 7.4M7.8 17h8.4"/>
+          </svg>
+        </a>
+      </div>
+      <nav aria-label="Source code">
+        <a href="https://github.com/gh-lm/nextup" target="_blank" rel="noopener noreferrer" aria-label="Repository on GitHub (opens in a new tab)">Repository</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/README.md" target="_blank" rel="noopener noreferrer" aria-label="Documentation on GitHub (opens in a new tab)">Documentation</a>
+        <a href="https://github.com/gh-lm/nextup/security/policy" target="_blank" rel="noopener noreferrer" aria-label="Security on GitHub (opens in a new tab)">Security</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" aria-label="Licence on GitHub (opens in a new tab)">Licence</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" aria-label="Changelog on GitHub (opens in a new tab)">Changelog</a>
+        <a href="https://github.com/gh-lm/nextup/issues" target="_blank" rel="noopener noreferrer" aria-label="Issues on GitHub (opens in a new tab)">Issues</a>
+        <a href="https://github.com/gh-lm/nextup/releases" target="_blank" rel="noopener noreferrer" aria-label="Releases on GitHub (opens in a new tab)">Releases</a>
+      </nav>
     </div>
   </div>
 
@@ -127,9 +163,9 @@
       <div class="sub-footer-inner">
         <p>
           &copy; Lightmorphic Ltd. Registered in England and Wales, company number
-          <a href="https://find-and-update.company-information.service.gov.uk/company/17423646">17423646</a>.<br>
+          17423646.<br>
           Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.<br>
-          Page last updated: <time datetime="2026-09-06">6 September 2026</time>.
+          Page last updated: <time datetime="2026-10-17">17 October 2026</time>.
         </p>
         <nav aria-label="Legal">
           <a href="privacy.html">Privacy</a>

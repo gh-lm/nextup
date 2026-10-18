@@ -32,7 +32,7 @@ COPY --from=build /opt/venv /opt/venv
 
 WORKDIR /app
 COPY app ./app
-COPY wsgi.py run.py VERSION ./
+COPY wsgi.py run.py VERSION LICENSE ./
 
 RUN mkdir -p /data && chown -R 1000:1000 /data /app
 

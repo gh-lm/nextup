@@ -35,8 +35,12 @@ is stored encrypted rather than in an environment file.
 ## Links
 
 - Site: https://nextup.lightmorphic.com/
-- Source: https://github.com/lightmorphic/nextup
-- Licence: https://github.com/lightmorphic/nextup/blob/main/LICENSE
+- Image: https://github.com/gh-lm/nextup/pkgs/container/nextup
+- What's new: https://nextup.lightmorphic.com/whats-new.html
+- Documentation: https://nextup.lightmorphic.com/documentation.html
+- Runbook: https://nextup.lightmorphic.com/runbook.html
+- Security: https://nextup.lightmorphic.com/security.html
+- Licence: https://nextup.lightmorphic.com/licence.html
 - Contact: https://nextup.lightmorphic.com/complaints.html
 
 Published by Lightmorphic Ltd, registered in England and Wales, company number

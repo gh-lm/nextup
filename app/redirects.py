@@ -9,9 +9,21 @@ from urllib.parse import urlparse
 from flask import redirect, request, url_for
 
 
+def is_local_path(target):
+    """True only for a plain path on this site.
+
+    Browsers drop tabs and newlines inside a URL and read a backslash as a
+    slash, so "/<tab>/evil.example" and "/\\evil.example" both mean
+    "//evil.example". Control characters and backslashes are refused outright.
+    """
+    if not target or not target.startswith("/") or target.startswith("//"):
+        return False
+    return not any(ch == "\\" or ord(ch) < 0x20 or ord(ch) == 0x7F for ch in target)
+
+
 def back(default_url):
     target = request.form.get("next")
-    if target and target.startswith("/") and not target.startswith("//"):
+    if is_local_path(target):
         return redirect(target)
 
     referrer = request.referrer
@@ -21,7 +33,7 @@ def back(default_url):
             path = parts.path or "/"
             if parts.query:
                 path = f"{path}?{parts.query}"
-            if path.startswith("/") and not path.startswith("//"):
+            if is_local_path(path):
                 return redirect(path)
 
     return redirect(default_url)

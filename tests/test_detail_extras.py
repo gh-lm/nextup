@@ -139,7 +139,7 @@ def test_the_image_proxy_accepts_a_profile_path(signed_in):
     """Profile filenames can carry dashes and underscores, unlike posters."""
     from app.posters import PATH_RE
 
-    assert PATH_RE.match("/8Ac2mfkQiCJj5nDNMMBQZLwEEEG.jpg")
-    assert PATH_RE.match("/a-b_c.png")
-    assert not PATH_RE.match("/../secret.jpg")
-    assert not PATH_RE.match("/thing.txt")
+    assert PATH_RE.fullmatch("/8Ac2mfkQiCJj5nDNMMBQZLwEEEG.jpg")
+    assert PATH_RE.fullmatch("/a-b_c.png")
+    assert not PATH_RE.fullmatch("/../secret.jpg")
+    assert not PATH_RE.fullmatch("/thing.txt")

@@ -27,10 +27,11 @@ SYNOPSIS_LIMIT = 190
 FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
 BRAND = "#fbc711"
 ON_BRAND = "#645007"
-INK = "#111827"
-MUTED = "#6e6e77"
-LINE = "#e4e4e7"
-WASH = "#f7f7f8"
+INK = "#fafafa"
+MUTED = "#a1a1aa"
+LINE = "#27272a"
+WASH = "#09090b"
+CARD = "#1b1d29"
 
 DEFAULT_PORT = 587
 DEFAULT_HOUR = 8
@@ -307,13 +308,15 @@ def _html_shell(heading, inner, standfirst=""):
     return f"""<!doctype html>
 <html lang="en-GB"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
 <title>Nextup</title></head>
 <body style="margin:0;padding:0;background:{WASH};">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
        style="background:{WASH};padding:28px 12px">
   <tr><td align="center">
     <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
-           style="width:100%;max-width:600px;background:#ffffff;border:1px solid {LINE};
+           style="width:100%;max-width:600px;background:{CARD};border:1px solid {LINE};
                   border-radius:18px;overflow:hidden">
       <tr><td style="padding:26px 32px 4px 32px">
         <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
@@ -455,6 +458,8 @@ def _html_digest(when, episodes, films):
     return f"""<!doctype html>
 <html lang="en-GB"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
 <title>Nextup</title></head>
 <body style="margin:0;padding:0;background:{WASH};">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">
@@ -463,7 +468,7 @@ Available to watch now, from {_esc(when)}.</div>
        style="background:{WASH};padding:28px 12px">
   <tr><td align="center">
     <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
-           style="width:100%;max-width:600px;background:#ffffff;border:1px solid {LINE};
+           style="width:100%;max-width:600px;background:{CARD};border:1px solid {LINE};
                   border-radius:18px;overflow:hidden">
 
       <tr><td style="padding:26px 32px 4px 32px">
@@ -504,6 +509,18 @@ Available to watch now, from {_esc(when)}.</div>
 </body></html>""", images
 
 
+RETRY_AFTER_FAILURE = timedelta(minutes=30)
+
+
+def _backed_off():
+    """True while a failed send is being left alone before the next try."""
+    raw = secretstore.get("daily_email_retry_after")
+    try:
+        return bool(raw) and datetime.now() < datetime.fromisoformat(raw)
+    except ValueError:
+        return False
+
+
 def send_daily(force=False):
     """Send this morning's email. Returns a short line saying what happened."""
     settings = config()
@@ -518,18 +535,30 @@ def send_daily(force=False):
 
     digest = build_digest()
     if digest is None:
-        # Record the attempt so an empty day does not retry every ten minutes.
+        # Record the attempt so an empty day is not looked at again.
         secretstore.set("daily_email_last_sent", today)
         return "Nothing became available today, so no email was sent."
 
-    subject, text, html, images = digest
-    send(subject, text, html, images)
+    # The day is claimed before sending. If the mail server takes the message
+    # and the connection then drops, the next pass finds the day taken and
+    # does not send a second copy. A failure hands the claim back and waits.
+    previous = settings["last_sent"]
     secretstore.set("daily_email_last_sent", today)
+    subject, text, html, images = digest
+    try:
+        send(subject, text, html, images)
+    except Exception:
+        secretstore.set("daily_email_last_sent", previous or "")
+        secretstore.set(
+            "daily_email_retry_after",
+            (datetime.now() + RETRY_AFTER_FAILURE).isoformat(timespec="seconds"),
+        )
+        raise
     return f"Sent: {subject}"
 
 
 def start_background(app):
-    """Check every ten minutes whether this morning's email is due."""
+    """Check every two minutes whether this morning's email is due."""
 
     def loop():
         time.sleep(40)
@@ -537,7 +566,7 @@ def start_background(app):
             with app.app_context():
                 try:
                     settings = config()
-                    if settings["enabled"] and is_configured():
+                    if settings["enabled"] and is_configured() and not _backed_off():
                         now = datetime.now()
                         due = now.time() >= settings["time"]
                         if due and settings["last_sent"] != now.date().isoformat():

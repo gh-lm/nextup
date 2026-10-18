@@ -23,7 +23,7 @@ def test_maybe_shows_stay_out_of_next_up(app):
 
     with app.app_context():
         _seed_show(app, shortlist=1)
-        assert queries.to_watch() == []
+        assert queries.ready_to_watch()["rows"] == []
         assert [row["id"] for row in queries.tracked_shows(shortlist=True)] == [700]
         assert queries.tracked_shows() == []
 
@@ -33,7 +33,7 @@ def test_following_a_show_puts_it_back_in_next_up(app):
 
     with app.app_context():
         _seed_show(app, shortlist=0)
-        assert len(queries.to_watch()) == 1
+        assert len(queries.ready_to_watch()["rows"]) == 1
         assert queries.tracked_shows(shortlist=True) == []
 
 
@@ -53,11 +53,11 @@ def test_toggle_moves_a_show_between_the_two_lists(signed_in, app):
     with app.app_context():
         _seed_show(app, shortlist=0)
 
-    signed_in.post("/show/700/maybe")
+    signed_in.post("/show/700/maybe", data={"maybe": "1"})
     with app.app_context():
         assert queries.show_list_state(700)["shortlist"] == 1
 
-    signed_in.post("/show/700/maybe")
+    signed_in.post("/show/700/maybe", data={"maybe": "0"})
     with app.app_context():
         assert queries.show_list_state(700)["shortlist"] == 0
 

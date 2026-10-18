@@ -9,33 +9,54 @@
   // leaves and put it back where it was on the way in.
   var SCROLL_KEY = 'nextup:scroll';
 
-  function rememberScroll() {
+  function openSeasons() {
+    var out = [];
+    document.querySelectorAll('details.season[data-season]').forEach(function (box) {
+      if (box.open) { out.push(box.getAttribute('data-season')); }
+    });
+    return out;
+  }
+
+  function rememberPage() {
     try {
       window.sessionStorage.setItem(SCROLL_KEY, JSON.stringify({
         path: window.location.pathname,
-        y: window.scrollY || document.documentElement.scrollTop || 0
+        y: window.scrollY || document.documentElement.scrollTop || 0,
+        seasons: openSeasons()
       }));
     } catch (error) { /* private browsing, or storage turned off */ }
   }
 
-  function takeRememberedScroll() {
+  function takeRememberedPage() {
     var raw = null;
     try {
       raw = window.sessionStorage.getItem(SCROLL_KEY);
       window.sessionStorage.removeItem(SCROLL_KEY);
-    } catch (error) { return 0; }
-    if (!raw) { return 0; }
+    } catch (error) { return null; }
+    if (!raw) { return null; }
     var saved = null;
-    try { saved = JSON.parse(raw); } catch (error) { return 0; }
-    if (!saved || saved.path !== window.location.pathname) { return 0; }
-    return saved.y > 0 ? saved.y : 0;
+    try { saved = JSON.parse(raw); } catch (error) { return null; }
+    if (!saved || saved.path !== window.location.pathname) { return null; }
+    return saved;
   }
 
   // Every ordinary form post, plus the two places below that submit a form
   // themselves, since doing that in script raises no submit event.
-  document.addEventListener('submit', rememberScroll, true);
+  document.addEventListener('submit', rememberPage, true);
 
-  var wanted = takeRememberedScroll();
+  var remembered = takeRememberedPage();
+
+  // The season you were working in stays the one that is open. Left to itself
+  // the page opens whichever season holds the next unwatched episode, so
+  // ticking off the last of them would throw you back to season one.
+  if (remembered && remembered.seasons) {
+    var wanted_seasons = remembered.seasons;
+    document.querySelectorAll('details.season[data-season]').forEach(function (box) {
+      box.open = wanted_seasons.indexOf(box.getAttribute('data-season')) !== -1;
+    });
+  }
+
+  var wanted = remembered ? (remembered.y > 0 ? remembered.y : 0) : 0;
   if (wanted) {
     window.scrollTo(0, wanted);
 
@@ -93,7 +114,7 @@
     form.addEventListener('change', function () {
       window.clearTimeout(pending);
       // A moment's grace, so typing into a number box does not save twice.
-      pending = window.setTimeout(function () { rememberScroll(); form.submit(); }, 250);
+      pending = window.setTimeout(function () { rememberPage(); form.submit(); }, 250);
     });
   });
 
@@ -106,7 +127,7 @@
     clockToggle.addEventListener('change', function (event) {
       if (event.target && event.target.name === 'clock_format') {
         var form = document.getElementById('clock-form');
-        if (form) { rememberScroll(); form.submit(); }
+        if (form) { rememberPage(); form.submit(); }
       }
     });
   }

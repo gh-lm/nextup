@@ -1,6 +1,6 @@
 {% extends 'layout/base.html' %}
 {% import 'partials/_note.html' as n %}
-{% block title %}Settings — Nextup{% endblock %}
+{% block title %}Settings | Nextup{% endblock %}
 {% block body %}
 <div class="page-head">
   <div>
@@ -8,6 +8,12 @@
     <p>Keys, sign-in and appearance.</p>
   </div>
 </div>
+
+{% if unreadable %}
+<div class="notice">
+  <span>Nextup cannot read the saved {{ unreadable|join(' and ') }}, most likely because secret.key was replaced. Enter {{ 'it' if unreadable|length == 1 else 'them' }} again below.</span>
+</div>
+{% endif %}
 
 <div class="bento">
   <section class="panel bento-wide" id="mail">
@@ -195,7 +201,7 @@
   <div class="field inline-field">
   <label class="visually-hidden" for="tmdb_api_key">API key</label>
   <input id="tmdb_api_key" name="tmdb_api_key" type="password" autocomplete="off"
-  placeholder="{{ 'Saved — paste a new one to replace it' if has_key else 'Paste your key' }}">
+  placeholder="{{ 'Saved. Paste a new one to replace it' if has_key else 'Paste your key' }}">
   </div>
   <div class="btn-row">
   <button class="btn btn-primary" type="submit">Check and save</button>
@@ -217,7 +223,7 @@
   </p>
   {% if last_sync %}
   <p class="hint">
-  Last run {{ last_sync.started_at[:16].replace('T', ' ') }} —
+  Last run {{ last_sync.started_at[:16].replace('T', ' ') }}:
   {{ last_sync.shows_done }} show{{ '' if last_sync.shows_done == 1 else 's' }}.
   {% if last_sync.message %}<br><span style="color:var(--danger)">{{ last_sync.message }}</span>{% endif %}
   </p>
@@ -304,7 +310,8 @@
   The plain download leaves your TMDB key and mail password out, because
   they are encrypted with a key that stays on this server and cannot travel.
   You would type those two back in. The second button puts them in the file
-  readable by anyone who opens it, so keep that one somewhere safe.
+  readable by anyone who opens it, so keep that one somewhere safe. Either file
+  holds your username and a hash of your password.
   </p>
 
   <form method="post" action="{{ url_for('settings.import_data') }}"
@@ -347,6 +354,10 @@
   <label for="username">Username</label>
   <input id="username" name="username" type="text" value="{{ user.username }}" autocomplete="username">
   </div>
+  <div class="field">
+  <label for="current">Current password</label>
+  <input id="current" name="current" type="password" autocomplete="current-password" required>
+  </div>
   <div class="field-row">
   <div class="field">
   <label for="password">New password</label>
@@ -357,7 +368,7 @@
   <input id="confirm" name="confirm" type="password" autocomplete="new-password">
   </div>
   </div>
-  <p class="hint" style="margin-bottom:14px">At least 8 characters. Leave both blank to keep the current one.</p>
+  <p class="hint" style="margin-bottom:14px">At least 8 characters. Leave both blank to change only the username. Changing the password signs out every other browser.</p>
   <button class="btn btn-primary" type="submit">Save</button>
   </form>
   {{ n.notes_for(notes, "account") }}

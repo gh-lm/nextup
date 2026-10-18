@@ -10,3 +10,12 @@ data/
 secret.key
 session.key
 .env
+.publish/
+
+# The working task list and the old publish copy stay on the laptop.
+.publish/
+charlie-tasks.md
+
+# Tool folders that belong to the laptop, not the project.
+.claude/
+.prismor/

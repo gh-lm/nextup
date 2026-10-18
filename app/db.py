@@ -72,6 +72,12 @@ def init_db():
     conn = connect()
     conn.executescript(schema)
     _apply_migrations(conn)
+    # Older versions saved the full request address, API key included, in the
+    # sync history. Anything that still carries one is replaced.
+    conn.execute(
+        "UPDATE sync_run SET message = 'Details removed: they contained a key.'"
+        " WHERE message LIKE '%api_key=%'"
+    )
     row = conn.execute("SELECT 1 FROM admin_user WHERE id = 1").fetchone()
     if row is None:
         conn.execute(

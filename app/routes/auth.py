@@ -1,6 +1,8 @@
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
-from ..auth import check_login
+from .. import config
+from ..auth import check_login, forget_failures, record_failure, sign_in_blocked, start_session
+from ..redirects import is_local_path
 
 bp = Blueprint("auth", __name__)
 
@@ -12,16 +14,18 @@ def login():
     if request.method == "POST":
         username = request.form.get("username", "")
         password = request.form.get("password", "")
+        address = request.remote_addr or "unknown"
+        if sign_in_blocked(address):
+            flash("Too many attempts. Wait a few minutes and try again.", "error")
+            return render_template("pages/login.html"), 429
         if check_login(username, password):
-            session.clear()
-            session["logged_in"] = True
-            session.permanent = True
-            # A leading double slash is a protocol-relative URL, so "//evil"
-            # would send you off this site entirely. Only a plain path is kept.
+            forget_failures(address)
+            start_session(starter=password == config.DEFAULT_PASSWORD)
             target = request.args.get("next") or ""
-            if not target.startswith("/") or target.startswith("//"):
+            if not is_local_path(target):
                 target = url_for("main.dashboard")
             return redirect(target)
+        record_failure(address)
         flash("Those details did not match.", "error")
     return render_template("pages/login.html")
 

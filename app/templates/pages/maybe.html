@@ -1,5 +1,5 @@
 {% extends 'layout/base.html' %}
-{% block title %}Maybe — Nextup{% endblock %}
+{% block title %}Maybe | Nextup{% endblock %}
 {% block body %}
 <div class="page-head">
   <div>
@@ -39,7 +39,7 @@
       </div>
       <form method="post" action="{{ url_for('shows.toggle_maybe', show_id=show.id) }}">
         <input type="hidden" name="next" value="{{ request.full_path }}">
-        <button class="btn btn-small btn-primary btn-block" type="submit">Start watching</button>
+        <button class="btn btn-small btn-primary btn-block" type="submit" name="maybe" value="0">Start watching</button>
       </form>
     </article>
   {% endfor %}
@@ -61,7 +61,7 @@
       <div class="show-tile-meta">{{ film.release_date|year }}</div>
       <form method="post" action="{{ url_for('movies.toggle_maybe', movie_id=film.id) }}">
         <input type="hidden" name="next" value="{{ request.full_path }}">
-        <button class="btn btn-small btn-primary btn-block" type="submit">Move to my films</button>
+        <button class="btn btn-small btn-primary btn-block" type="submit" name="maybe" value="0">Move to my films</button>
       </form>
     </article>
   {% endfor %}

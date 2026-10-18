@@ -19,7 +19,7 @@ PORT = int(os.environ.get("NEXTUP_PORT", "8080"))
 HTTPS_ONLY = os.environ.get("NEXTUP_HTTPS_ONLY", "0").strip().lower() in {"1", "true", "yes", "on"}
 
 # Hours between automatic refreshes of tracked shows.
-SYNC_INTERVAL_HOURS = int(os.environ.get("NEXTUP_SYNC_HOURS", "12"))
+SYNC_INTERVAL_HOURS = 12
 
 DEFAULT_USERNAME = "admin"
 DEFAULT_PASSWORD = "nextup"

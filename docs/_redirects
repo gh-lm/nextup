@@ -1,0 +1,11 @@
+# The website is served by Cloudflare Pages and the image comes from this
+# project's own registry on GitHub. These keep older links working: what's new
+# and the licence are pages on this site, problems go through the complaints
+# page, and anything else falls through to this site's own 404 page.
+# Never point a rule at a .html address: Pages 308s those to the bare name, and a
+# rule pointing back at the .html one loops forever.
+/downloads https://github.com/gh-lm/nextup/pkgs/container/nextup 302
+/download https://github.com/gh-lm/nextup/pkgs/container/nextup 302
+/changelog /whats-new 302
+/bugs /complaints 302
+/license /licence 302
