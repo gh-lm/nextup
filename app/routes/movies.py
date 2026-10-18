@@ -1,15 +1,11 @@
-from datetime import datetime, timezone
-
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
-from .. import db, queries, sync, tmdb
+from .. import clock, db, queries, sync, tmdb
 from ..auth import login_required
+from ..forms import wanted_state
 from ..redirects import back_to
 
 bp = Blueprint("movies", __name__)
-
-def _now():
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 @bp.route("/movies")
 @login_required
@@ -74,7 +70,7 @@ def track(movie_id):
         return back_to("movies.index")
     db.execute(
         "INSERT OR IGNORE INTO tracked_movie (movie_id, added_at) VALUES (?, ?)",
-        (movie_id, _now()),
+        (movie_id, clock.now_iso()),
     )
     try:
         digital, names = sync.sync_movie_availability(movie_id)
@@ -111,7 +107,7 @@ def toggle_maybe(movie_id):
     row = queries.movie_list_state(movie_id)
     if row is None:
         abort(404)
-    moving = not row["shortlist"]
+    moving = wanted_state("maybe")
     db.execute(
         "UPDATE tracked_movie SET shortlist = ? WHERE movie_id = ?",
         (1 if moving else 0, movie_id),
@@ -122,6 +118,7 @@ def toggle_maybe(movie_id):
 @bp.route("/movie/<int:movie_id>/watched", methods=["POST"])
 @login_required
 def watched(movie_id):
+    watching = wanted_state()
     row = db.query(
         "SELECT watched_at FROM tracked_movie WHERE movie_id = ?", (movie_id,), one=True
     )
@@ -129,6 +126,6 @@ def watched(movie_id):
         abort(404)
     db.execute(
         "UPDATE tracked_movie SET watched_at = ? WHERE movie_id = ?",
-        (None if row["watched_at"] else _now(), movie_id),
+        (clock.now_iso() if watching else None, movie_id),
     )
     return back_to("movies.index")

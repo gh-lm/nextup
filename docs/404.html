@@ -7,7 +7,7 @@
 <meta name="description" content="That page does not exist on the Nextup site. Here is the way back.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/site.css?v=bdb6c43945">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -33,26 +33,56 @@
     </div>
   </div>
   <div class="wrap">
-    <div class="prose">
-      <p>Try one of these instead.</p>
-      <ul>
-        <li><a href="/">The front page</a></li>
-        <li><a href="/#install">How to install Nextup</a></li>
-        <li><a href="/#faq">Questions people ask</a></li>
-        <li><a href="https://github.com/lightmorphic/nextup">The source code on GitHub</a></li>
-      </ul>
-    </div>
+    <p class="lead-line">Try one of these instead.</p>
+    <nav class="choices" aria-label="Where to go next">
+      <a href="/"><strong>The front page</strong><span>What Nextup is, in a couple of screens.</span></a>
+      <a href="/#install"><strong>Install it</strong><span>Docker, a data directory and about five minutes.</span></a>
+      <a href="/#faq"><strong>Questions people ask</strong><span>The nine that come up most.</span></a>
+      <a href="/whats-new"><strong>What's new</strong><span>Every change, newest first.</span></a>
+    </nav>
   </div>
 </main>
 <footer class="site-footer">
+  <div class="wrap">
+    <div class="oss-bar">
+      <div class="marks">
+        <a href="https://github.com/gh-lm/nextup" target="_blank" rel="noopener noreferrer"
+           aria-label="Nextup on GitHub (opens in a new tab)">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+        </a>
+        <a href="https://opensource.org" target="_blank" rel="noopener noreferrer"
+           aria-label="Open Source Initiative (opens in a new tab)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="5" r="2.6"/>
+            <circle cx="5.2" cy="17" r="2.6"/>
+            <circle cx="18.8" cy="17" r="2.6"/>
+            <path d="M10.7 7.3 6.5 14.7M13.3 7.3l4.2 7.4M7.8 17h8.4"/>
+          </svg>
+        </a>
+      </div>
+      <nav aria-label="Source code">
+        <a href="https://github.com/gh-lm/nextup" target="_blank" rel="noopener noreferrer" aria-label="Repository on GitHub (opens in a new tab)">Repository</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/README.md" target="_blank" rel="noopener noreferrer" aria-label="Documentation on GitHub (opens in a new tab)">Documentation</a>
+        <a href="https://github.com/gh-lm/nextup/security/policy" target="_blank" rel="noopener noreferrer" aria-label="Security on GitHub (opens in a new tab)">Security</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" aria-label="Licence on GitHub (opens in a new tab)">Licence</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" aria-label="Changelog on GitHub (opens in a new tab)">Changelog</a>
+        <a href="https://github.com/gh-lm/nextup/issues" target="_blank" rel="noopener noreferrer" aria-label="Issues on GitHub (opens in a new tab)">Issues</a>
+        <a href="https://github.com/gh-lm/nextup/releases" target="_blank" rel="noopener noreferrer" aria-label="Releases on GitHub (opens in a new tab)">Releases</a>
+      </nav>
+    </div>
+  </div>
+
   <div class="sub-footer">
     <div class="wrap">
       <div class="sub-footer-inner">
         <p>
           &copy; Lightmorphic Ltd. Registered in England and Wales, company number
-          <a href="https://find-and-update.company-information.service.gov.uk/company/17423646">17423646</a>.<br>
+          17423646.<br>
           Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.<br>
-          Page last updated: <time datetime="2026-09-06">6 September 2026</time>.
+          Page last updated: <time datetime="2026-10-17">17 October 2026</time>.
         </p>
         <nav aria-label="Legal">
           <a href="privacy.html">Privacy</a>

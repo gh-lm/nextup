@@ -21,6 +21,18 @@ def api_key():
         raise MissingKey("No TMDB API key saved. Add one on the Settings page.")
     return key
 
+def _unreachable(exc):
+    return TmdbError(f"Could not reach TMDB ({type(exc).__name__}).")
+
+MAX_WAIT = 10
+
+def _wait_seconds(retry_after):
+    try:
+        asked = int(retry_after)
+    except (TypeError, ValueError):
+        asked = 2
+    return min(max(asked, 0), MAX_WAIT) + 1
+
 def _get(path, params=None, **kwargs):
     params = dict(params or {})
     params.update(kwargs)
@@ -32,11 +44,11 @@ def _get(path, params=None, **kwargs):
             resp = requests.get(url, params=params, timeout=TIMEOUT)
         except requests.RequestException as exc:
             if attempt == 2:
-                raise TmdbError(f"Could not reach TMDB: {exc}") from exc
+                raise _unreachable(exc) from None
             time.sleep(1 + attempt)
             continue
         if resp.status_code == 429:
-            time.sleep(int(resp.headers.get("Retry-After", "2")) + 1)
+            time.sleep(_wait_seconds(resp.headers.get("Retry-After")))
             continue
         if resp.status_code == 401:
             raise TmdbError("TMDB rejected the API key. Check it on the Settings page.")
@@ -249,16 +261,13 @@ def certification_from(payload):
 def providers_from(payload):
     return uk_providers(payload.get("watch/providers") or {})
 
-def trending_tv():
-    return _get("/trending/tv/week").get("results", [])
-
 def verify_key(candidate):
     try:
         resp = requests.get(
             f"{BASE}/configuration", params={"api_key": candidate}, timeout=TIMEOUT
         )
     except requests.RequestException as exc:
-        raise TmdbError(f"Could not reach TMDB: {exc}") from exc
+        raise _unreachable(exc) from None
     if resp.status_code == 401:
         raise TmdbError("TMDB rejected that key.")
     if not resp.ok:

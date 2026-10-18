@@ -169,7 +169,7 @@ def _register_context(app):
         try:
             accent = secretstore.get("accent", "brand") or "brand"
         except Exception:
-            pass
+            app.logger.exception("Could not read the accent colour; using the default")
         notes = []
         for category, message in get_flashed_messages(with_categories=True):
             kind, _, panel = (category or "info").partition(":")

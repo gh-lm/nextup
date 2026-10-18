@@ -2,13 +2,10 @@
 import threading
 from datetime import datetime, timedelta, timezone
 
-from . import config, db, tmdb
+from . import clock, config, db, tmdb
 
 _sync_lock = threading.Lock()
 _running = False
-
-def now_iso():
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 def _network_name(payload):
     networks = payload.get("networks") or []
@@ -20,7 +17,7 @@ def _runtime(payload):
     times = payload.get("episode_run_time") or []
     return times[0] if times else None
 
-def upsert_show(payload):
+def upsert_show(payload, stamp=True):
     db.execute(
         """
         INSERT INTO show (id, name, overview, poster_path, backdrop_path,
@@ -52,7 +49,7 @@ def upsert_show(payload):
             _network_name(payload),
             _runtime(payload),
             payload.get("vote_average"),
-            now_iso(),
+            clock.now_iso() if stamp else None,
         ),
     )
 
@@ -92,9 +89,10 @@ def upsert_episodes(show_id, season_payload):
     conn.commit()
     return len(rows)
 
-def sync_show(show_id):
+def sync_show(show_id, failed=None):
     payload = tmdb.show(show_id)
-    upsert_show(payload)
+    upsert_show(payload, stamp=False)
+    missed = []
     for season in payload.get("seasons", []):
         number = season.get("season_number")
         if number is None:
@@ -102,7 +100,12 @@ def sync_show(show_id):
         try:
             upsert_episodes(show_id, tmdb.season(show_id, number))
         except tmdb.TmdbError:
-            continue
+            missed.append(number)
+    if missed:
+        if failed is not None:
+            failed.extend(missed)
+    else:
+        db.execute("UPDATE show SET synced_at = ? WHERE id = ?", (clock.now_iso(), show_id))
     return payload.get("name")
 
 def upsert_movie(payload):
@@ -128,27 +131,19 @@ def upsert_movie(payload):
             payload.get("release_date") or None,
             payload.get("runtime"),
             payload.get("vote_average"),
-            now_iso(),
+            clock.now_iso(),
         ),
     )
 
 def sync_movie_availability(movie_id):
-    digital = None
-    names, link = [], None
-    try:
-        digital = tmdb.digital_release_date(tmdb.movie_release_dates(movie_id))
-    except tmdb.TmdbError:
-        pass
-    try:
-        names, link = tmdb.uk_providers(tmdb.movie_providers(movie_id))
-    except tmdb.TmdbError:
-        pass
+    digital = tmdb.digital_release_date(tmdb.movie_release_dates(movie_id))
+    names, link = tmdb.uk_providers(tmdb.movie_providers(movie_id))
 
     db.execute(
         "UPDATE movie SET digital_release = COALESCE(?, digital_release),"
         " providers = ?, provider_link = ?, providers_checked_at = ?"
         " WHERE id = ?",
-        (digital, "\n".join(names) if names else None, link, now_iso(), movie_id),
+        (digital, "\n".join(names) if names else None, link, clock.now_iso(), movie_id),
     )
     return digital, names
 
@@ -197,7 +192,7 @@ def sync_all(force=False):
     done = skipped = 0
     errors = []
     run = db.execute(
-        "INSERT INTO sync_run (started_at) VALUES (?)", (now_iso(),)
+        "INSERT INTO sync_run (started_at) VALUES (?)", (clock.now_iso(),)
     )
     run_id = run.lastrowid
     try:
@@ -211,8 +206,13 @@ def sync_all(force=False):
                 skipped += 1
                 continue
             try:
-                sync_show(row["id"])
-                done += 1
+                failed = []
+                sync_show(row["id"], failed)
+                if failed:
+                    seasons = ", ".join(str(n) for n in failed)
+                    errors.append(f"{row['name']}: season {seasons} could not be fetched")
+                else:
+                    done += 1
             except tmdb.TmdbError as exc:
                 errors.append(f"{row['name']}: {exc}")
         try:
@@ -224,7 +224,7 @@ def sync_all(force=False):
             "UPDATE sync_run SET finished_at = ?, shows_done = ?, status = ?,"
             " message = ? WHERE id = ?",
             (
-                now_iso(),
+                clock.now_iso(),
                 done,
                 "error" if errors else "ok",
                 "; ".join(errors)[:500] if errors else None,
@@ -243,6 +243,20 @@ def last_run():
     return db.query(
         "SELECT * FROM sync_run ORDER BY id DESC LIMIT 1", one=True
     )
+
+def start_now(app, force=True):
+    if _running:
+        return False
+
+    def work():
+        with app.app_context():
+            try:
+                sync_all(force=force)
+            except Exception:
+                app.logger.exception("Refresh failed")
+
+    threading.Thread(target=work, name="nextup-sync-now", daemon=True).start()
+    return True
 
 def start_background(app):
 

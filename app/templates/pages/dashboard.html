@@ -1,5 +1,5 @@
 {% extends 'layout/base.html' %}
-{% block title %}Next up — Nextup{% endblock %}
+{% block title %}Next up | Nextup{% endblock %}
 {% block body %}
 
 {% if not has_key %}
@@ -9,11 +9,11 @@
   <a class="btn btn-small" href="{{ url_for('settings.index') }}">Add one</a>
 </div>
 {% endif %}
-{% if default_password %}
+{% if unreadable %}
 <div class="notice">
-  <span>You are still on the starter password.</span>
+  <span>Nextup cannot read the saved {{ unreadable|join(' and ') }}, most likely because secret.key was replaced. Enter {{ 'it' if unreadable|length == 1 else 'them' }} again.</span>
   <span class="spacer"></span>
-  <a class="btn btn-small" href="{{ url_for('settings.index') }}">Change it</a>
+  <a class="btn btn-small" href="{{ url_for('settings.index') }}">Open settings</a>
 </div>
 {% endif %}
 
@@ -87,7 +87,7 @@
               <div class="watch-card-actions">
                 <form method="post" action="{{ url_for('shows.watch_episode', episode_id=ep.id) }}">
                   <input type="hidden" name="next" value="{{ request.full_path }}">
-                  <button class="btn btn-primary btn-small" type="submit">
+                  <button class="btn btn-primary btn-small" type="submit" name="to" value="1">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
                          stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg>
                     Watched
@@ -130,7 +130,7 @@
               <div class="watch-card-actions">
                 <form method="post" action="{{ url_for('movies.watched', movie_id=film.id) }}">
                   <input type="hidden" name="next" value="{{ request.full_path }}">
-                  <button class="btn btn-primary btn-small" type="submit">
+                  <button class="btn btn-primary btn-small" type="submit" name="to" value="1">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
                          stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg>
                     Watched

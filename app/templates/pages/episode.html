@@ -1,6 +1,6 @@
 {% extends 'layout/base.html' %}
 {% import 'partials/_icons.html' as icons %}
-{% block title %}{{ show.name }} {{ episode|episode_code }} — Nextup{% endblock %}
+{% block title %}{{ show.name }} {{ episode|episode_code }} | Nextup{% endblock %}
 {% block body %}
 
 <div class="page-head">
@@ -45,7 +45,7 @@
     <div class="btn-row" style="margin-top:16px">
       <form method="post" action="{{ url_for('shows.watch_episode', episode_id=episode.id) }}">
         <input type="hidden" name="next" value="{{ request.full_path }}">
-        <button class="btn {{ '' if episode.watched else 'btn-primary' }}" type="submit">
+        <button class="btn {{ '' if episode.watched else 'btn-primary' }}" type="submit" name="to" value="{{ '0' if episode.watched else '1' }}">
           {{ 'Mark as not watched' if episode.watched else 'Mark watched' }}
         </button>
       </form>

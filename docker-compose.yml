@@ -1,6 +1,6 @@
 services:
   nextup:
-    image: ghcr.io/lightmorphic/nextup:latest
+    image: ghcr.io/gh-lm/nextup:latest
     container_name: nextup
     restart: unless-stopped
     ports:
@@ -14,6 +14,4 @@ services:
       - /tmp
     volumes:
       - /opt/nextup:/data
-    environment:
-      NEXTUP_SYNC_HOURS: "12"
-      TZ: "Europe/London"
+      - /etc/localtime:/etc/localtime:ro

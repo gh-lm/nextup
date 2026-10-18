@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentation: Nextup</title>
+<meta name="description" content="How to install Nextup, what every setting does, where your data lives, and how to back it up and update it.">
+<link rel="canonical" href="https://nextup.lightmorphic.com/documentation.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/site.css?v=bdb6c43945">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nextup">
+<meta property="og:title" content="Documentation: Nextup">
+<meta property="og:description" content="How to install Nextup, what every setting does, where your data lives, and how to back it up and update it.">
+<meta property="og:url" content="https://nextup.lightmorphic.com/documentation.html">
+<meta property="og:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Nextup dashboard, listing TV shows with the next episode to watch.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Documentation: Nextup">
+<meta name="twitter:description" content="How to install Nextup, what every setting does, where your data lives, and how to back it up and update it.">
+<meta name="twitter:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-nav">
+  <div class="wrap">
+    <a class="wordmark" href="index.html">
+      <img src="favicon.svg" alt="" width="30" height="30">
+      Nextup
+    </a>
+    <nav aria-label="Main">
+      <a href="index.html#watching">Watching</a>
+      <a href="index.html#install">Install</a>
+      <a href="index.html#deciding">Deciding</a>
+      <a href="index.html#email">The email</a>
+      <div id="all-apps"></div>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="page-title">
+    <div class="wrap">
+      <h1>Documentation</h1>
+      <p>Everything from first install to the last setting, in the order you need it.</p>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="prose">
+      <div class="prose-cards">
+        <section>
+          <h2>What Nextup is</h2>
+          <p>
+            A tracker for the television and films you watch, that you run on your own
+            machine. It remembers where you are in every show, works out what is waiting,
+            and tells you when a film reaches home viewing. One account, no signup, and it
+            never talks to us.
+          </p>
+          <p>
+            Everything it knows about shows and films comes from
+            <a href="https://www.themoviedb.org/">TMDB</a>, fetched by your server with
+            your own free key.
+          </p>
+        </section>
+        <section>
+          <h2>Before you start</h2>
+          <p>You need two things.</p>
+          <ul>
+            <li>Docker, with the compose plugin.</li>
+            <li>
+              A free TMDB account and its API key. Make the account, then go to
+              <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a>
+              and copy the API Key for v3 auth. You paste it into Nextup later, not into a
+              file.
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h2>Installing</h2>
+          <p>Make the directory your data will live in, owned by user 1000:</p>
+          <pre><code>sudo mkdir -p /opt/nextup
+sudo chown -R 1000:1000 /opt/nextup</code></pre>
+          <p>Save this as <code>docker-compose.yml</code> beside it:</p>
+          <pre><code>services:
+  nextup:
+    image: ghcr.io/gh-lm/nextup:latest
+    container_name: nextup
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4090:8080"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - /opt/nextup:/data
+      - /etc/localtime:/etc/localtime:ro</code></pre>
+          <pre><code>docker compose up -d</code></pre>
+          <p>
+            Then open it, sign in with <code>admin</code> and <code>nextup</code>, and
+            Nextup will ask you to choose your own password before it shows anything
+            else.
+          </p>
+        </section>
+        <section>
+          <h2>The Settings page</h2>
+          <p>Everything that makes your copy yours is set here, not in a file.</p>
+          <ul>
+            <li><strong>Your username and password.</strong></li>
+            <li>
+              <strong>The TMDB key.</strong> Checked against TMDB before it is saved, then
+              stored encrypted.
+            </li>
+            <li>
+              <strong>The morning email.</strong> Your mail server, the port, whether it
+              uses STARTTLS, SSL or neither, the username and password, who the message
+              comes from and who it goes to, and the time it is sent, to the minute. A
+              switch turns the clock between 24 hour and am and pm.
+            </li>
+            <li>
+              <strong>Watchable after.</strong> How long to wait before something counts
+              as available, so a programme that airs at eleven at night does not appear
+              until you would really watch it. It governs the dashboard, the films list
+              and the email alike.
+            </li>
+            <li><strong>The accent colour</strong>, from a fixed set.</li>
+            <li><strong>Backups</strong>, covered below.</li>
+          </ul>
+        </section>
+        <section>
+          <h2>Settings that live in the environment</h2>
+          <p>
+            Only the things that decide where the app lives. No keys or passwords ever go
+            here.
+          </p>
+          <ul>
+            <li><code>NEXTUP_DATA_DIR</code>, default <code>/data</code>. Where the
+            database, the keys and the poster cache live.</li>
+            <li><code>NEXTUP_PORT</code>, default <code>8080</code>. The port inside the
+            container.</li>
+            <li><code>NEXTUP_HTTPS_ONLY</code>, default <code>0</code>. Set it to
+            <code>1</code> only when every way in really is HTTPS. See the
+            <a href="security.html">security page</a>.</li>
+            <li><code>TZ</code>. Only needed if you want a different timezone from the
+            machine itself. The compose above mounts <code>/etc/localtime</code> instead,
+            so the container follows the server.</li>
+          </ul>
+        </section>
+        <section>
+          <h2>What lives in the data directory</h2>
+          <ul>
+            <li><code>nextup.db</code>, the shows, the episodes and what you have
+            watched.</li>
+            <li><code>secret.key</code>, which encrypts the TMDB key and the mail
+            password.</li>
+            <li><code>session.key</code>, which signs the login cookie.</li>
+            <li><code>images/</code>, the cached posters and stills.</li>
+          </ul>
+          <p>Backing up that one directory backs up everything.</p>
+        </section>
+        <section>
+          <h2>Backing up and moving</h2>
+          <p>
+            The Settings page has a <strong>Download a backup</strong> button. One JSON
+            file holds every show and film you added, everything you marked watched, what
+            you dismissed and your settings, with enough show detail for a fresh copy to
+            be usable at once. It also holds your username and a hash of your password,
+            so keep the file private.
+          </p>
+          <p>
+            Your TMDB key and mail password are left out by default, because they are
+            encrypted with a key that stays on that server. A second button includes them
+            as plain text, so keep that file somewhere safe.
+          </p>
+          <p>
+            Restoring is the same page in reverse. See the
+            <a href="runbook.html">runbook</a> for moving to another machine.
+          </p>
+        </section>
+        <section>
+          <h2>Updating</h2>
+          <pre><code>docker compose pull
+docker compose down
+docker compose up -d</code></pre>
+          <p>
+            A plain <code>up -d</code> does not fetch a newer <code>latest</code> on its
+            own. Every release is tagged with its version number as well, so you can pin
+            one if you would rather.
+          </p>
+        </section>
+        <section>
+          <h2>Running it without Docker</h2>
+          <pre><code>pip install -r requirements.txt
+NEXTUP_DATA_DIR=./data python run.py</code></pre>
+          <p>
+            It is a Python and Flask app with SQLite behind it and no build step. The
+            source is inside the image too, under <code>/app</code>, as the licence
+            requires.
+          </p>
+        </section>
+        <section>
+          <h2>Licence and credits</h2>
+          <p>
+            Nextup is free software under the GPL version 3. The full text is on the
+            <a href="licence.html">licence page</a>.
+          </p>
+          <p>
+            This product uses the TMDB API but is not endorsed or certified by TMDB.
+            Streaming service listings come from JustWatch by way of TMDB.
+          </p>
+        </section>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-cols">
+      <div>
+        <a class="wordmark" href="index.html" style="margin-bottom:.75rem"><img src="favicon.svg" alt="" width="30" height="30">Nextup</a>
+        <p>
+          A self-hosted tracker for the TV shows and films you watch. Made by
+          Lightmorphic and given away under the GPL.
+        </p>
+      </div>
+      <div class="col-mid">
+        <h3>The project</h3>
+        <ul>
+          <li><a href="whats-new.html">What's new</a></li>
+          <li><a href="security.html">Security</a></li>
+          <li><a href="licence.html">Licence</a></li>
+        </ul>
+      </div>
+      <div class="col-end">
+        <h3>Pages</h3>
+        <ul>
+          <li><a href="index.html#watching">Watching</a></li>
+          <li><a href="index.html#install">Install</a></li>
+          <li><a href="index.html#deciding">Deciding</a></li>
+          <li><a href="index.html#email">The email</a></li>
+          <li><a href="documentation.html">Documentation</a></li>
+          <li><a href="runbook.html">Runbook</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="oss-bar">
+      <div class="marks">
+        <a href="https://github.com/gh-lm/nextup" target="_blank" rel="noopener noreferrer"
+           aria-label="Nextup on GitHub (opens in a new tab)">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+        </a>
+        <a href="https://opensource.org" target="_blank" rel="noopener noreferrer"
+           aria-label="Open Source Initiative (opens in a new tab)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="5" r="2.6"/>
+            <circle cx="5.2" cy="17" r="2.6"/>
+            <circle cx="18.8" cy="17" r="2.6"/>
+            <path d="M10.7 7.3 6.5 14.7M13.3 7.3l4.2 7.4M7.8 17h8.4"/>
+          </svg>
+        </a>
+      </div>
+      <nav aria-label="Source code">
+        <a href="https://github.com/gh-lm/nextup" target="_blank" rel="noopener noreferrer" aria-label="Repository on GitHub (opens in a new tab)">Repository</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/README.md" target="_blank" rel="noopener noreferrer" aria-label="Documentation on GitHub (opens in a new tab)">Documentation</a>
+        <a href="https://github.com/gh-lm/nextup/security/policy" target="_blank" rel="noopener noreferrer" aria-label="Security on GitHub (opens in a new tab)">Security</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" aria-label="Licence on GitHub (opens in a new tab)">Licence</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" aria-label="Changelog on GitHub (opens in a new tab)">Changelog</a>
+        <a href="https://github.com/gh-lm/nextup/issues" target="_blank" rel="noopener noreferrer" aria-label="Issues on GitHub (opens in a new tab)">Issues</a>
+        <a href="https://github.com/gh-lm/nextup/releases" target="_blank" rel="noopener noreferrer" aria-label="Releases on GitHub (opens in a new tab)">Releases</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="sub-footer">
+    <div class="wrap">
+      <div class="sub-footer-inner">
+        <p>
+          &copy; Lightmorphic Ltd. Registered in England and Wales, company number
+          17423646.<br>
+          Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.<br>
+          Page last updated: <time datetime="2026-10-17">17 October 2026</time>.
+        </p>
+        <nav aria-label="Legal">
+          <a href="privacy.html">Privacy</a>
+          <a href="cookies.html">Cookies</a>
+          <a href="terms.html">Terms</a>
+          <a href="accessibility.html">Accessibility</a>
+          <a href="complaints.html">Complaints</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+</footer>
+<script src="https://apps.lightmorphic.com/launcher.js" defer></script>
+</body>
+</html>

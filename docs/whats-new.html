@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What's new: Nextup</title>
+<meta name="description" content="Every change to Nextup, newest first: what was added, what was fixed, and what you have to do about it.">
+<link rel="canonical" href="https://nextup.lightmorphic.com/whats-new.html">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/site.css?v=bdb6c43945">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nextup">
+<meta property="og:title" content="What's new: Nextup">
+<meta property="og:description" content="Every change to Nextup, newest first: what was added, what was fixed, and what you have to do about it.">
+<meta property="og:url" content="https://nextup.lightmorphic.com/whats-new.html">
+<meta property="og:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Nextup dashboard, listing TV shows with the next episode to watch.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="What's new: Nextup">
+<meta name="twitter:description" content="Every change to Nextup, newest first: what was added, what was fixed, and what you have to do about it.">
+<meta name="twitter:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-nav">
+  <div class="wrap">
+    <a class="wordmark" href="index.html">
+      <img src="favicon.svg" alt="" width="30" height="30">
+      Nextup
+    </a>
+    <nav aria-label="Main">
+      <a href="index.html#watching">Watching</a>
+      <a href="index.html#install">Install</a>
+      <a href="index.html#deciding">Deciding</a>
+      <a href="index.html#email">The email</a>
+      <div id="all-apps"></div>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="page-title">
+    <div class="wrap">
+      <h1>What's new</h1>
+      <p>Every change to Nextup, newest first. The version you are running is shown in the app.</p>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="changelog">
+      <nav class="changelog-index" aria-label="Versions">
+        <h2>Versions</h2>
+        <ul>
+          <li><a href="#v1.5.4">1.5.4</a></li>
+          <li><a href="#v1.4.0">1.4.0</a></li>
+          <li><a href="#v1.3.0">1.3.0</a></li>
+          <li><a href="#v1.0.0">1.0.0</a></li>
+          <li><a href="#v0.13.1">0.13.1</a></li>
+          <li><a href="#v0.3.0">0.3.0</a></li>
+        </ul>
+      </nav>
+      <div class="prose">
+        <div class="prose-cards changelog-entries">
+          <section>
+        <h2 id="v1.5.4">1.5.4<span class="when"> &middot; 18 October 2026</span></h2>
+        <p>This entry covers every release since 1.5.0 (13 September). It starts with a round of fixes after a full code review. Nothing in them changes how you use Nextup, and your data is untouched.</p>
+        <h3>Fixes from the code review</h3>
+        <ul>
+          <li><strong>Signing in is tighter.</strong> The first time you sign in with the starter password, Nextup makes you choose your own before it shows anything else. Changing your username or password now asks for the current password first, and a refused change alters nothing. Changing the password signs out every other browser. Eight wrong passwords from one address pause sign-in for fifteen minutes.
+          </li>
+          <li><strong>A sign-in link could send you to another website.</strong> A specially built link could carry you off this site after you signed in. Only plain paths on Nextup are followed now.
+          </li>
+          <li><strong>Your TMDB key could be written into the sync history.</strong> When TMDB could not be reached, the error text included the full address, key and all, and was saved. Errors no longer carry it, and any old message that does is replaced when Nextup starts.
+          </li>
+          <li><strong>A TMDB outage no longer wipes the streaming services you had saved.</strong> A film's saved dates and services are only changed when TMDB actually answered.
+          </li>
+          <li><strong>A show is only marked fresh when every season came through.</strong> A season TMDB would not serve used to be skipped without a word, and the show was left alone for up to two weeks. It is now reported and tried again at the next refresh.
+          </li>
+          <li><strong>The morning email cannot go out twice.</strong> The day is claimed before sending, so a dropped connection after the mail server accepted the message does not trigger a second copy. After a real failure it waits half an hour before trying again, instead of every two minutes.
+          </li>
+          <li><strong>Buttons are safe to press twice.</strong> Mark watched, favourite, archive and the maybe list now ask for the state you want rather than flipping the current one, so a double click no longer undoes itself. The archive button says Unarchive on an archived show.
+          </li>
+          <li><strong>Removing a film asks for a second click,</strong> the same as removing a show does.
+          </li>
+          <li><strong>Odd values in an address or a form no longer cause an error page.</strong> Page numbers, day counts, the calendar month and year, the mail port and the send time are all read in one careful way.
+          </li>
+          <li><strong>Nextup tells you when it cannot read a saved key.</strong> If secret.key is lost or replaced, a notice names what cannot be read so you can enter it again, instead of the key just looking as if it was never saved.
+          </li>
+          <li><strong>Restoring a backup is clearer.</strong> The message says when the file had no keys in it, and you stay signed in. Backup downloads are never cached by the browser, and the documentation says every backup holds your username and a password hash.
+          </li>
+          <li><strong>One clock.</strong> Which episodes have aired, which are coming and which films are arriving now all use the same local date, so they no longer disagree for the hour after midnight in summer time.
+          </li>
+          <li><strong>Quicker pages.</strong> The Shows page asks the database fewer questions, the Settings page no longer builds a whole backup to count rows, and Refresh everything now runs in the background instead of holding the page. A long wait asked for by TMDB is capped at ten seconds.
+          </li>
+          <li><strong>Posters are only kept if they are whole images.</strong> Each download uses its own temporary file, and anything that is not an image or arrives cut short is thrown away.
+          </li>
+          <li><strong>The sync interval is fixed at twelve hours,</strong> so the NEXTUP_SYNC_HOURS variable is gone. If you still have it in your compose file it does nothing, and you can delete the line.
+          </li>
+          <li><strong>Small things:</strong> page titles and a few messages no longer use dashes, unused code was removed, and the release workflow runs the tests before it builds the image.
+          </li>
+        </ul>
+        <h3>Also in this release</h3>
+        <ul>
+          <li><strong>The image is <code>ghcr.io/gh-lm/nextup</code>.</strong> If your <code>docker-compose.yml</code> names a different image, change that one line to:
+            <pre><code>image: ghcr.io/gh-lm/nextup:latest</code></pre>
+            <p>Then <code>docker compose pull</code> and <code>docker compose up -d</code>. The build is the same and your data is untouched.</p>
+          </li>
+          <li>The source, problems and suggestions are at <a href="https://github.com/gh-lm/nextup">github.com/gh-lm/nextup</a>, or by email as before. Releases are built and published by a workflow when a version tag is pushed.
+          </li>
+          <li><strong>The season you were working in stays open.</strong> Ticking off the last unwatched episode in, say, season two used to close it and open season one instead. The page now remembers which seasons you had open, the same way it remembers where you had scrolled to.
+          </li>
+          <li><strong>The morning email is dark too,</strong> and tells a mail client it is a dark message, so nothing tries to invert it.
+          </li>
+          <li><strong>Fixed a broken grid on the Films page.</strong> The Mark watched button sat beside the film tile instead of under it, so every film took two columns.
+          </li>
+          <li><strong>The container takes its timezone from the machine it runs on,</strong> by mounting <code>/etc/localtime</code> read-only, rather than having Europe/London written into the compose file.
+          </li>
+          <li><strong>The website</strong> has new documentation, runbook and security pages, a licence page at <code>/licence</code>, pages that use the full width of the screen, and every screenshot retaken on the current build.
+          </li>
+        </ul>
+        </section>
+          <section>
+        <h2 id="v1.4.0">1.4.0<span class="when"> &middot; 6 September 2026</span></h2>
+        <h3>Dark, and only dark</h3>
+        <ul>
+          <li><strong>Light mode and the appearance switch are gone</strong>, from the app and from the website, along with everything behind them: the switch itself, the route and cookie it used, the light half of every colour token, the light half of all nineteen accent colours, and the button style that existed only for the switch. Pages stay dark whatever the browser asks for.
+          </li>
+          <li>Because the theme cookie has gone, <strong>Nextup sets one cookie, not two</strong>. The cookies page, the front page and the accessibility page all said two.
+          </li>
+        </ul>
+        <h3>Legal sub-footer</h3>
+        <ul>
+          <li>The company details, registered office and the date the page was last updated sit on the left; **Privacy, Cookies, Terms, Accessibility and Complaints are right-justified** on the same line. They drop underneath and align left on a narrow screen.
+          </li>
+        </ul>
+        <h3>Checked</h3>
+        <ul>
+          <li>Every page of the app and the site at every width from 3440 down to 320: 1,660 measurements, nothing overflows, every page dark even with the browser asking for light, no errors.
+          </li>
+          <li>162 tests, including new ones that fail if a theme switch or a light theme ever comes back.
+          </li>
+        </ul>
+        </section>
+          <section>
+        <h2 id="v1.3.0">1.3.0<span class="when"> &middot; 5 September 2026</span></h2>
+        <p>This entry covers 1.1.0 to 1.3.0. It starts with a rework of the front page and ends with a security and quality pass over the whole project.</p>
+        <h3>Next up</h3>
+        <ul>
+          <li><strong>Next up is one line per episode</strong>, not one per show. A series you were eight behind on took a single line, so the top of the list ran out of recent things quickly and episodes from months back appeared inside the first twenty. It is now a straight run of everything that has come out and is still waiting, newest first, films among the episodes at the date they reached home viewing.
+          </li>
+          <li><strong>Films and episodes share one list on the front page</strong>, each saying the day it came out, with a <strong>Just out / Oldest first</strong> switch so catching up is still one click.
+          </li>
+          <li><strong>Next up names the episode that has just aired</strong>, rather than the next one you had not ticked off. For a show never started that was the pilot, so a series from years ago sat at the top.
+          </li>
+          <li>How far behind you are is shown once per show rather than on every line.
+          </li>
+          <li>An <strong>Up to here</strong> button on every line, and long lists are paged sixty at a time.
+          </li>
+          <li><strong>The page stays where it was after you tick something off,</strong> so marking off a run of episodes no longer means scrolling down again after every click.
+          </li>
+        </ul>
+        <h3>Security</h3>
+        <ul>
+          <li><strong>Dependencies updated</strong>, clearing 16 known vulnerabilities: Flask 3.0.3 to 3.1.3, Werkzeug 3.0.4 to 3.1.8, requests 2.32.3 to 2.34.2, cryptography 43.0.1 to 50.0.1, gunicorn 23 to 26.
+          </li>
+          <li><strong>The sign-in page can no longer be used to bounce you off the site.</strong> A <code>next</code> value beginning with two slashes is a whole other website, and it was being accepted. Only a plain path is now kept.
+          </li>
+          <li><strong>Security headers on every response</strong>: a content security policy that allows scripts from nowhere but this app, plus <code>nosniff</code>, a referrer policy and a refusal to be framed.
+          </li>
+          <li><strong>The sign-in cookie can be marked Secure</strong> with <code>NEXTUP_HTTPS_ONLY=1</code>, for installations where every way in is HTTPS.
+          </li>
+          <li><strong>Restoring a backup is now all or nothing.</strong> Settings were written after the transaction had already been committed, so a failure at that point could leave you with your data back but no settings at all.
+          </li>
+          <li><strong>The container runs read-only</strong>, with no extra privileges and no Linux capabilities. Gunicorn's control socket, the one thing that wanted to write outside the data directory, is switched off.
+          </li>
+          <li><strong>The installer is removed from the finished image.</strong> Nothing installs anything at runtime, and pip and setuptools were the only remaining things a vulnerability scanner objected to. The image now scans clean.
+          </li>
+        </ul>
+        <h3>Quality</h3>
+        <ul>
+          <li><strong>No typed glyphs anywhere.</strong> Thirty pasted symbols in the app and twelve on the website have gone. Where the shape carried meaning, such as a rating star, it is now drawn; everywhere else the words already said it.
+          </li>
+          <li><strong>Tooltips are short.</strong> Several grew with the length of a film title, one reaching 106 characters, which is what pushed them off a narrow screen. The longest is now well under half that, and the full wording is still there for a screen reader.
+          </li>
+          <li><strong>Everything you tap on a phone is at least 44 pixels tall.</strong> Buttons were 31.
+          </li>
+        </ul>
+        <h3>Checked</h3>
+        <ul>
+          <li>Every page measured at every width from 3440 pixels down to 320, in twenty pixel steps, in light and dark. No horizontal overflow anywhere.
+          </li>
+          <li>161 tests, twelve of them new and covering the security fixes above.
+          </li>
+        </ul>
+        </section>
+          <section>
+        <h2 id="v1.0.0">1.0.0<span class="when"> &middot; 3 September 2026</span></h2>
+        <p>The first release. Everything below has been in daily use on a real library of 93 shows and 964 watched episodes before being called finished.</p>
+        <h3>What it does</h3>
+        <ul>
+          <li><strong>Next up</strong>: every show with an aired episode you have not watched, oldest first, with a one-press Watched button and a count of how far behind you are.
+          </li>
+          <li><strong>Catching up</strong>: tick one episode, a whole season, or everything up to a given episode. Unaired episodes cannot be ticked by accident and progress counts only what has actually been broadcast.
+          </li>
+          <li><strong>Episode pages</strong> with the still, synopsis, air date, runtime, guest cast and director, linked from everywhere an episode is named.
+          </li>
+          <li><strong>Discover</strong>: what is arriving, with a tick, a question mark and a cross on each. Films are filtered to home releases rather than cinema ones. A cross hides a title from Discover without deleting it.
+          </li>
+          <li><strong>Maybe list</strong> for shows and films you are curious about but not following. They stay out of Next up, the calendar and the email.
+          </li>
+          <li><strong>Films</strong> split into ready to watch, coming to streaming, and seen, with the UK services that carry each one.
+          </li>
+          <li><strong>Calendar</strong> of the month: episodes in yellow, films reaching home viewing in blue, each labelled so colour is never the only signal.
+          </li>
+          <li><strong>A morning email</strong> with the cover, a description and a link for each thing that has become watchable. Covers travel inside the message. Any send time, to the minute.
+          </li>
+          <li><strong>A watchable-after setting</strong>, because a programme going out at eleven at night is not really available until the next day.
+          </li>
+          <li><strong>Backup and restore</strong>: one file holds everything, and restoring is all of it or none of it.
+          </li>
+        </ul>
+        <h3>How it behaves</h3>
+        <ul>
+          <li>Artwork is fetched once and served by Nextup, so no page ever points a browser at another host.
+          </li>
+          <li>The TMDB key and the mail password are entered in the app and stored encrypted, never in an environment file.
+          </li>
+          <li>No analytics, no telemetry, no account with anyone.
+          </li>
+          <li>Light and dark, following the system by default, with twenty accent colours.
+          </li>
+          <li>Runs as a non-root user in the container, with all state in one directory.
+          </li>
+        </ul>
+        </section>
+          <section>
+        <h2 id="v0.13.1">0.13.1<span class="when"> &middot; 3 September 2026</span></h2>
+        <p>This entry covers 0.4.0 to 0.13.1.</p>
+        <h3>Added</h3>
+        <ul>
+          <li><strong>Backup and restore.</strong> One button writes everything to a single JSON file: every show and film, everything watched, what was dismissed, your settings, and enough show detail that a restored copy works before it has spoken to TMDB. Another button reads it back. All of it or none of it, so a file that cannot be read leaves the database exactly as it was. Your TMDB key and mail password are left out of the plain download, and a second button includes them as plain text and says so.
+          </li>
+          <li><strong>The morning email shows the cover of each show and film,</strong> a couple of sentences about it, and a link back to its page in Nextup. The artwork is attached to the message rather than linked, so no mail client ever calls out to fetch it, and the plain text version carries the same descriptions and links.
+          </li>
+          <li>A field in Settings for this Nextup's own address, which is what the links in the email point at.
+          </li>
+          <li>A setting for <strong>when something counts as watchable.</strong> A programme going out at eleven at night is not really available until the next day, so Nextup waits a number of days you choose before putting it in Next up, moving a film into Ready to watch, or mentioning it in the email. The default is one day.
+          </li>
+          <li>A <strong>morning email.</strong> Mail server details go in the Settings page, with the password stored encrypted alongside the TMDB key. Once a day it sends a short list of what has become watchable. If nothing has, nothing is sent. Buttons send a test message or today's email straight away.
+          </li>
+          <li>The email can go out at <strong>any time of day, to the minute,</strong> with a switch between the 24 hour clock and am and pm. It is rebuilt with television and films in separate sections and the channel or streaming service beside each, and it loads nothing from anywhere else.
+          </li>
+          <li>Show and film pages carry proper detail: the cast with photographs, the genres, the certificate, the tagline, the creators of a series or the director and writers of a film, and links out to a trailer, IMDb and a where-to-watch page. Shows list which UK services carry them. Cast photographs go through the same local cache as posters.
+          </li>
+          <li>Films appear on the calendar, on the day they reach home viewing, in blue against the yellow used for episodes, each labelled and with a key above the month. Films you have already seen are faded.
+          </li>
+        </ul>
+        <h3>Changed</h3>
+        <ul>
+          <li><strong>Settings is a bento:</strong> panels of different sizes that fit together, packed by measurement so none is padded out to match a neighbour. It steps from six columns to four, two and one, and form fields pack across the width they are given.
+          </li>
+          <li>**The accent colour, the watchable delay and the email schedule save themselves** the moment you change them. The mail server, the TMDB key, the password and the restore still need a deliberate press.
+          </li>
+          <li>The headline asks which episode you were on, and a line beneath types out the answer. With scripting off, or reduced motion asked for, the first answer stands.
+          </li>
+          <li>The website has been rebuilt on retaken screenshots, with a section of its own for the morning email.
+          </li>
+          <li>Confirmations no longer appear as a banner at the top of the page. They sit beside the control that caused them, and saving a setting returns you to that panel.
+          </li>
+          <li>No coloured edges anywhere, and a test walks both stylesheets and fails if one comes back.
+          </li>
+          <li>The scheduler checks every two minutes rather than every ten.
+          </li>
+        </ul>
+        <h3>Fixed</h3>
+        <ul>
+          <li>Form fields were nearly invisible in dark mode. Fields now have their own background and an edge clearing 3 to 1 in both themes, and buttons have an edge you can see.
+          </li>
+          <li>The upload limit was two megabytes, which a large library's own backup would have exceeded. It is now sixty-four.
+          </li>
+          <li>A column with a fixed minimum width pushed the website sideways at 320 pixels.
+          </li>
+          <li>Anything hidden by script stayed on screen.
+          </li>
+          <li>On a middling screen the search box dropped to a second row and sat against the right edge.
+          </li>
+          <li>The cast strip pushed the whole page off to the right instead of scrolling inside its own panel.
+          </li>
+          <li>On a phone, the poster stayed beside the text on a show or film page, leaving the synopsis in a narrow column. Below 520 pixels it now sits above the text.
+          </li>
+        </ul>
+        </section>
+          <section>
+        <h2 id="v0.3.0">0.3.0<span class="when"> &middot; 2 September 2026</span></h2>
+        <p>This entry covers 0.1.0 to 0.3.0, the first working version and the first two additions to it.</p>
+        <h3>Added</h3>
+        <ul>
+          <li><strong>Discover</strong>, two pages for deciding what to take on. Films lists what reaches streaming or television in the next 7, 14, 30 or 60 days, with cinema releases left out. TV lists series starting soon, or everything on air now.
+          </li>
+          <li>A tick, a question mark and a cross on every Discover card. Tick adds it, question mark puts it on the Maybe list, cross hides it from Discover for good. Hidden items still turn up in a search, and one button brings them all back.
+          </li>
+          <li><strong>Episode pages.</strong> Click any episode title and you get its still, synopsis, air date, runtime, rating, guest cast and director, with links to the episode either side.
+          </li>
+          <li>Films can go on the Maybe list too, so the tick, question mark and cross mean the same thing whichever page you are on.
+          </li>
+          <li>A <strong>Maybe</strong> list for shows you are curious about but are not following. They stay out of Next up, the calendar and Coming soon until you press Start watching.
+          </li>
+          <li>Films now show <strong>when they reach streaming</strong>, not just when they were in cinemas. Nextup reads the digital, physical and TV release dates from TMDB and prefers a UK one, falling back to Ireland then the US.
+          </li>
+          <li>Films also show <strong>which UK services carry them</strong>, using the JustWatch data TMDB publishes. Subscription, free and ad-supported services are listed; rental and purchase are left out.
+          </li>
+          <li>The Films page is now three sections: ready to watch, coming to streaming, and seen. A "Check now" button re-asks TMDB about any film without a date.
+          </li>
+          <li>Coming soon lists films landing on streaming alongside the episodes airing.
+          </li>
+          <li>Next up dashboard: shows with aired, unwatched episodes, oldest first, with watched counts, time watched and a films-to-watch tile.
+          </li>
+          <li>My shows: poster grid with per-show progress, favourites, archive, and filters for all / behind / archived.
+          </li>
+          <li>Show page with every season and episode; tick one episode, a whole season, or everything up to a given episode.
+          </li>
+          <li>Month calendar of episodes for tracked shows, with watched ones faded.
+          </li>
+          <li>Coming soon list over 14, 30, 60 or 180 days.
+          </li>
+          <li>Film watchlist with a to-watch and a seen section.
+          </li>
+          <li>TMDB search across shows and films, added in one click.
+          </li>
+          <li>Automatic refresh from TMDB every 12 hours, plus a manual refresh button. Ended shows are refreshed on a two-week cycle instead.
+          </li>
+          <li>TMDB API key entered in the Settings page and stored encrypted, never in a plaintext environment file.
+          </li>
+          <li>Poster and still proxy: artwork is cached locally and served from this app, so no page ever points a browser at a third-party host.
+          </li>
+          <li>Light and dark themes, following the system by default, plus a 20-colour accent picker.
+          </li>
+          <li>Single-user sign-in with a starter account of admin / nextup that the app nags you to change.
+          </li>
+        </ul>
+        </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-cols">
+      <div>
+        <a class="wordmark" href="index.html" style="margin-bottom:.75rem"><img src="favicon.svg" alt="" width="30" height="30">Nextup</a>
+        <p>
+          A self-hosted tracker for the TV shows and films you watch. Made by
+          Lightmorphic and given away under the GPL.
+        </p>
+      </div>
+      <div class="col-mid">
+        <h3>The project</h3>
+        <ul>
+          <li><a href="whats-new.html">What's new</a></li>
+          <li><a href="security.html">Security</a></li>
+          <li><a href="licence.html">Licence</a></li>
+        </ul>
+      </div>
+      <div class="col-end">
+        <h3>Pages</h3>
+        <ul>
+          <li><a href="index.html#watching">Watching</a></li>
+          <li><a href="index.html#install">Install</a></li>
+          <li><a href="index.html#deciding">Deciding</a></li>
+          <li><a href="index.html#email">The email</a></li>
+          <li><a href="documentation.html">Documentation</a></li>
+          <li><a href="runbook.html">Runbook</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="oss-bar">
+      <div class="marks">
+        <a href="https://github.com/gh-lm/nextup" target="_blank" rel="noopener noreferrer"
+           aria-label="Nextup on GitHub (opens in a new tab)">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+        </a>
+        <a href="https://opensource.org" target="_blank" rel="noopener noreferrer"
+           aria-label="Open Source Initiative (opens in a new tab)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="5" r="2.6"/>
+            <circle cx="5.2" cy="17" r="2.6"/>
+            <circle cx="18.8" cy="17" r="2.6"/>
+            <path d="M10.7 7.3 6.5 14.7M13.3 7.3l4.2 7.4M7.8 17h8.4"/>
+          </svg>
+        </a>
+      </div>
+      <nav aria-label="Source code">
+        <a href="https://github.com/gh-lm/nextup" target="_blank" rel="noopener noreferrer" aria-label="Repository on GitHub (opens in a new tab)">Repository</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/README.md" target="_blank" rel="noopener noreferrer" aria-label="Documentation on GitHub (opens in a new tab)">Documentation</a>
+        <a href="https://github.com/gh-lm/nextup/security/policy" target="_blank" rel="noopener noreferrer" aria-label="Security on GitHub (opens in a new tab)">Security</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" aria-label="Licence on GitHub (opens in a new tab)">Licence</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" aria-label="Changelog on GitHub (opens in a new tab)">Changelog</a>
+        <a href="https://github.com/gh-lm/nextup/issues" target="_blank" rel="noopener noreferrer" aria-label="Issues on GitHub (opens in a new tab)">Issues</a>
+        <a href="https://github.com/gh-lm/nextup/releases" target="_blank" rel="noopener noreferrer" aria-label="Releases on GitHub (opens in a new tab)">Releases</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="sub-footer">
+    <div class="wrap">
+      <div class="sub-footer-inner">
+        <p>
+          &copy; Lightmorphic Ltd. Registered in England and Wales, company number
+          17423646.<br>
+          Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.<br>
+          Page last updated: <time datetime="2026-10-17">17 October 2026</time>.
+        </p>
+        <nav aria-label="Legal">
+          <a href="privacy.html">Privacy</a>
+          <a href="cookies.html">Cookies</a>
+          <a href="terms.html">Terms</a>
+          <a href="accessibility.html">Accessibility</a>
+          <a href="complaints.html">Complaints</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+</footer>
+<script src="https://apps.lightmorphic.com/launcher.js" defer></script>
+</body>
+</html>

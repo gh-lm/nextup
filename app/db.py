@@ -61,6 +61,10 @@ def init_db():
     conn = connect()
     conn.executescript(schema)
     _apply_migrations(conn)
+    conn.execute(
+        "UPDATE sync_run SET message = 'Details removed: they contained a key.'"
+        " WHERE message LIKE '%api_key=%'"
+    )
     row = conn.execute("SELECT 1 FROM admin_user WHERE id = 1").fetchone()
     if row is None:
         conn.execute(

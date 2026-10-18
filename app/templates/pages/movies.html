@@ -1,5 +1,5 @@
 {% extends 'layout/base.html' %}
-{% block title %}Films — Nextup{% endblock %}
+{% block title %}Films | Nextup{% endblock %}
 
 {% macro film_tile(film, show_state=True) %}
   <article class="show-tile">
@@ -25,6 +25,7 @@
         {% endif %}
       </div>
     {% endif %}
+    {% if caller %}{{ caller() }}{% endif %}
   </article>
 {% endmacro %}
 
@@ -54,12 +55,12 @@
   {% if ready %}
     <div class="show-grid">
       {% for film in ready %}
-        {{ film_tile(film) }}
-        <form method="post" action="{{ url_for('movies.watched', movie_id=film.id) }}"
-              style="margin-top:-8px">
-          <input type="hidden" name="next" value="{{ request.full_path }}">
-          <button class="btn btn-small btn-block" type="submit">Mark watched</button>
-        </form>
+        {% call film_tile(film) %}
+          <form method="post" action="{{ url_for('movies.watched', movie_id=film.id) }}">
+            <input type="hidden" name="next" value="{{ request.full_path }}">
+            <button class="btn btn-small btn-block" type="submit" name="to" value="1">Mark watched</button>
+          </form>
+        {% endcall %}
       {% endfor %}
     </div>
   {% else %}

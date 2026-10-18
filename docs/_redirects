@@ -1,0 +1,6 @@
+# The website is served by Cloudflare Pages and the image comes from this
+/downloads https://github.com/gh-lm/nextup/pkgs/container/nextup 302
+/download https://github.com/gh-lm/nextup/pkgs/container/nextup 302
+/changelog /whats-new 302
+/bugs /complaints 302
+/license /licence 302

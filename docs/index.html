@@ -7,7 +7,7 @@
 <meta name="description" content="Nextup remembers which episode you are on for every show you watch, tells you when the next one airs, and emails you each morning with what has become watchable. Free, open source, runs on your own server.">
 <link rel="canonical" href="https://nextup.lightmorphic.com/">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/site.css?v=bdb6c43945">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Nextup">
@@ -36,8 +36,7 @@
       "operatingSystem": "Linux, via Docker",
       "description": "A self-hosted tracker for TV shows and films. It records which episodes you have watched, shows the next one to watch, lists when new episodes air, tells you when a film reaches streaming in the UK, and emails you each morning.",
       "license": "https://www.gnu.org/licenses/gpl-3.0.html",
-      "softwareVersion": "1.4.0",
-      "codeRepository": "https://github.com/lightmorphic/nextup",
+      "softwareVersion": "1.5.2",
       "programmingLanguage": "Python",
       "isAccessibleForFree": true,
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
@@ -60,8 +59,7 @@
         "@type": "ContactPoint",
         "contactType": "customer support",
         "url": "https://nextup.lightmorphic.com/complaints.html"
-      },
-      "sameAs": ["https://github.com/lightmorphic"]
+      }
     },
     {
       "@type": "FAQPage",
@@ -125,27 +123,26 @@
 
 <div class="hero">
   <div class="wrap hero-inner">
-    <h1>Which episode were you on?</h1>
+    <div class="hero-head">
+      <h1>Which episode were you on?</h1>
 
-    <p class="answer">
-      <span class="visually-hidden">Slow Horses, series 5, episode 2. Nextup remembers, for every show you watch.</span>
+      <p class="answer">
+        <span class="visually-hidden">Slow Horses, series 5, episode 2. Nextup remembers, for every show you watch.</span>
       <span class="typed" aria-hidden="true"><span class="typed-line" data-lines='["Slow Horses, series 5, episode 2.","Death in Paradise, series 14, episode 6.","Only Murders in the Building, series 5, episode 3.","Reacher, series 4, episode 6."]'>Slow Horses, series 5, episode 2.</span><span class="caret"></span></span>
-    </p>
-
-    <p class="lede">
-      Nextup remembers, for every show you watch, wherever you watched it. It
-      works out what is waiting, tells you when the next one airs, and lets you
-      know when a film you wanted finally turns up on something you already pay
-      for.
-    </p>
-    <div class="hero-actions">
-      <a class="btn btn-primary" href="#install">Put it on your server</a>
-      <a class="btn" href="https://github.com/lightmorphic/nextup">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.36 1.09 2.94.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>
-        Read the source
-      </a>
+      </p>
     </div>
-    <p class="hero-note">Free under the GPL. No account, no tracking, nothing to pay.</p>
+    <div class="hero-side">
+      <p class="lede">
+        Nextup remembers, for every show you watch, wherever you watched it. It
+        works out what is waiting, tells you when the next one airs, and lets you
+        know when a film you wanted finally turns up on something you already pay
+        for.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#install">Put it on your server</a>
+      </div>
+      <p class="hero-note">Free under the GPL. No account, no tracking, nothing to pay.</p>
+    </div>
   </div>
 </div>
 
@@ -181,7 +178,7 @@
       <figure class="letter">
         <div class="shot">
           <img src="images/nextup-email.webp"
-               alt="The Nextup morning email, headed Ready to watch, listing a Reacher episode and the film The Runner, each with its cover, the service it is on and a short description."
+               alt="The Nextup morning email, headed Ready to watch, listing two television episodes and a film, each with its cover, the channel or service it is on and a short description."
                width="760" height="900" loading="lazy" decoding="async">
         </div>
       </figure>
@@ -357,19 +354,20 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
           <h3>Start it</h3>
           <p>
             Save this as <code>docker-compose.yml</code> and bring it up. It
-            listens on port 4090 unless you change the left-hand number.
+            listens on port 4090 unless you change the left-hand number. The
+            image is <code>ghcr.io/gh-lm/nextup</code>, and the link to it is
+            in the footer.
           </p>
           <pre><code>services:
   nextup:
-    image: ghcr.io/lightmorphic/nextup:latest
+    image: ghcr.io/gh-lm/nextup:latest
     container_name: nextup
     restart: unless-stopped
     ports:
       - "4090:8080"
     volumes:
       - /opt/nextup:/data
-    environment:
-      TZ: "Europe/London"</code></pre>
+      - /etc/localtime:/etc/localtime:ro</code></pre>
           <pre><code>docker compose up -d</code></pre>
         </div>
       </li>
@@ -430,32 +428,42 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
   <div class="wrap">
     <div class="section-head"><h2>Questions people ask</h2></div>
     <dl class="faq">
-      <dt>Does Nextup play or download anything?</dt>
-      <dd>No. Nextup is a notebook, not a player. It records what you have watched and tells you what is next. It holds no video, links to no streams and downloads nothing except artwork from TMDB.</dd>
-
-      <dt>Do I need a TMDB API key?</dt>
-      <dd>Yes, and it is free. Make an account, then go straight to <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a> and copy the API Key for v3 auth. You paste it into the Settings page inside Nextup, where it is stored encrypted.</dd>
-
-      <dt>How does it know when a film reaches streaming?</dt>
-      <dd>TMDB records several release dates for a film, including the digital, physical and television ones. Nextup reads those, prefers a UK date, and falls back to Ireland then the United States. It also lists which UK subscription, free and ad-supported services carry the film, using the JustWatch data TMDB publishes. Rental and purchase are left out.</dd>
-
-      <dt>Can I keep a list of shows I might watch one day?</dt>
-      <dd>Yes, that is the maybe list. Anything on it keeps its cover and its next air date but stays out of your dashboard, the calendar and the email, so it never makes you look behind on something you never started.</dd>
-
-      <dt>Can more than one person use it?</dt>
-      <dd>No. Nextup has one account and one watch history. Two people sharing it would share a single list. If you want separate lists, run a second copy with its own data directory.</dd>
-
-      <dt>What does it cost?</dt>
-      <dd>Nothing. It is released under the GPL version 3, so you can run it, read it and change it. There is no paid tier and no hosted version to buy.</dd>
-
-      <dt>Where is my data kept?</dt>
-      <dd>In one directory on your own server. A single SQLite database holds your shows and watch history, alongside the encryption key and the cached artwork. Backing up that directory backs up everything.</dd>
-
-      <dt>How do I update it?</dt>
-      <dd>Run <code>docker compose pull</code>, then <code>docker compose down</code> and <code>docker compose up -d</code>. A plain <code>up -d</code> will not fetch a newer image on its own.</dd>
-
-      <dt>What is it built with?</dt>
-      <dd>Python and Flask, with SQLite for storage and plain CSS for the interface. There is no JavaScript framework and no build step. The whole thing is small enough to read in an evening.</dd>
+      <div>
+        <dt>Does Nextup play or download anything?</dt>
+        <dd>No. Nextup is a notebook, not a player. It records what you have watched and tells you what is next. It holds no video, links to no streams and downloads nothing except artwork from TMDB.</dd>
+      </div>
+      <div>
+        <dt>Do I need a TMDB API key?</dt>
+        <dd>Yes, and it is free. Make an account, then go straight to <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a> and copy the API Key for v3 auth. You paste it into the Settings page inside Nextup, where it is stored encrypted.</dd>
+      </div>
+      <div>
+        <dt>How does it know when a film reaches streaming?</dt>
+        <dd>TMDB records several release dates for a film, including the digital, physical and television ones. Nextup reads those, prefers a UK date, and falls back to Ireland then the United States. It also lists which UK subscription, free and ad-supported services carry the film, using the JustWatch data TMDB publishes. Rental and purchase are left out.</dd>
+      </div>
+      <div>
+        <dt>Can I keep a list of shows I might watch one day?</dt>
+        <dd>Yes, that is the maybe list. Anything on it keeps its cover and its next air date but stays out of your dashboard, the calendar and the email, so it never makes you look behind on something you never started.</dd>
+      </div>
+      <div>
+        <dt>Can more than one person use it?</dt>
+        <dd>No. Nextup has one account and one watch history. Two people sharing it would share a single list. If you want separate lists, run a second copy with its own data directory.</dd>
+      </div>
+      <div>
+        <dt>What does it cost?</dt>
+        <dd>Nothing. It is released under the GPL version 3, so you can run it, read it and change it. There is no paid tier and no hosted version to buy.</dd>
+      </div>
+      <div>
+        <dt>Where is my data kept?</dt>
+        <dd>In one directory on your own server. A single SQLite database holds your shows and watch history, alongside the encryption key and the cached artwork. Backing up that directory backs up everything.</dd>
+      </div>
+      <div>
+        <dt>How do I update it?</dt>
+        <dd>Run <code>docker compose pull</code>, then <code>docker compose down</code> and <code>docker compose up -d</code>. A plain <code>up -d</code> will not fetch a newer image on its own.</dd>
+      </div>
+      <div>
+        <dt>What is it built with?</dt>
+        <dd>Python and Flask, with SQLite for storage and plain CSS for the interface. There is no JavaScript framework and no build step. The whole thing is small enough to read in an evening.</dd>
+      </div>
     </dl>
   </div>
 </section>
@@ -466,31 +474,61 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
   <div class="wrap">
     <div class="footer-cols">
       <div>
-        <a class="wordmark" href="/" style="margin-bottom:.75rem"><img src="favicon.svg" alt="" width="30" height="30">Nextup</a>
+        <a class="wordmark" href="index.html" style="margin-bottom:.75rem"><img src="favicon.svg" alt="" width="30" height="30">Nextup</a>
         <p>
           A self-hosted tracker for the TV shows and films you watch. Made by
           Lightmorphic and given away under the GPL.
         </p>
       </div>
-      <div>
+      <div class="col-mid">
         <h3>The project</h3>
         <ul>
-          <li><a href="https://github.com/lightmorphic/nextup">Source code</a></li>
-          <li><a href="https://github.com/lightmorphic/nextup/releases">Releases</a></li>
-          <li><a href="https://github.com/lightmorphic/nextup/issues">Report a problem</a></li>
-          <li><a href="https://github.com/lightmorphic/nextup/blob/main/LICENSE">Licence</a></li>
+          <li><a href="whats-new.html">What's new</a></li>
+          <li><a href="security.html">Security</a></li>
+          <li><a href="licence.html">Licence</a></li>
         </ul>
       </div>
-      <div>
-        <h3>On this page</h3>
+      <div class="col-end">
+        <h3>Pages</h3>
         <ul>
-          <li><a href="#email">The email</a></li>
-          <li><a href="#watching">Watching</a></li>
-          <li><a href="#deciding">Deciding</a></li>
-          <li><a href="#install">Install</a></li>
-          <li><a href="#faq">Questions</a></li>
+          <li><a href="index.html#watching">Watching</a></li>
+          <li><a href="index.html#install">Install</a></li>
+          <li><a href="index.html#deciding">Deciding</a></li>
+          <li><a href="index.html#email">The email</a></li>
+          <li><a href="documentation.html">Documentation</a></li>
+          <li><a href="runbook.html">Runbook</a></li>
         </ul>
       </div>
+    </div>
+
+    <div class="oss-bar">
+      <div class="marks">
+        <a href="https://github.com/gh-lm/nextup" target="_blank" rel="noopener noreferrer"
+           aria-label="Nextup on GitHub (opens in a new tab)">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+        </a>
+        <a href="https://opensource.org" target="_blank" rel="noopener noreferrer"
+           aria-label="Open Source Initiative (opens in a new tab)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="5" r="2.6"/>
+            <circle cx="5.2" cy="17" r="2.6"/>
+            <circle cx="18.8" cy="17" r="2.6"/>
+            <path d="M10.7 7.3 6.5 14.7M13.3 7.3l4.2 7.4M7.8 17h8.4"/>
+          </svg>
+        </a>
+      </div>
+      <nav aria-label="Source code">
+        <a href="https://github.com/gh-lm/nextup" target="_blank" rel="noopener noreferrer" aria-label="Repository on GitHub (opens in a new tab)">Repository</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/README.md" target="_blank" rel="noopener noreferrer" aria-label="Documentation on GitHub (opens in a new tab)">Documentation</a>
+        <a href="https://github.com/gh-lm/nextup/security/policy" target="_blank" rel="noopener noreferrer" aria-label="Security on GitHub (opens in a new tab)">Security</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" aria-label="Licence on GitHub (opens in a new tab)">Licence</a>
+        <a href="https://github.com/gh-lm/nextup/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" aria-label="Changelog on GitHub (opens in a new tab)">Changelog</a>
+        <a href="https://github.com/gh-lm/nextup/issues" target="_blank" rel="noopener noreferrer" aria-label="Issues on GitHub (opens in a new tab)">Issues</a>
+        <a href="https://github.com/gh-lm/nextup/releases" target="_blank" rel="noopener noreferrer" aria-label="Releases on GitHub (opens in a new tab)">Releases</a>
+      </nav>
     </div>
   </div>
 
@@ -505,9 +543,9 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
       <div class="sub-footer-inner">
         <p>
           &copy; Lightmorphic Ltd. Registered in England and Wales, company number
-          <a href="https://find-and-update.company-information.service.gov.uk/company/17423646">17423646</a>.<br>
+          17423646.<br>
           Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.<br>
-          Page last updated: <time datetime="2026-09-06">6 September 2026</time>.
+          Page last updated: <time datetime="2026-10-17">17 October 2026</time>.
         </p>
         <nav aria-label="Legal">
           <a href="privacy.html">Privacy</a>
@@ -520,46 +558,7 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
     </div>
   </div>
 </footer>
-<script>
-(function () {
-  'use strict';
-  var line = document.querySelector('.typed-line');
-  if (!line) { return; }
-
-  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
-  if (reduced && reduced.matches) { return; }   // leave the first answer standing
-
-  var lines;
-  try { lines = JSON.parse(line.dataset.lines); } catch (e) { return; }
-  if (!lines || lines.length < 2) { return; }
-
-  var index = 0, at = lines[0].length, deleting = false;
-
-  function tick() {
-    var text = lines[index];
-    if (deleting) {
-      at -= 1;
-      line.textContent = text.slice(0, at);
-      if (at === 0) {
-        deleting = false;
-        index = (index + 1) % lines.length;
-        return setTimeout(tick, 260);
-      }
-      return setTimeout(tick, 22);
-    }
-    at += 1;
-    line.textContent = text.slice(0, at);
-    if (at === text.length) {
-      deleting = true;
-      return setTimeout(tick, 2600);
-    }
-    // A touch of unevenness, so it reads as typing rather than a machine.
-    return setTimeout(tick, 45 + Math.random() * 55);
-  }
-
-  setTimeout(function () { deleting = true; tick(); }, 2600);
-})();
-</script>
+<script src="js/typed.js?v=e0e18cae7d" defer></script>
 <script src="https://apps.lightmorphic.com/launcher.js" defer></script>
 </body>
 </html>

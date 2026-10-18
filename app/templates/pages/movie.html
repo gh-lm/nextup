@@ -1,6 +1,6 @@
 {% extends 'layout/base.html' %}
 {% import 'partials/_icons.html' as icons %}
-{% block title %}{{ movie.title }} — Nextup{% endblock %}
+{% block title %}{{ movie.title }} | Nextup{% endblock %}
 {% block body %}
 <article class="panel">
   <div class="show-hero">
@@ -46,22 +46,23 @@
       <div class="btn-row" style="margin-top:14px">
         {% if tracked %}
           <form method="post" action="{{ url_for('movies.watched', movie_id=movie.id) }}">
-            <button class="btn btn-primary" type="submit">
+            <button class="btn btn-primary" type="submit" name="to" value="{{ '0' if tracked.watched_at else '1' }}">
               {{ 'Mark as not watched' if tracked.watched_at else 'Mark watched' }}
             </button>
           </form>
           <form method="post" action="{{ url_for('movies.toggle_maybe', movie_id=movie.id) }}">
-            <button class="btn" type="submit">
+            <button class="btn" type="submit" name="maybe" value="{{ '0' if shortlisted else '1' }}">
               {{ 'Move to my films' if shortlisted else 'Move to maybe' }}
             </button>
           </form>
           <form method="post" action="{{ url_for('movies.refresh', movie_id=movie.id) }}">
             <button class="btn" type="submit">Check streaming date</button>
           </form>
-          <form method="post" action="{{ url_for('movies.untrack', movie_id=movie.id) }}">
+          <form method="post" action="{{ url_for('movies.untrack', movie_id=movie.id) }}" data-confirm>
             <button class="btn btn-quiet" type="submit"
-                    title="Remove this film from your list"
-                    aria-label="Remove this film from your list">Remove</button>
+                    data-confirm-label="Really remove? This forgets whether you watched it."
+                    title="Cannot be undone"
+                    aria-label="Remove this film from your list and forget whether you watched it. This cannot be undone.">Remove</button>
           </form>
         {% else %}
           <form method="post" action="{{ url_for('movies.track', movie_id=movie.id) }}">
