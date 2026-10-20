@@ -78,15 +78,6 @@ docker compose up -d
 
 `docker compose up -d` on its own will not re-pull a cached `:latest`.
 
-### Without Docker
-
-```bash
-git clone https://github.com/gh-lm/nextup.git
-cd nextup
-pip install -r requirements.txt
-NEXTUP_DATA_DIR=./data python run.py
-```
-
 ## Catching up without forty clicks
 
 Pick the last episode you remember watching and press **Up to here**.

@@ -191,17 +191,8 @@ docker compose up -d</code></pre>
           <p>
             A plain <code>up -d</code> does not fetch a newer <code>latest</code> on its
             own. Every release is tagged with its version number as well, so you can pin
-            one if you would rather.
-          </p>
-        </section>
-        <section>
-          <h2>Running it without Docker</h2>
-          <pre><code>pip install -r requirements.txt
-NEXTUP_DATA_DIR=./data python run.py</code></pre>
-          <p>
-            It is a Python and Flask app with SQLite behind it and no build step. The
-            source is inside the image too, under <code>/app</code>, as the licence
-            requires.
+            one if you would rather. The source is inside the image too, under
+            <code>/app</code>, as the licence requires.
           </p>
         </section>
         <section>
