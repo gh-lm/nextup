@@ -81,7 +81,32 @@ jobs:
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
         with:
           context: .
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:${{ steps.v.outputs.version }}
-            ${{ steps.v.outputs.latest == 'true' && format('ghcr.io/{0}:latest', github.repository) || '' }}
+          load: true
+          push: false
+          tags: ghcr.io/${{ github.repository }}:${{ steps.v.outputs.version }}
+
+      - name: Install Trivy (checksum checked)
+        env:
+          TRIVY_VERSION: 0.75.0
+          TRIVY_SHA256: c6e65abddb348e25f10549df887045629cf28cc72453cd1c63acb717316b3f3f
+        run: |
+          curl -sSfL -o trivy.tar.gz "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          echo "${TRIVY_SHA256}  trivy.tar.gz" | sha256sum -c -
+          tar xzf trivy.tar.gz trivy
+
+      - name: Scan the image
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}:${{ steps.v.outputs.version }}
+        run: ./trivy image --no-progress --ignore-unfixed --severity HIGH,CRITICAL --exit-code 1 "$IMAGE"
+
+      - name: Publish
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}
+          VERSION: ${{ steps.v.outputs.version }}
+          LATEST: ${{ steps.v.outputs.latest }}
+        run: |
+          docker push "$IMAGE:$VERSION"
+          if [ "$LATEST" = "true" ]; then
+            docker tag "$IMAGE:$VERSION" "$IMAGE:latest"
+            docker push "$IMAGE:latest"
+          fi

@@ -1,0 +1,14 @@
+[default]
+locale = "en-gb"
+
+[default.extend-words]
+color = "color"
+center = "center"
+behavior = "behavior"
+Organization = "Organization"
+canceled = "canceled"
+Reacher = "Reacher"
+ax = "ax"
+
+[files]
+extend-exclude = ["LICENSE", "docs/licence.txt", "docs/licence.html"]

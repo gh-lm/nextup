@@ -3,6 +3,19 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.5.5], 2026-10-21
+
+Nothing here changes how you use Nextup, and your data is untouched.
+
+- **Two libraries updated:** Werkzeug to 3.1.9 and cryptography to 50.0.2.
+- **The image is built from one exact base image,** so the same version always
+  builds the same image. Every release is now scanned for known security holes
+  before it is published, and a serious one stops the release.
+- **The published source has its comments stripped** to keep it lean.
+- **The website works on phones again.** The email section ran off the side of
+  the screen, and the menu wrapped onto two rows at some widths. Links are
+  easier to tap and the small print is larger.
+
 ## [1.5.4], 2026-10-18
 
 This entry covers every release since 1.5.0 (13 September). It starts with a

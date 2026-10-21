@@ -1,5 +1,5 @@
 # ---- Build stage: install dependencies into a self-contained venv ----
-FROM python:3.12-slim-bookworm AS build
+FROM python:3.12-slim-bookworm@sha256:5d9e6adc9abd558bc0ce05f9ab16cef71328916fc9728f6b81e337af86a737e2 AS build
 
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
@@ -9,10 +9,9 @@ RUN pip install --no-cache-dir --upgrade pip setuptools \
  && pip install --no-cache-dir -r /tmp/requirements.txt \
  && pip uninstall -y pip setuptools wheel 2>/dev/null || true
 
-FROM python:3.12-slim-bookworm
+FROM python:3.12-slim-bookworm@sha256:5d9e6adc9abd558bc0ce05f9ab16cef71328916fc9728f6b81e337af86a737e2
 
 RUN apt-get update \
- && apt-get upgrade -y \
  && apt-get install -y --no-install-recommends tzdata \
  && rm -rf /var/lib/apt/lists/*
 

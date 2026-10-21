@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.5.4-fbc711?style=flat-square&labelColor=282b34" alt="Version 1.5.4" />
+  <img src="https://img.shields.io/badge/version-1.5.5-fbc711?style=flat-square&labelColor=282b34" alt="Version 1.5.5" />
   <img src="https://img.shields.io/badge/licence-GPL%20v3-7fd99a?style=flat-square&labelColor=282b34" alt="GPL v3" />
   <img src="https://img.shields.io/badge/image-ghcr.io-5eb6ff?style=flat-square&labelColor=282b34" alt="Image on ghcr.io" />
   <img src="https://img.shields.io/badge/tracking-none-c2c2cc?style=flat-square&labelColor=282b34" alt="No tracking" />
@@ -77,15 +77,6 @@ docker compose up -d
 ```
 
 `docker compose up -d` on its own will not re-pull a cached `:latest`.
-
-### Without Docker
-
-```bash
-git clone https://github.com/gh-lm/nextup.git
-cd nextup
-pip install -r requirements.txt
-NEXTUP_DATA_DIR=./data python run.py
-```
 
 ## Catching up without forty clicks
 
@@ -210,6 +201,8 @@ on how many passwords can be tried, and there is no audit log. Keep it on your
 own network or a tailnet rather than open to the internet.
 
 ## Building it yourself
+
+Comments are stripped from the published code to keep it lean.
 
 Comments are stripped from the published code to keep it lean.
 
