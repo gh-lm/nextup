@@ -1,12 +1,7 @@
-"""Guards for the things a security review would look for first.
-
-Each of these was a real gap once, so each has a test rather than a comment.
-"""
+"""Guards for the things a security review would look for first."""
 import json
 
-
 def test_login_will_not_send_you_off_the_site(client):
-    """"//evil.example" starts with a slash but is a whole other website."""
     response = client.post(
         "/login?next=//evil.example/steal",
         data={"username": "admin", "password": "nextup"},
@@ -15,16 +10,13 @@ def test_login_will_not_send_you_off_the_site(client):
     assert "evil.example" not in response.headers["Location"]
     assert response.headers["Location"].endswith("/")
 
-
 def test_login_still_honours_an_ordinary_path(client):
     response = client.post(
         "/login?next=/settings", data={"username": "admin", "password": "nextup"}
     )
     assert response.headers["Location"] == "/settings"
 
-
 def test_tabs_and_backslashes_in_next_cannot_hide_a_second_site(client):
-    """Browsers delete tabs and read a backslash as a slash."""
     for sneaky in ("/%09/evil.example", "/%0A/evil.example", "/%5Cevil.example", "/%0D%0A/evil.example"):
         response = client.post(
             f"/login?next={sneaky}", data={"username": "admin", "password": "nextup"}
@@ -33,13 +25,11 @@ def test_tabs_and_backslashes_in_next_cannot_hide_a_second_site(client):
         assert response.headers["Location"] == "/", sneaky
         client.post("/logout")
 
-
 def test_a_full_url_in_next_is_ignored(client):
     response = client.post(
         "/login?next=https://evil.example/", data={"username": "admin", "password": "nextup"}
     )
     assert "evil.example" not in response.headers["Location"]
-
 
 def test_every_page_carries_the_security_headers(signed_in):
     response = signed_in.get("/")
@@ -51,17 +41,13 @@ def test_every_page_carries_the_security_headers(signed_in):
     assert response.headers["Referrer-Policy"] == "same-origin"
     assert response.headers["X-Frame-Options"] == "DENY"
 
-
 def test_the_login_page_carries_them_too(client):
     assert "Content-Security-Policy" in client.get("/login").headers
-
 
 def test_the_session_cookie_is_locked_down(app):
     assert app.config["SESSION_COOKIE_HTTPONLY"] is True
     assert app.config["SESSION_COOKIE_SAMESITE"] == "Lax"
-    # Off unless the whole way in is HTTPS, which is a deployment decision.
     assert app.config["SESSION_COOKIE_SECURE"] is False
-
 
 def test_the_poster_proxy_only_fetches_tmdb_shaped_paths(app):
     from app import posters
@@ -78,14 +64,10 @@ def test_the_poster_proxy_only_fetches_tmdb_shaped_paths(app):
         assert posters.normalise(bad) is None, bad
     assert posters.normalise("/abc123_-.jpg") == "/abc123_-.jpg"
 
-
 def test_the_poster_proxy_refuses_a_made_up_size(signed_in):
     assert signed_in.get("/img/w9999/abc.jpg").status_code == 404
 
-
 def test_a_restore_that_fails_part_way_changes_nothing(app):
-    """Settings used to be written after the commit, so a failure there left
-    you with no settings at all."""
     from app import db, secretstore, transfer
 
     with app.app_context():
@@ -96,8 +78,6 @@ def test_a_restore_that_fails_part_way_changes_nothing(app):
         payload = {
             "format": "nextup-backup",
             "version": 1,
-            # A show row whose id is a dictionary cannot be written, so the
-            # restore fails once it is already part way through.
             "data": {"show": [{"id": {"not": "an id"}, "name": "Broken"}]},
         }
         try:
@@ -110,13 +90,12 @@ def test_a_restore_that_fails_part_way_changes_nothing(app):
         assert len(db.query("SELECT id FROM show")) == before_shows
         assert secretstore.get("accent") == "brand"
 
-
 def test_a_good_restore_puts_the_settings_back(app):
     from app import db, secretstore, transfer
 
     with app.app_context():
         secretstore.set("accent", "brand")
-        secretstore.set("tmdb_api_key", "0123456789abcdef", encrypted=True)  # gitleaks:allow
+        secretstore.set("tmdb_api_key", "0123456789abcdef", encrypted=True)
         payload = transfer.export_data(include_secrets=True)
 
         db.execute("DELETE FROM settings")
@@ -128,7 +107,6 @@ def test_a_good_restore_puts_the_settings_back(app):
         row = db.query("SELECT encrypted FROM settings WHERE key = 'tmdb_api_key'", one=True)
         assert row["encrypted"] == 1
 
-
 def test_a_file_that_is_not_a_backup_is_turned_away(app):
     from app import transfer
 
@@ -139,7 +117,6 @@ def test_a_file_that_is_not_a_backup_is_turned_away(app):
             except transfer.ImportError_:
                 continue
             raise AssertionError(f"accepted {rubbish!r}")
-
 
 def test_signed_out_visitors_are_sent_to_the_login_page(client):
     for path in ("/", "/shows", "/movies", "/settings", "/calendar", "/discover/tv"):

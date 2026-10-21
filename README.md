@@ -202,6 +202,8 @@ own network or a tailnet rather than open to the internet.
 
 ## Building it yourself
 
+Comments are stripped from the published code to keep it lean.
+
 ```bash
 git clone https://github.com/gh-lm/nextup.git
 cd nextup

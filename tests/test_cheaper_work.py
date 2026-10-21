@@ -1,6 +1,5 @@
 """The cheaper routes must give the same answers as the slow ones they replaced."""
 
-
 def test_grouped_progress_matches_the_one_at_a_time_answer(app):
     from app import db, queries
 
@@ -25,13 +24,11 @@ def test_grouped_progress_matches_the_one_at_a_time_answer(app):
             assert grouped[show_id] == queries.show_progress(show_id)
         assert queries.show_progress(810)["aired"] == 2
 
-
 def test_the_cheap_counts_match_a_real_export(app):
     from app import transfer
 
     with app.app_context():
         assert transfer.counts() == transfer.export_data()["counts"]
-
 
 def test_a_429_wait_is_capped_and_survives_a_date(app):
     from app import tmdb
@@ -41,7 +38,6 @@ def test_a_429_wait_is_capped_and_survives_a_date(app):
     assert tmdb._wait_seconds("Wed, 21 Oct 2026 07:28:00 GMT") == 3
     assert tmdb._wait_seconds(None) == 3
     assert tmdb._wait_seconds("-5") == 1
-
 
 def test_refresh_now_returns_straight_away_and_runs_in_the_background(signed_in, app, monkeypatch):
     import threading

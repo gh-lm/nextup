@@ -6,11 +6,6 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Cross-Origin-Opener-Policy: same-origin
 
-# The stylesheet and the script are tiny and have no fingerprint in their
-# names, so a day-long cache meant a change could take a day to show up. They
-# are revalidated on every visit instead, which costs a 304 and nothing else.
-# The link in each page also carries a ?v= stamp holding a hash of the file;
-# tools/stamp-assets.py sets it, so run that after editing either one.
 /css/*
   Cache-Control: public, max-age=0, must-revalidate
 

@@ -1,13 +1,4 @@
-"""The morning email.
-
-Once a day, a short message listing what has become watchable. What counts
-as watchable is the same rule the rest of the app uses, so if you have said
-a programme is only really available the day after it airs, it appears in
-the following morning's email rather than that morning's.
-
-The SMTP password is typed into the Settings page and stored encrypted,
-never in an environment file.
-"""
+"""The morning email."""
 import smtplib
 import ssl
 import threading
@@ -22,8 +13,6 @@ SITE_URL = "https://lightmorphic.com"
 POSTER_SIZE = "w185"
 SYNOPSIS_LIMIT = 190
 
-# Email clients only reliably understand inline styles and tables, so the
-# colours live here rather than in a stylesheet.
 FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
 BRAND = "#fbc711"
 ON_BRAND = "#645007"
@@ -39,24 +28,15 @@ DEFAULT_TIME = "08:00"
 SECURITIES = ("starttls", "ssl", "none")
 CLOCKS = ("24", "12")
 
-
 def base_url():
-    """Where this Nextup can be reached, so the email can link back to it.
-
-    Empty by default, because only you know the address you use. Without it the
-    email still lists everything, just with nothing to click.
-    """
     value = (secretstore.get("site_url", "") or "").strip().rstrip("/")
     return value if value.startswith(("http://", "https://")) else ""
-
 
 def item_url(kind, item_id):
     root = base_url()
     return f"{root}/{kind}/{item_id}" if root else ""
 
-
 def shorten(text, limit=SYNOPSIS_LIMIT):
-    """A sentence or two of a synopsis, cut on a boundary rather than mid-word."""
     text = " ".join((text or "").split())
     if len(text) <= limit:
         return text
@@ -68,24 +48,17 @@ def shorten(text, limit=SYNOPSIS_LIMIT):
     cut = window.rfind(" ")
     return (window[:cut] if cut > 0 else window[:limit]).rstrip(",;:") + "."
 
-
 def clock_format():
-    """Whether times are shown on a 24 hour clock or with am and pm."""
     return "12" if secretstore.get("clock_format", "24") == "12" else "24"
 
-
 def send_time():
-    """When the morning email should go out, as a time of day."""
     raw = secretstore.get("daily_email_time")
     if not raw:
-        # Older installs stored only an hour.
         legacy = secretstore.get("daily_email_hour")
         raw = f"{_int(legacy, DEFAULT_HOUR, 0, 23):02d}:00" if legacy else DEFAULT_TIME
     return parse_time(raw) or parse_time(DEFAULT_TIME)
 
-
 def parse_time(raw):
-    """Read "HH:MM". Returns None if it is not a real time."""
     if not raw or ":" not in str(raw):
         return None
     hours, _, minutes = str(raw).partition(":")
@@ -96,22 +69,17 @@ def parse_time(raw):
         return None
     return clock_time(hour=hour, minute=minute)
 
-
 def format_time(value, clock=None):
-    """A time written the way the user has asked to read it."""
     clock = clock or clock_format()
     if clock == "12":
         hour = value.hour % 12 or 12
         return f"{hour}:{value.minute:02d} {'am' if value.hour < 12 else 'pm'}"
     return f"{value.hour:02d}:{value.minute:02d}"
 
-
 class MailError(RuntimeError):
     pass
 
-
 def config():
-    """Everything the mailer needs, with the password left out."""
     when = send_time()
     clock = clock_format()
     return {
@@ -136,7 +104,6 @@ def config():
         "last_sent": secretstore.get("daily_email_last_sent", "") or "",
     }
 
-
 def _int(value, fallback, low=None, high=None):
     try:
         number = int(value)
@@ -148,11 +115,9 @@ def _int(value, fallback, low=None, high=None):
         return fallback
     return number
 
-
 def is_configured():
     settings = config()
     return bool(settings["host"] and settings["from_address"] and settings["to_address"])
-
 
 def _connect(settings):
     password = secretstore.get("smtp_password", "")
@@ -175,7 +140,6 @@ def _connect(settings):
     except (smtplib.SMTPException, OSError, ssl.SSLError) as exc:
         raise MailError(f"Could not reach the mail server: {exc}") from exc
 
-
 def send(subject, text_body, html_body=None, images=None):
     settings = config()
     if not is_configured():
@@ -190,8 +154,6 @@ def send(subject, text_body, html_body=None, images=None):
     message.set_content(text_body)
     if html_body:
         message.add_alternative(html_body, subtype="html")
-        # The artwork travels with the message. This server is not on the public
-        # internet, so a mail client could never fetch a picture back from it.
         if images:
             html_part = message.get_payload()[-1]
             for cid, data, subtype in images:
@@ -207,7 +169,6 @@ def send(subject, text_body, html_body=None, images=None):
             server.quit()
         except Exception:  # noqa: BLE001 - closing is best effort
             pass
-
 
 def send_test():
     offset = queries.available_after_days()
@@ -231,16 +192,13 @@ def send_test():
     )
     send("Nextup test message", text, html)
 
-
 def _episode_line(row):
     code = f"S{row['season_number']:02d}E{row['episode_number']:02d}"
     name = row["name"] or f"Episode {row['episode_number']}"
     watched = " (already ticked off)" if row["watched"] else ""
     return f"{row['show_name']} {code} - {name}{watched}"
 
-
 def build_digest():
-    """The message body, or None when there is nothing worth sending."""
     today = queries.available_today()
     episodes, films = today["episodes"], today["films"]
     if not episodes and not films:
@@ -255,7 +213,6 @@ def build_digest():
     subject = "Ready to watch: " + " and ".join(counts)
 
     def block(headline, detail, overview, url):
-        """One item in the plain text version, carrying the same as the pictures."""
         out = [f"  {headline}"]
         if detail:
             out.append(f"    {detail}")
@@ -291,7 +248,6 @@ def build_digest():
     html, images = _html_digest(when, episodes, films)
     return subject, text, html, images
 
-
 def _esc(value):
     return (
         str(value or "")
@@ -301,10 +257,7 @@ def _esc(value):
         .replace('"', "&quot;")
     )
 
-
 def _html_shell(heading, inner, standfirst=""):
-    """The frame every Nextup email sits in: the name at the top, the credit at
-    the bottom, and whatever the message is in between."""
     return f"""<!doctype html>
 <html lang="en-GB"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -344,10 +297,7 @@ def _html_shell(heading, inner, standfirst=""):
 </table>
 </body></html>"""
 
-
 def _html_section(title, rows):
-    """One headed block. Each row is a picture, a title, a line of detail and a
-    few words of description, all linked back to its own page."""
     out = [
         '<tr><td style="padding:24px 32px 4px 32px">'
         f'<p style="margin:0;font:600 12px/1.4 {FONT};letter-spacing:.09em;'
@@ -373,8 +323,6 @@ def _html_section(title, rows):
                 f'<div style="width:76px;height:114px;border-radius:8px;background:{WASH}"></div>'
             )
         if url:
-            # Some mail clients draw a border round a linked image unless told
-            # not to, so the anchor says so rather than relying on a default.
             picture = (
                 f'<a href="{_esc(url)}" style="display:block;border:0;'
                 f'text-decoration:none">{picture}</a>'
@@ -401,13 +349,7 @@ def _html_section(title, rows):
         )
     return "".join(out)
 
-
 def _html_digest(when, episodes, films):
-    """The morning email, and the pictures that travel with it.
-
-    Artwork is attached to the message rather than linked, because this server
-    is not on the public internet for a mail client to fetch anything from.
-    """
     images = []
 
     def attach(tmdb_path, key):
@@ -508,21 +450,16 @@ Available to watch now, from {_esc(when)}.</div>
 </table>
 </body></html>""", images
 
-
 RETRY_AFTER_FAILURE = timedelta(minutes=30)
 
-
 def _backed_off():
-    """True while a failed send is being left alone before the next try."""
     raw = secretstore.get("daily_email_retry_after")
     try:
         return bool(raw) and datetime.now() < datetime.fromisoformat(raw)
     except ValueError:
         return False
 
-
 def send_daily(force=False):
-    """Send this morning's email. Returns a short line saying what happened."""
     settings = config()
     if not settings["enabled"] and not force:
         return "The morning email is switched off."
@@ -535,13 +472,9 @@ def send_daily(force=False):
 
     digest = build_digest()
     if digest is None:
-        # Record the attempt so an empty day is not looked at again.
         secretstore.set("daily_email_last_sent", today)
         return "Nothing became available today, so no email was sent."
 
-    # The day is claimed before sending. If the mail server takes the message
-    # and the connection then drops, the next pass finds the day taken and
-    # does not send a second copy. A failure hands the claim back and waits.
     previous = settings["last_sent"]
     secretstore.set("daily_email_last_sent", today)
     subject, text, html, images = digest
@@ -556,9 +489,7 @@ def send_daily(force=False):
         raise
     return f"Sent: {subject}"
 
-
 def start_background(app):
-    """Check every two minutes whether this morning's email is due."""
 
     def loop():
         time.sleep(40)
@@ -571,7 +502,7 @@ def start_background(app):
                         due = now.time() >= settings["time"]
                         if due and settings["last_sent"] != now.date().isoformat():
                             app.logger.info("Nextup: %s", send_daily())
-                except Exception:  # keep the thread alive whatever happens
+                except Exception:
                     app.logger.exception("The morning email failed")
             time.sleep(120)
 

@@ -1,18 +1,9 @@
-"""The read-side of the app: what to watch, what is coming, how far in.
-
-Season 0 (specials) is deliberately excluded from progress and from
-"next up", because counting specials makes every show look unfinished.
-Specials are still visible on the show page.
-"""
+"""The read-side of the app: what to watch, what is coming, how far in."""
 from datetime import date, timedelta
 
 from . import clock, db, secretstore
 
-# How many days after something airs before it counts as watchable. A programme
-# that goes out at eleven at night is not really available until the next day,
-# so the default is one. Nought means the day it airs.
 DEFAULT_AVAILABLE_AFTER = 1
-
 
 def available_after_days():
     raw = secretstore.get("available_after_days", str(DEFAULT_AVAILABLE_AFTER))
@@ -21,18 +12,13 @@ def available_after_days():
     except (TypeError, ValueError):
         return DEFAULT_AVAILABLE_AFTER
 
-
 def available_cutoff():
-    """The latest air date that counts as watchable right now."""
     return date.today() - timedelta(days=available_after_days())
-
 
 def available_cutoff_iso():
     return available_cutoff().isoformat()
 
-
 def tracked_shows(include_archived=False, shortlist=False, everything=False):
-    """Shows you follow. Set shortlist=True for the maybe list instead."""
     clauses = []
     if not everything:
         clauses.append("t.shortlist = 1" if shortlist else "t.shortlist = 0")
@@ -48,19 +34,15 @@ def tracked_shows(include_archived=False, shortlist=False, everything=False):
         """
     )
 
-
 def show_list_state(show_id):
-    """None if untracked, otherwise the row saying which list it is on."""
     return db.query(
         "SELECT archived, favourite, shortlist FROM tracked_show WHERE show_id = ?",
         (show_id,),
         one=True,
     )
 
-
 def is_tracked(show_id):
     return db.query("SELECT 1 FROM tracked_show WHERE show_id = ?", (show_id,), one=True) is not None
-
 
 def show_progress(show_id):
     row = db.query(
@@ -80,7 +62,6 @@ def show_progress(show_id):
     )
     return _progress(row["aired"], row["watched"], row["total"])
 
-
 def _progress(aired, watched, total):
     aired, watched, total = aired or 0, watched or 0, total or 0
     return {
@@ -92,14 +73,7 @@ def _progress(aired, watched, total):
         "complete": aired > 0 and watched >= aired,
     }
 
-
 def all_progress():
-    """Progress for every show at once, as {show_id: progress}.
-
-    Two grouped queries instead of three per show on the Shows page. A show
-    with no episodes yet is simply absent; ask for it with `.get(id)` and
-    fall back to empty_progress().
-    """
     today = clock.today()
     totals = {
         row["show_id"]: (row["aired"], row["total"])
@@ -123,13 +97,10 @@ def all_progress():
         for show_id, (aired, total) in totals.items()
     }
 
-
 def empty_progress():
     return _progress(0, 0, 0)
 
-
 def next_unwatched(show_id):
-    """The earliest aired episode not yet ticked off."""
     return db.query(
         """
         SELECT e.* FROM episode e
@@ -143,9 +114,7 @@ def next_unwatched(show_id):
         one=True,
     )
 
-
 def next_airing(show_id):
-    """The next episode still to be broadcast."""
     return db.query(
         """
         SELECT e.* FROM episode e
@@ -157,15 +126,7 @@ def next_airing(show_id):
         one=True,
     )
 
-
 def ready_to_watch(order="newest", page=1, per_page=60):
-    """Everything that has come out and is still waiting for you, newest first.
-
-    One row per episode rather than one per show, so a series you are eight
-    behind on takes eight lines, each under the day it went out. Films join
-    the same run at the date they reached home viewing. Long lists are paged,
-    because a big library can hold thousands of these.
-    """
     cutoff = available_cutoff_iso()
     episodes = db.query(
         """
@@ -206,8 +167,6 @@ def ready_to_watch(order="newest", page=1, per_page=60):
     start = (page - 1) * per_page
     window = items[start : start + per_page]
 
-    # How far behind you are belongs to the show, not to each of its episodes,
-    # so it is carried on the first line that show reaches on this page.
     progress_cache, seen = {}, set()
     for item in window:
         if item["kind"] != "episode":
@@ -219,8 +178,6 @@ def ready_to_watch(order="newest", page=1, per_page=60):
         item["lead"] = show_id not in seen
         seen.add(show_id)
 
-    # Named "rows" rather than "items" because a template reaching for
-    # ready.items would get the dictionary's own method instead.
     return {
         "rows": window,
         "total": total,
@@ -230,13 +187,7 @@ def ready_to_watch(order="newest", page=1, per_page=60):
         "last": start + len(window),
     }
 
-
 def available_today():
-    """Everything that becomes watchable today, given the offset.
-
-    This is what the morning email is built from: episodes that aired on the
-    cutoff day, and films that reached home viewing on it.
-    """
     cutoff = available_cutoff_iso()
     episodes = db.query(
         """
@@ -263,9 +214,7 @@ def available_today():
     )
     return {"date": cutoff, "episodes": episodes, "films": films}
 
-
 def upcoming(days=30, limit=None):
-    """Episodes of tracked shows airing between today and `days` ahead."""
     end = (date.today() + timedelta(days=days)).isoformat()
     sql = """
         SELECT e.*, s.name AS show_name, s.poster_path, s.network
@@ -279,7 +228,6 @@ def upcoming(days=30, limit=None):
     if limit:
         sql += f" LIMIT {int(limit)}"
     return db.query(sql, (clock.today(), end))
-
 
 def episodes_between(start_iso, end_iso):
     return db.query(
@@ -297,9 +245,7 @@ def episodes_between(start_iso, end_iso):
         (start_iso, end_iso),
     )
 
-
 def films_between(start_iso, end_iso):
-    """Films reaching home viewing inside a date range, for the calendar."""
     return db.query(
         """
         SELECT m.*, t.watched_at FROM movie m
@@ -312,9 +258,7 @@ def films_between(start_iso, end_iso):
         (start_iso, end_iso),
     )
 
-
 def show_seasons(show_id):
-    """Every episode grouped by season, with a watched flag on each."""
     rows = db.query(
         """
         SELECT e.*, (w.episode_id IS NOT NULL) AS watched
@@ -344,9 +288,7 @@ def show_seasons(show_id):
         )
     return ordered
 
-
 def episode_neighbours(show_id, season_number, episode_number):
-    """The episode before and after this one, for stepping through a series."""
     previous = db.query(
         """
         SELECT * FROM episode WHERE show_id = ?
@@ -367,7 +309,6 @@ def episode_neighbours(show_id, season_number, episode_number):
     )
     return previous, following
 
-
 def recently_watched(limit=12):
     return db.query(
         """
@@ -381,9 +322,7 @@ def recently_watched(limit=12):
         (limit,),
     )
 
-
 def movies(watched=None, shortlist=False, everything=False):
-    """Films on your list. Set shortlist=True for the maybe list instead."""
     clauses = []
     if not everything:
         clauses.append("t.shortlist = 1" if shortlist else "t.shortlist = 0")
@@ -401,7 +340,6 @@ def movies(watched=None, shortlist=False, everything=False):
         """
     )
 
-
 def movie_list_state(movie_id):
     return db.query(
         "SELECT watched_at, shortlist FROM tracked_movie WHERE movie_id = ?",
@@ -409,38 +347,29 @@ def movie_list_state(movie_id):
         one=True,
     )
 
-
 def dismissed_ids(kind):
-    """Everything you said no to on the Discover pages."""
     return {
         row["item_id"]
         for row in db.query("SELECT item_id FROM dismissed WHERE kind = ?", (kind,))
     }
 
-
 def known_ids():
-    """Every show and film already on a list, so Discover can skip them."""
     return (
         {row["show_id"] for row in db.query("SELECT show_id FROM tracked_show")},
         {row["movie_id"] for row in db.query("SELECT movie_id FROM tracked_movie")},
     )
 
-
 def provider_names(row):
     value = row["providers"] if "providers" in row.keys() else None
     return [line for line in (value or "").split("\n") if line]
 
-
 def is_streamable(row):
-    """True once a film can actually be watched at home."""
     if provider_names(row):
         return True
     digital = row["digital_release"] if "digital_release" in row.keys() else None
     return bool(digital and digital <= available_cutoff_iso())
 
-
 def films_by_state():
-    """Films split into ready to watch, still waiting, and already seen."""
     ready, waiting = [], []
     for row in movies(watched=False, shortlist=False):
         (ready if is_streamable(row) else waiting).append(row)
@@ -452,9 +381,7 @@ def films_by_state():
         "maybe": movies(shortlist=True),
     }
 
-
 def films_arriving(days=60):
-    """Films whose streaming date falls inside the window."""
     end = (date.today() + timedelta(days=days)).isoformat()
     return db.query(
         """
@@ -467,7 +394,6 @@ def films_arriving(days=60):
         """,
         (clock.today(), end),
     )
-
 
 def dashboard_counts():
     row = db.query(

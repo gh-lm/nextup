@@ -1,5 +1,4 @@
 /* Nextup - plain CSS, no framework, nothing loaded from anywhere else. */
-
 @font-face {
   font-family: 'Manrope';
   src: url('../fonts/manrope.woff2') format('woff2');
@@ -8,16 +7,13 @@
   font-display: swap;
 }
 
-/* ---------------------------------------------------------------- tokens */
-
 :root {
   color-scheme: dark;
   --bg: #09090b;  --fg: #fafafa;
   --panel: #1b1d29;  --panel-border: rgba(255,255,255,.09);
   --border: #27272a;  --muted: #1c1c1f;  --muted-fg: #a1a1aa;
   --shadow-panel: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px -16px rgba(0,0,0,.6);
-  /* A field has to be findable. Its edge clears 3:1 against the panel behind
-     it, which the faint grey it used to use came nowhere near. */
+
   --field: #12131c;  --field-border: #666a82;
 
   --accent: #fbc711;  --accent-hover: #ddaf0f;  --on-accent: #645007;
@@ -34,7 +30,6 @@
   --panel-radius: 1.375rem;
 }
 
-/* One active accent, mapped from the per-accent definitions below. */
 :root[data-accent] {
   --accent: var(--accent-dark);
   --accent-hover: var(--accent-hover-dark);
@@ -42,12 +37,8 @@
   --on-accent-container: var(--on-accent-container-dark);
 }
 
-/* ------------------------------------------------------------------ base */
-
 * { box-sizing: border-box; }
 
-/* The browser hides [hidden] with display:none, but any author rule that sets
-   display beats it, so a hidden .btn would still show. */
 [hidden] { display: none !important; }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -82,8 +73,6 @@ h3 { font-size: 1.0625rem; }
   position: absolute; width: 1px; height: 1px; overflow: hidden;
   clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
 }
-
-/* ------------------------------------------------------------------ shell */
 
 .shell { max-width: 1200px; margin: 0 auto; padding: 0 20px 64px; }
 
@@ -141,8 +130,6 @@ h3 { font-size: 1.0625rem; }
 .searchbox button svg { width: 17px; height: 17px; }
 .searchbox button:hover { background: var(--accent-container); color: var(--on-accent-container); }
 
-/* ----------------------------------------------------------------- panels */
-
 .panel {
   min-width: 0;
   background: var(--panel);
@@ -170,10 +157,6 @@ h3 { font-size: 1.0625rem; }
 .subtle { color: var(--muted-fg); }
 .hint { font-size: 0.8125rem; color: var(--muted-fg); }
 
-/* ---------------------------------------------------------------- buttons */
-
-/* A button has to look like one. The old edge sat at 1.27 to 1 against a white
-   panel, which is nothing; this one clears the 3 to 1 asked of a control. */
 .btn {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 9px 16px; border-radius: var(--radius);
@@ -192,7 +175,6 @@ h3 { font-size: 1.0625rem; }
 .btn-danger { background: var(--danger); color: #fff; border-color: transparent; }
 .btn-danger:hover { filter: brightness(0.92); }
 
-/* The lesser of two buttons, but still a button: no fill, a real edge. */
 .btn-quiet { background: transparent; border-color: var(--field-border); color: var(--fg); }
 .btn-quiet:hover { background: var(--muted); border-color: var(--fg); }
 
@@ -201,8 +183,6 @@ h3 { font-size: 1.0625rem; }
 .btn[disabled] { opacity: 0.55; cursor: not-allowed; }
 
 .btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-
-/* ------------------------------------------------------------------ forms */
 
 label { display: block; font-size: 0.9375rem; font-weight: 600; margin-bottom: 6px; }
 
@@ -220,9 +200,6 @@ textarea { min-height: 120px; resize: vertical; }
 .field { margin-bottom: 18px; }
 .field:last-child { margin-bottom: 0; }
 
-/* Fields pack across the width they are given rather than stacking down it,
-   so a wide panel gets shorter instead of leaving a field stretched across it
-   on its own. */
 .field-row {
   display: grid; gap: 14px 18px;
   grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
@@ -231,8 +208,6 @@ textarea { min-height: 120px; resize: vertical; }
 .field-row .field { margin-bottom: 0; }
 .field-row:last-child { margin-bottom: 0; }
 
-/* ----------------------------------------------------------------- badges */
-
 .badge {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 3px 10px; border-radius: 999px;
@@ -240,7 +215,7 @@ textarea { min-height: 120px; resize: vertical; }
   background: var(--muted); color: var(--muted-fg);
   white-space: nowrap;
 }
-/* Drawn icons, sized to sit on the line of the text beside them. */
+
 .icon { width: 1em; height: 1em; flex: none; }
 .badge .icon { width: 0.95em; height: 0.95em; }
 
@@ -250,10 +225,6 @@ textarea { min-height: 120px; resize: vertical; }
 .badge-danger { background: var(--danger-bg); color: var(--danger); }
 .badge-info { background: var(--info-bg); color: var(--info); }
 
-/* ----------------------------------------------------------------- flashes */
-
-/* A confirmation sits beside whatever caused it, so nothing has to scroll back
-   up to read it. Quiet: a neutral strip with a coloured edge, not a banner. */
 .notes { margin-bottom: 18px; }
 .note {
   display: flex; align-items: flex-start; gap: 9px;
@@ -272,7 +243,6 @@ textarea { min-height: 120px; resize: vertical; }
 
 @keyframes note-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; } }
 
-
 .notice {
   display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
   padding: 14px 18px; border-radius: var(--radius);
@@ -281,8 +251,6 @@ textarea { min-height: 120px; resize: vertical; }
 }
 .notice .spacer { margin-left: auto; }
 
-/* ------------------------------------------------------------- stat tiles */
-
 .stats { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
 .stat { padding: 18px 20px; border-radius: var(--panel-radius);
         background: var(--panel); border: 1px solid var(--panel-border);
@@ -290,8 +258,6 @@ textarea { min-height: 120px; resize: vertical; }
 .stat-value { font-size: 1.875rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
 .stat-label { font-size: 0.8125rem; color: var(--muted-fg); font-weight: 600;
               text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
-
-/* ---------------------------------------------------------------- posters */
 
 .poster {
   position: relative; display: block; overflow: hidden;
@@ -303,8 +269,6 @@ textarea { min-height: 120px; resize: vertical; }
   width: 100%; height: 100%; display: grid; place-items: center;
   color: var(--muted-fg); font-size: 0.75rem; text-align: center; padding: 10px;
 }
-
-/* --------------------------------------------------------- next-up cards */
 
 .watchlist { display: grid; gap: 16px; }
 
@@ -332,8 +296,6 @@ textarea { min-height: 120px; resize: vertical; }
 }
 .progress span { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
 
-/* ------------------------------------------------------------- show grid */
-
 .show-grid {
   display: grid; gap: 20px;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -347,8 +309,6 @@ textarea { min-height: 120px; resize: vertical; }
 .show-tile-name:hover { text-decoration: underline; }
 .show-tile-meta { font-size: 0.8125rem; color: var(--muted-fg); }
 .show-tile-badges { display: flex; gap: 6px; flex-wrap: wrap; }
-
-/* -------------------------------------------------------------- calendar */
 
 .calendar { width: 100%; border-collapse: separate; border-spacing: 6px; table-layout: fixed; }
 .calendar caption { text-align: left; color: var(--muted-fg); font-size: 0.8125rem; padding-bottom: 8px; }
@@ -382,8 +342,6 @@ textarea { min-height: 120px; resize: vertical; }
 .calendar-scroll { overflow-x: auto; }
 .calendar-scroll .calendar { min-width: 720px; }
 
-/* ------------------------------------------------------------- schedule */
-
 .schedule { display: grid; gap: 22px; }
 .schedule-day-label {
   font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
@@ -397,8 +355,6 @@ textarea { min-height: 120px; resize: vertical; }
 .schedule-row:first-of-type { border-top: 0; }
 .schedule-row .poster { width: 56px; }
 
-/* ------------------------------------------------------------ show page */
-
 .show-hero {
   display: grid; grid-template-columns: 200px 1fr; gap: 28px;
   align-items: start;
@@ -408,8 +364,6 @@ textarea { min-height: 120px; resize: vertical; }
 .show-hero-meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 16px; }
 .show-hero p { max-width: 65ch; }
 
-/* A closed season is just its own header, so a stack of them reads as a list
-   rather than five near-empty boxes. */
 .season { margin-top: 12px; padding: 0.5rem; }
 .season > summary {
   cursor: pointer; list-style: none;
@@ -446,8 +400,6 @@ textarea { min-height: 120px; resize: vertical; }
 .tick:hover { background: var(--accent-container); color: var(--on-accent-container); }
 .tick.on { background: var(--accent); border-color: transparent; color: var(--on-accent); }
 
-/* --------------------------------------------------------------- search */
-
 .result-grid { display: grid; gap: 18px; }
 .result {
   display: grid; grid-template-columns: 92px 1fr auto; gap: 18px;
@@ -463,20 +415,13 @@ textarea { min-height: 120px; resize: vertical; }
 
 .pager { display: flex; gap: 10px; align-items: center; justify-content: center; margin-top: 24px; }
 
-/* ---------------------------------------------------------------- empty */
-
 .empty { text-align: center; padding: 44px 20px; color: var(--muted-fg); }
 .empty svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.5; }
 .empty h3 { margin-bottom: 6px; color: var(--fg); }
 .empty p { margin: 0 0 18px; max-width: 46ch; margin-left: auto; margin-right: auto; }
 
-/* --------------------------------------------------------------- layout */
-
 .split { display: grid; gap: 20px; grid-template-columns: 2fr 1fr; align-items: start; }
-/* A grid track will not shrink below its content unless told to. Without this
-   the cast strip, which is as wide as all its faces laid end to end, sets the
-   width of the column and pushes the page sideways instead of scrolling
-   inside its own panel. */
+
 .split > * { min-width: 0; }
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
 .tabs a {
@@ -513,19 +458,12 @@ textarea { min-height: 120px; resize: vertical; }
   .show-hero .poster { width: 132px; }
 }
 
-/* Below this the poster and the text are both too narrow side by side, so the
-   poster goes above and the synopsis gets the full width. */
-/* On a phone every control is at least 44px tall, so it can be hit with a
-   thumb. Plain text links inside a sentence are left alone - stretching those
-   would put gaps through the prose. */
 @media (max-width: 560px) {
   .btn, .btn-small, .tabs a { min-height: 44px; }
   .btn-small { padding-top: 0; padding-bottom: 0; }
   .tabs a { display: inline-flex; align-items: center; }
   .tick { width: 44px; height: 44px; }
-  /* Card titles are links in their own right rather than words in a sentence,
-     so they need to clear the 24px minimum too. Their line height alone left
-     them a couple of pixels short. */
+
   .watch-card-show, .show-tile-name, .discover-card-name {
     display: inline-block; padding: 3px 0;
   }
@@ -566,8 +504,6 @@ textarea { min-height: 120px; resize: vertical; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
-
-/* ------------------------------------------------------ accent palette */
 
 :root[data-accent="red"] {
   --accent-dark: #f34236; --accent-hover-dark: #f4594e;
@@ -665,8 +601,6 @@ textarea { min-height: 120px; resize: vertical; }
   --on-accent: #000000;
 }
 
-/* ------------------------------------------------------ discover cards */
-
 .discover-grid {
   display: grid; gap: 20px;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -711,8 +645,6 @@ textarea { min-height: 120px; resize: vertical; }
   .decide-btn { min-height: 44px; }
 }
 
-/* ------------------------------------------------------- episode page */
-
 .episode-still {
   width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover;
   border-radius: var(--radius); margin-bottom: 18px; background: var(--muted);
@@ -724,8 +656,6 @@ textarea { min-height: 120px; resize: vertical; }
   margin-top: 20px; flex-wrap: wrap;
 }
 .ep-nav .btn { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* ----------------------------------------------------------- cast strip */
 
 .cast-strip {
   list-style: none; margin: 0; padding: 4px 0 8px;
@@ -760,8 +690,6 @@ textarea { min-height: 120px; resize: vertical; }
 .fact-list dd { margin: 0; font-size: 0.9375rem; min-width: 0; overflow-wrap: anywhere; }
 .tagline { font-style: italic; color: var(--muted-fg); margin: 0 0 12px; }
 
-/* Films on the calendar. Blue rather than the accent, and every entry carries
-   the word "Film" as well, so the difference does not rest on colour alone. */
 .cal-ep.cal-film { background: var(--info-bg); color: var(--info); }
 .cal-ep.cal-film.done { background: var(--muted); color: var(--muted-fg); }
 
@@ -775,7 +703,6 @@ textarea { min-height: 120px; resize: vertical; }
 .cal-key-tv { background: var(--accent); }
 .cal-key-film { background: var(--info); margin-left: 10px; }
 
-/* Selects match the text inputs beside them. */
 select {
   appearance: none;
   background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
@@ -787,15 +714,12 @@ select {
 }
 input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; }
 
-/* Setting a time: hour, minute, am or pm, and the clock it is written in. */
 .field-label { display: block; font-size: 0.9375rem; font-weight: 600; margin-bottom: 6px; }
 .timerow { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .timepicker { display: flex; align-items: center; gap: 8px; }
 .timepicker select { width: auto; min-width: 4.75rem; text-align: center; }
 .timepicker-colon { font-weight: 700; font-size: 1.125rem; color: var(--muted-fg); }
 
-/* Two states, so a sliding switch rather than a checkbox. The chosen half is
-   the raised one, and it says which it is rather than relying on position. */
 .clock-toggle {
   display: inline-flex; align-items: center; gap: 2px;
   padding: 3px; border-radius: 999px;
@@ -819,7 +743,7 @@ input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px;
 .clock-toggle input:focus-visible + span {
   outline: 2px solid var(--accent); outline-offset: 2px;
 }
-/* Only needed when the switch cannot submit itself. */
+
 .clock-toggle-go { margin-left: 4px; }
 
 @media (max-width: 420px) {
@@ -827,13 +751,6 @@ input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px;
   .clock-toggle span { padding: 0 11px; }
 }
 
-/* An icon on its own still needs a proper target to hit. */
-
-/* ------------------------------------------------------------------ bento */
-
-/* Masonry. Nothing lines up with anything, which is the point: each panel takes
-   exactly the height its content needs and the columns fill themselves, so no
-   panel is padded out to match a neighbour. */
 .bento { columns: 3; column-gap: 18px; }
 .bento > .panel {
   display: block;
@@ -843,9 +760,6 @@ input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px;
   width: 100%;
 }
 
-/* The one panel wide enough to be worth the whole row. Across the full width
-   its fields pack three to a row; in a column they would stack and it would be
-   twice as tall as anything else. */
 .bento-wide {
   column-span: all;
   -webkit-column-span: all;
@@ -855,19 +769,15 @@ input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px;
 @media (max-width: 1180px) { .bento { columns: 2; } }
 @media (max-width: 760px)  { .bento { columns: 1; column-gap: 0; } }
 
-/* The key sits on one line with its buttons rather than stretched across the
-   panel on its own. */
 #tmdb form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 #tmdb .inline-field { flex: 1 1 min(240px, 100%); margin: 0; }
 #tmdb .btn-row { flex: 0 0 auto; }
 
-/* A tick box that sits beside things rather than claiming a row. */
 .inline-check {
   display: inline-flex; align-items: center; gap: 8px;
   font-weight: 400; margin: 0;
 }
 .inline-check input { width: auto; flex: none; }
 
-/* The send time, the clock switch and the tick box share one line. */
 #mail .timerow { gap: 12px; }
 #mail .timerow + .hint { margin-top: 6px; }

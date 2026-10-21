@@ -6,7 +6,6 @@ from ..redirects import is_local_path
 
 bp = Blueprint("auth", __name__)
 
-
 @bp.route("/login", methods=["GET", "POST"])
 def login():
     if session.get("logged_in"):
@@ -28,7 +27,6 @@ def login():
         record_failure(address)
         flash("Those details did not match.", "error")
     return render_template("pages/login.html")
-
 
 @bp.route("/logout", methods=["POST"])
 def logout():

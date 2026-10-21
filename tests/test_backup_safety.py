@@ -1,11 +1,9 @@
 """Backups are never cached, and a restore is honest about the keys."""
 import io
 
-
 def test_the_backup_download_is_never_cached(signed_in):
     assert signed_in.get("/settings/export").headers["Cache-Control"] == "no-store"
     assert signed_in.get("/settings/export?secrets=1").headers["Cache-Control"] == "no-store"
-
 
 def test_a_restore_without_keys_says_so_and_keeps_you_signed_in(signed_in):
     plain = signed_in.get("/settings/export").data

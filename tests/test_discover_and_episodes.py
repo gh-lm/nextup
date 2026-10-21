@@ -2,7 +2,6 @@ from datetime import date, timedelta
 
 import pytest
 
-
 def _seed_show_with_episodes(app):
     from app import db
 
@@ -21,7 +20,6 @@ def _seed_show_with_episodes(app):
     conn.commit()
     db.execute("INSERT OR REPLACE INTO tracked_show (show_id, added_at) VALUES (600, '2026-01-01')")
 
-
 def test_episode_page_shows_what_is_stored(signed_in, app, monkeypatch):
     from app import tmdb
 
@@ -35,7 +33,6 @@ def test_episode_page_shows_what_is_stored(signed_in, app, monkeypatch):
     assert "Second" in body
     assert "It continues." in body
     assert "S01E02" in body
-
 
 def test_episode_page_links_to_its_neighbours(signed_in, app, monkeypatch):
     from app import queries, tmdb
@@ -51,7 +48,6 @@ def test_episode_page_links_to_its_neighbours(signed_in, app, monkeypatch):
     assert "/episode/6001" in body
     assert "/episode/6003" in body
 
-
 def test_episode_page_survives_tmdb_being_down(signed_in, app, monkeypatch):
     from app import tmdb
 
@@ -63,10 +59,8 @@ def test_episode_page_survives_tmdb_being_down(signed_in, app, monkeypatch):
         _seed_show_with_episodes(app)
     assert signed_in.get("/episode/6001").status_code == 200
 
-
 def test_unknown_episode_is_a_404(signed_in):
     assert signed_in.get("/episode/999999").status_code == 404
-
 
 def test_saying_no_hides_a_show_from_discover(signed_in, app):
     from app import queries
@@ -75,9 +69,7 @@ def test_saying_no_hides_a_show_from_discover(signed_in, app):
     with app.app_context():
         assert 1234 in queries.dismissed_ids("tv")
         assert 1234 in queries.dismissed_ids("tv")
-        # Films are a separate list.
         assert queries.dismissed_ids("movie") == set()
-
 
 def test_restore_brings_dismissed_items_back(signed_in, app):
     from app import queries
@@ -93,9 +85,7 @@ def test_restore_brings_dismissed_items_back(signed_in, app):
     with app.app_context():
         assert queries.dismissed_ids("movie") == set()
 
-
 def _fake_sync_show(monkeypatch):
-    """Stand in for the TMDB fetch, writing the show row the real one writes."""
     from app import db, sync
 
     def fake(show_id):
@@ -106,7 +96,6 @@ def _fake_sync_show(monkeypatch):
         return f"Show {show_id}"
 
     monkeypatch.setattr(sync, "sync_show", fake)
-
 
 def test_yes_and_maybe_put_a_show_on_the_right_list(signed_in, app, monkeypatch):
     from app import queries
@@ -121,7 +110,6 @@ def test_yes_and_maybe_put_a_show_on_the_right_list(signed_in, app, monkeypatch)
     with app.app_context():
         assert queries.show_list_state(601)["shortlist"] == 1
 
-
 def test_adding_something_clears_its_dismissal(signed_in, app, monkeypatch):
     from app import queries
 
@@ -133,7 +121,6 @@ def test_adding_something_clears_its_dismissal(signed_in, app, monkeypatch):
     signed_in.post("/discover/show/700/yes")
     with app.app_context():
         assert 700 not in queries.dismissed_ids("tv")
-
 
 def test_maybe_films_stay_out_of_the_films_page(app):
     from app import db, queries
@@ -149,13 +136,11 @@ def test_maybe_films_stay_out_of_the_films_page(app):
         assert films["waiting"] == []
         assert [row["id"] for row in films["maybe"]] == [901]
 
-
 def test_discover_pages_explain_a_missing_key(signed_in):
     for path in ["/discover/films", "/discover/tv"]:
         resp = signed_in.get(path)
         assert resp.status_code == 200, path
         assert b"No TMDB API key saved" in resp.data, path
-
 
 def test_an_unknown_decision_is_rejected(signed_in):
     assert signed_in.post("/discover/show/1/sideways").status_code == 404

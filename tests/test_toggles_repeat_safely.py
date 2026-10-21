@@ -1,6 +1,5 @@
 """Buttons send the state they want, so pressing one twice changes nothing more."""
 
-
 def _seed(app):
     from app import db
 
@@ -13,12 +12,10 @@ def _seed(app):
     db.execute("INSERT INTO movie (id, title) VALUES (711, 'Twice Film')")
     db.execute("INSERT INTO tracked_movie (movie_id, added_at) VALUES (711, '2026-01-01')")
 
-
 def _watched(app):
     from app import db
 
     return db.query("SELECT COUNT(*) AS n FROM watched_episode WHERE episode_id = 7101", one=True)["n"]
-
 
 def test_marking_an_episode_watched_twice_leaves_it_watched(signed_in, app):
     with app.app_context():
@@ -32,7 +29,6 @@ def test_marking_an_episode_watched_twice_leaves_it_watched(signed_in, app):
     with app.app_context():
         assert _watched(app) == 0
 
-
 def test_a_film_marked_watched_twice_stays_watched(signed_in, app):
     from app import db
 
@@ -42,7 +38,6 @@ def test_a_film_marked_watched_twice_stays_watched(signed_in, app):
     signed_in.post("/movie/711/watched", data={"to": "1"})
     with app.app_context():
         assert db.query("SELECT watched_at FROM tracked_movie WHERE movie_id = 711", one=True)["watched_at"]
-
 
 def test_favourite_and_archive_repeat_safely(signed_in, app):
     from app import queries
@@ -55,7 +50,6 @@ def test_favourite_and_archive_repeat_safely(signed_in, app):
     with app.app_context():
         state = queries.show_list_state(710)
         assert state["favourite"] == 1 and state["archived"] == 1
-
 
 def test_a_toggle_without_a_wanted_state_is_refused(signed_in, app):
     with app.app_context():

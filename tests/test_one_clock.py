@@ -1,6 +1,5 @@
 """Every query takes today's date from app.clock, not from SQLite's own UTC clock."""
 
-
 def test_aired_and_upcoming_follow_the_app_clock(app, monkeypatch):
     from app import clock, db, queries
 

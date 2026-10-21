@@ -1,14 +1,4 @@
-"""Taking everything out, and putting it back.
-
-One JSON file holds what you added, what you watched and how you like things
-set up, alongside enough of the show and film detail for a fresh copy to be
-usable the moment it is restored, before it has spoken to TMDB at all.
-
-Secrets are the exception. The TMDB key and the mail password are encrypted
-with a key that lives beside the database, so they cannot travel as they are.
-They are left out unless you ask for them, and asking means they are written
-into the file as plain text.
-"""
+"""Taking everything out, and putting it back."""
 from datetime import datetime, timezone
 
 from . import db, secretstore
@@ -16,8 +6,6 @@ from . import db, secretstore
 FORMAT = "nextup-backup"
 VERSION = 1
 
-# Every table that carries something worth keeping, and the order to restore
-# them in so a row never arrives before the row it points at.
 TABLES = [
     ("show", "id"),
     ("episode", "id"),
@@ -28,13 +16,10 @@ TABLES = [
     ("dismissed", None),
 ]
 
-
 def _rows(table):
     return [dict(row) for row in db.query(f"SELECT * FROM {table}")]
 
-
 def counts():
-    """How many rows a backup would hold, without building the backup."""
     found = {
         table: db.query(f"SELECT COUNT(*) AS n FROM {table}", one=True)["n"]
         for table, _key in TABLES
@@ -44,9 +29,7 @@ def counts():
     )["n"]
     return found
 
-
 def export_data(include_secrets=False):
-    """Everything, as a plain dictionary ready to be written out as JSON."""
     payload = {
         "format": FORMAT,
         "version": VERSION,
@@ -64,7 +47,6 @@ def export_data(include_secrets=False):
     if account:
         payload["data"]["account"] = dict(account)
 
-    # Settings split by how they are stored, not by guesswork.
     plain, secrets = {}, {}
     for row in db.query("SELECT key, encrypted FROM settings"):
         value = secretstore.get(row["key"])
@@ -87,10 +69,8 @@ def export_data(include_secrets=False):
 
     return payload
 
-
 class ImportError_(ValueError):
-    """Raised when a file is not a Nextup backup, or is one we cannot read."""
-
+    pass
 
 def _check(payload):
     if not isinstance(payload, dict):
@@ -106,9 +86,7 @@ def _check(payload):
     if not isinstance(payload.get("data"), dict):
         raise ImportError_("That backup has nothing in it.")
 
-
 def _insert(conn, table, rows):
-    """Write rows back, keeping only columns this version still has."""
     if not rows:
         return 0
     columns = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
@@ -125,7 +103,6 @@ def _insert(conn, table, rows):
         written += 1
     return written
 
-
 def _put_setting(conn, key, stored_value, encrypted):
     conn.execute(
         "INSERT INTO settings (key, value, encrypted) VALUES (?, ?, ?)"
@@ -134,13 +111,7 @@ def _put_setting(conn, key, stored_value, encrypted):
         (str(key), stored_value, 1 if encrypted else 0),
     )
 
-
 def import_data(payload):
-    """Replace everything with the contents of a backup.
-
-    All of it or none of it: if any part fails the database is left exactly as
-    it was.
-    """
     _check(payload)
     data = payload["data"]
 
@@ -148,7 +119,6 @@ def import_data(payload):
     restored = {}
     try:
         conn.execute("BEGIN")
-        # Clear in reverse, so nothing is orphaned on the way out.
         for table, _key in reversed(TABLES):
             conn.execute(f"DELETE FROM {table}")
         conn.execute("DELETE FROM settings")
@@ -164,10 +134,6 @@ def import_data(payload):
             )
             restored["account"] = 1
 
-        # Settings are written here rather than through the store, so they sit
-        # inside the same transaction as everything else. Going through the
-        # store would commit as it went, and a failure part way would leave you
-        # with no settings at all.
         settings = data.get("settings")
         if isinstance(settings, dict):
             for key, value in settings.items():
@@ -187,9 +153,7 @@ def import_data(payload):
 
     return restored
 
-
 def summarise(restored):
-    """A sentence saying what came back."""
     bits = []
     for table, label in (
         ("tracked_show", "show"),

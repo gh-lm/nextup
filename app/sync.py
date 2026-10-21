@@ -1,9 +1,4 @@
-"""Pulling show and episode data from TMDB into the local database.
-
-Sync is deliberately dumb: for each tracked show we refresh the series
-record, then walk its seasons and upsert every episode. Shows that have
-finished are refreshed far less often than ones still airing.
-"""
+"""Pulling show and episode data from TMDB into the local database."""
 import threading
 from datetime import datetime, timedelta, timezone
 
@@ -12,21 +7,17 @@ from . import clock, config, db, tmdb
 _sync_lock = threading.Lock()
 _running = False
 
-
 def _network_name(payload):
     networks = payload.get("networks") or []
     if networks:
         return networks[0].get("name")
     return None
 
-
 def _runtime(payload):
     times = payload.get("episode_run_time") or []
     return times[0] if times else None
 
-
 def upsert_show(payload, stamp=True):
-    """Save the series record. `stamp=False` leaves it marked as not yet fresh."""
     db.execute(
         """
         INSERT INTO show (id, name, overview, poster_path, backdrop_path,
@@ -61,7 +52,6 @@ def upsert_show(payload, stamp=True):
             clock.now_iso() if stamp else None,
         ),
     )
-
 
 def upsert_episodes(show_id, season_payload):
     conn = db.get_db()
@@ -99,14 +89,7 @@ def upsert_episodes(show_id, season_payload):
     conn.commit()
     return len(rows)
 
-
 def sync_show(show_id, failed=None):
-    """Refresh one show and all of its episodes. Returns the show name.
-
-    The show is only marked fresh once every season has come through. A season
-    TMDB cannot serve does not abandon the rest, but its number is added to
-    `failed` (if given) and the show is left to be tried again next time.
-    """
     payload = tmdb.show(show_id)
     upsert_show(payload, stamp=False)
     missed = []
@@ -124,7 +107,6 @@ def sync_show(show_id, failed=None):
     else:
         db.execute("UPDATE show SET synced_at = ? WHERE id = ?", (clock.now_iso(), show_id))
     return payload.get("name")
-
 
 def upsert_movie(payload):
     db.execute(
@@ -153,11 +135,7 @@ def upsert_movie(payload):
         ),
     )
 
-
 def sync_movie_availability(movie_id):
-    """Refresh when a film reaches streaming, and which services carry it."""
-    # Both lookups happen before anything is written, so an outage raises
-    # TmdbError and leaves the saved dates and services as they were.
     digital = tmdb.digital_release_date(tmdb.movie_release_dates(movie_id))
     names, link = tmdb.uk_providers(tmdb.movie_providers(movie_id))
 
@@ -169,9 +147,7 @@ def sync_movie_availability(movie_id):
     )
     return digital, names
 
-
 def sync_all_movies(force=False):
-    """Refresh availability for every film still waiting to be watched."""
     rows = db.query(
         "SELECT m.id, m.providers_checked_at FROM movie m"
         " JOIN tracked_movie t ON t.movie_id = m.id"
@@ -195,7 +171,6 @@ def sync_all_movies(force=False):
             continue
     return done
 
-
 def _needs_refresh(row, force):
     if force or not row["synced_at"]:
         return True
@@ -209,9 +184,7 @@ def _needs_refresh(row, force):
     ended = (row["status"] or "").lower() in {"ended", "canceled", "cancelled"}
     return age > timedelta(days=14) if ended else age > timedelta(hours=config.SYNC_INTERVAL_HOURS)
 
-
 def sync_all(force=False):
-    """Refresh every tracked show. Returns (done, skipped, errors)."""
     global _running
     if not _sync_lock.acquire(blocking=False):
         return (0, 0, ["A sync is already running."])
@@ -263,22 +236,15 @@ def sync_all(force=False):
         _sync_lock.release()
     return (done, skipped, errors)
 
-
 def is_running():
     return _running
-
 
 def last_run():
     return db.query(
         "SELECT * FROM sync_run ORDER BY id DESC LIMIT 1", one=True
     )
 
-
 def start_now(app, force=True):
-    """Run a full refresh on its own thread, so the page does not wait for it.
-
-    Returns False if one is already under way.
-    """
     if _running:
         return False
 
@@ -286,15 +252,13 @@ def start_now(app, force=True):
         with app.app_context():
             try:
                 sync_all(force=force)
-            except Exception:  # the thread must end quietly whatever happens
+            except Exception:
                 app.logger.exception("Refresh failed")
 
     threading.Thread(target=work, name="nextup-sync-now", daemon=True).start()
     return True
 
-
 def start_background(app):
-    """A daemon thread that syncs on boot and then on a fixed interval."""
 
     def loop():
         import time
@@ -307,7 +271,7 @@ def start_background(app):
 
                     if secretstore.has("tmdb_api_key"):
                         sync_all(force=False)
-                except Exception:  # keep the thread alive whatever happens
+                except Exception:
                     app.logger.exception("Background sync failed")
             time.sleep(max(1, config.SYNC_INTERVAL_HOURS) * 3600)
 

@@ -1,6 +1,4 @@
-{# Three one-tap decisions: tick to add it, question mark for the maybe list,
-   cross to send it away. Each carries a real label, so the meaning does not
-   rest on the shape alone. #}
+{# Three one-tap decisions: tick to add it, question mark for the maybe list, #}
 <div class="decide" role="group" aria-label="Decide about {{ title }}">
   <form method="post" action="{{ yes_url }}">
     <input type="hidden" name="next" value="{{ request.full_path }}">

@@ -8,32 +8,21 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import config, db, secretstore
 
-# The starter password is public, so until it is changed nothing but the
-# account form and sign out is reachable.
 STARTER_ALLOWED = {"settings.index", "settings.save_account", "auth.logout", "static"}
 
-# Sign-in attempts: this many wrong ones from one address in this many seconds
-# and further attempts are refused until the window passes. Kept in memory, so
-# a restart clears it, which is fine for one person on a home server.
 MAX_FAILURES = 8
 FAILURE_WINDOW = 15 * 60
 _failures = {}
 
-
 def _epoch():
     return secretstore.get("session_epoch", "0")
 
-
 def end_all_sessions():
-    """Make every signed-in browser sign in again, this one included."""
     secretstore.set("session_epoch", pysecrets.token_hex(8))
 
-
 def keep_this_browser_signed_in():
-    """Sign every other browser out but leave this one signed in."""
     end_all_sessions()
     session["epoch"] = _epoch()
-
 
 def start_session(starter):
     session.clear()
@@ -42,12 +31,10 @@ def start_session(starter):
     session["starter"] = bool(starter)
     session.permanent = True
 
-
 def current_user():
     if not session.get("logged_in"):
         return None
     return db.query("SELECT id, username FROM admin_user WHERE id = 1", one=True)
-
 
 def login_required(view):
     @wraps(view)
@@ -62,7 +49,6 @@ def login_required(view):
 
     return wrapped
 
-
 def sign_in_blocked(address):
     now = time.monotonic()
     recent = [t for t in _failures.get(address, []) if now - t < FAILURE_WINDOW]
@@ -72,14 +58,11 @@ def sign_in_blocked(address):
         _failures.pop(address, None)
     return len(recent) >= MAX_FAILURES
 
-
 def record_failure(address):
     _failures.setdefault(address, []).append(time.monotonic())
 
-
 def forget_failures(address):
     _failures.pop(address, None)
-
 
 def check_login(username, password):
     row = db.query("SELECT username, password_hash FROM admin_user WHERE id = 1", one=True)
@@ -89,14 +72,11 @@ def check_login(username, password):
         return False
     return check_password_hash(row["password_hash"], password)
 
-
 def check_current_password(password):
     row = db.query("SELECT password_hash FROM admin_user WHERE id = 1", one=True)
     return bool(row) and check_password_hash(row["password_hash"], password)
 
-
 def change_account(username, new_password):
-    """Write the new details together, then end every other sign-in."""
     if new_password:
         db.execute(
             "UPDATE admin_user SET username = ?, password_hash = ? WHERE id = 1",

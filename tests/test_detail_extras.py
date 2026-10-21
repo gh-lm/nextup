@@ -1,6 +1,5 @@
 """The helpers that turn a TMDB payload into what a detail page shows."""
 
-
 def test_cast_reads_a_film_credit():
     from app import tmdb
 
@@ -13,7 +12,6 @@ def test_cast_reads_a_film_credit():
     assert cast[0]["role"] == "The Lead"
     assert cast[1]["profile_path"] is None
 
-
 def test_cast_reads_a_shows_roles_across_seasons():
     from app import tmdb
 
@@ -22,7 +20,6 @@ def test_cast_reads_a_shows_roles_across_seasons():
     ]}}
     assert tmdb.cast_from(payload)[0]["role"] == "The Lead"
 
-
 def test_cast_is_capped():
     from app import tmdb
 
@@ -30,7 +27,6 @@ def test_cast_is_capped():
         {"name": f"Person {i}", "character": "Someone"} for i in range(40)
     ]}}
     assert len(tmdb.cast_from(payload, limit=14)) == 14
-
 
 def test_crew_keeps_only_the_jobs_worth_naming():
     from app import tmdb
@@ -44,7 +40,6 @@ def test_crew_keeps_only_the_jobs_worth_naming():
     crew = tmdb.crew_from(payload)
     assert [p["name"] for p in crew] == ["A Director", "A Writer"]
 
-
 def test_trailer_prefers_youtube_and_never_embeds():
     from app import tmdb
 
@@ -55,13 +50,11 @@ def test_trailer_prefers_youtube_and_never_embeds():
     trailer = tmdb.trailer_from(payload)
     assert trailer["url"] == "https://www.youtube.com/watch?v=abc123"
 
-
 def test_no_trailer_is_not_an_error():
     from app import tmdb
 
     assert tmdb.trailer_from({}) is None
     assert tmdb.trailer_from({"videos": {"results": []}}) is None
-
 
 def test_certification_prefers_the_uk_rating():
     from app import tmdb
@@ -78,13 +71,11 @@ def test_certification_prefers_the_uk_rating():
     ]}}
     assert tmdb.certification_from(film) == "12A"
 
-
 def test_certification_falls_back_when_there_is_no_uk_one():
     from app import tmdb
 
     payload = {"content_ratings": {"results": [{"iso_3166_1": "US", "rating": "TV-14"}]}}
     assert tmdb.certification_from(payload) == "TV-14"
-
 
 def test_imdb_link_from_either_shape():
     from app import tmdb
@@ -92,7 +83,6 @@ def test_imdb_link_from_either_shape():
     assert tmdb.imdb_from({"imdb_id": "tt1234567"}).endswith("tt1234567/")
     assert tmdb.imdb_from({"external_ids": {"imdb_id": "tt7654321"}}).endswith("tt7654321/")
     assert tmdb.imdb_from({}) is None
-
 
 def test_genres_and_creators():
     from app import tmdb
@@ -104,7 +94,6 @@ def test_genres_and_creators():
     assert tmdb.genres_from(payload) == ["Drama", "Crime"]
     assert tmdb.creators_from(payload) == ["Someone"]
 
-
 def test_providers_read_from_an_appended_block():
     from app import tmdb
 
@@ -115,7 +104,6 @@ def test_providers_read_from_an_appended_block():
     names, link = tmdb.providers_from(payload)
     assert names == ["Some Service"]
     assert link.endswith("/watch")
-
 
 def test_a_detail_page_still_renders_when_tmdb_is_down(signed_in, app, monkeypatch):
     from app import db, tmdb
@@ -134,9 +122,7 @@ def test_a_detail_page_still_renders_when_tmdb_is_down(signed_in, app, monkeypat
     assert signed_in.get("/show/500").status_code == 200
     assert signed_in.get("/movie/501").status_code == 200
 
-
 def test_the_image_proxy_accepts_a_profile_path(signed_in):
-    """Profile filenames can carry dashes and underscores, unlike posters."""
     from app.posters import PATH_RE
 
     assert PATH_RE.fullmatch("/8Ac2mfkQiCJj5nDNMMBQZLwEEEG.jpg")

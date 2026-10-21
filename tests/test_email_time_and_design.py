@@ -1,13 +1,11 @@
 from datetime import date, time, timedelta
 
-
 def test_the_default_send_time_is_eight_in_the_morning(app):
     from app import mailer
 
     with app.app_context():
         assert mailer.send_time() == time(8, 0)
         assert mailer.clock_format() == "24"
-
 
 def test_any_minute_of_the_day_can_be_set(app):
     from app import mailer, secretstore
@@ -19,7 +17,6 @@ def test_any_minute_of_the_day_can_be_set(app):
 
         secretstore.set("clock_format", "12")
         assert mailer.config()["time_display"] == "7:12 am"
-
 
 def test_the_twelve_hour_clock_reads_correctly(app):
     from app import mailer, secretstore
@@ -39,7 +36,6 @@ def test_the_twelve_hour_clock_reads_correctly(app):
             secretstore.set("daily_email_time", stored)
             assert mailer.config()["time_display"] == shown, stored
 
-
 def test_a_bad_time_falls_back_rather_than_breaking(app):
     from app import mailer, secretstore
 
@@ -48,7 +44,6 @@ def test_a_bad_time_falls_back_rather_than_breaking(app):
             secretstore.set("daily_email_time", bad)
             assert mailer.send_time() == time(8, 0), bad
 
-
 def test_an_old_install_that_only_stored_an_hour_still_works(app):
     from app import mailer, secretstore
 
@@ -56,7 +51,6 @@ def test_an_old_install_that_only_stored_an_hour_still_works(app):
         secretstore.delete("daily_email_time")
         secretstore.set("daily_email_hour", "6")
         assert mailer.send_time() == time(6, 0)
-
 
 def test_saving_a_twelve_hour_time_stores_it_as_twenty_four(signed_in, app):
     from app import secretstore
@@ -73,7 +67,6 @@ def test_saving_a_twelve_hour_time_stores_it_as_twenty_four(signed_in, app):
     with app.app_context():
         assert secretstore.get("daily_email_time") == "00:05"
 
-
 def test_impossible_times_are_refused(signed_in, app):
     from app import secretstore
 
@@ -89,7 +82,6 @@ def test_impossible_times_are_refused(signed_in, app):
         with app.app_context():
             assert secretstore.get("daily_email_time") == "08:00", bad
 
-
 def test_the_clock_switch_flips_and_sticks(signed_in, app):
     from app import mailer
 
@@ -99,7 +91,6 @@ def test_the_clock_switch_flips_and_sticks(signed_in, app):
     signed_in.post("/settings/clock", data={"clock_format": "24"})
     with app.app_context():
         assert mailer.clock_format() == "24"
-
 
 def _seed_ready(app):
     from app import db
@@ -119,7 +110,6 @@ def _seed_ready(app):
     )
     db.execute("INSERT OR REPLACE INTO tracked_movie (movie_id, added_at) VALUES (201, '2026-01-01')")
 
-
 def test_the_email_carries_the_name_and_the_credit(app):
     from app import mailer
 
@@ -130,7 +120,6 @@ def test_the_email_carries_the_name_and_the_credit(app):
         assert "Made by" in html
         assert 'href="https://lightmorphic.com"' in html
         assert "lightmorphic.com" in text
-
 
 def test_the_email_names_what_is_ready_and_where(app):
     from app import mailer
@@ -143,9 +132,7 @@ def test_the_email_names_what_is_ready_and_where(app):
         assert "A Good Film" in html and "Netflix" in html
         assert "A Series S02E04" in text
 
-
 def test_the_email_loads_nothing_from_anywhere_else(app):
-    """His server is not on the public internet, so no remote images."""
     from app import mailer
 
     with app.app_context():
@@ -154,7 +141,6 @@ def test_the_email_loads_nothing_from_anywhere_else(app):
         assert "<img" not in html
         assert "url(" not in html
         assert html.count("http") == html.count("https://lightmorphic.com")
-
 
 def test_the_test_message_uses_the_same_frame(app, monkeypatch):
     from app import mailer

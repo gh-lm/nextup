@@ -1,10 +1,4 @@
-"""Encrypted settings.
-
-Third-party credentials are typed into the Settings page and stored
-encrypted in the database - never in a plaintext env file. The key that
-does the encrypting lives beside the database in the data directory,
-generated on first boot with 0600 permissions.
-"""
+"""Encrypted settings."""
 import logging
 import os
 import threading
@@ -15,7 +9,6 @@ from . import config, db
 
 _lock = threading.Lock()
 _fernet = None
-
 
 def _load_fernet():
     global _fernet
@@ -42,7 +35,6 @@ def _load_fernet():
         _fernet = Fernet(key)
     return _fernet
 
-
 def get(key, default=None):
     row = db.query("SELECT value, encrypted FROM settings WHERE key = ?", (key,), one=True)
     if row is None or row["value"] is None:
@@ -54,16 +46,9 @@ def get(key, default=None):
     except (InvalidToken, ValueError):
         return default
 
-
 LABELS = {"tmdb_api_key": "TMDB key", "smtp_password": "mail password"}
 
-
 def unreadable():
-    """Names of stored secrets that cannot be decrypted with the key on disk.
-
-    This happens when secret.key is lost or replaced, for instance by restoring
-    only the database. Without this, they would simply look as if never set.
-    """
     broken = []
     for row in db.query("SELECT key, value FROM settings WHERE encrypted = 1"):
         try:
@@ -72,15 +57,8 @@ def unreadable():
             broken.append(LABELS.get(row["key"], row["key"]))
     return sorted(broken)
 
-
 def encrypt(value):
-    """Lock a value ready for storing, without writing anything.
-
-    A restore needs this: it writes settings inside its own transaction, so it
-    cannot go through set(), which commits as it goes.
-    """
     return _load_fernet().encrypt(value.encode()).decode()
-
 
 def set(key, value, encrypted=False):
     stored = value
@@ -93,10 +71,8 @@ def set(key, value, encrypted=False):
         (key, stored, 1 if encrypted else 0),
     )
 
-
 def delete(key):
     db.execute("DELETE FROM settings WHERE key = ?", (key,))
-
 
 def has(key):
     return bool(get(key))

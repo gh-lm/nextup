@@ -2,17 +2,12 @@
 locale = "en-gb"
 
 [default.extend-words]
-# CSS, SVG and HTML keywords are American by definition
 color = "color"
 center = "center"
 behavior = "behavior"
-# schema.org type name
 Organization = "Organization"
-# a status value TMDB sends
 canceled = "canceled"
-# a TV series title
 Reacher = "Reacher"
-# a variable name in a drawing script
 ax = "ax"
 
 [files]

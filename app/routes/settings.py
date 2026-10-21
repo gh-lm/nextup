@@ -10,19 +10,9 @@ from ..forms import whole_number
 
 bp = Blueprint("settings", __name__)
 
-# "brand" means no data-accent attribute at all, which leaves the stylesheet
-# on the brand yellow defined in :root.
-
 def notify(panel, message, kind="success"):
-    """Say what happened beside the control that did it.
-
-    The message is tagged with its panel so the page can put it there, and the
-    redirect carries an anchor so the browser returns to that panel rather than
-    throwing you back to the top of the page to read a banner.
-    """
     flash(message, f"{kind}:{panel}")
     return redirect(url_for("settings.index", _anchor=panel))
-
 
 ACCENTS = [
     ("brand", "Brand yellow", "#fbc711"),
@@ -37,7 +27,6 @@ ACCENTS = [
     ("brown", "Brown", "#795649"), ("grey", "Grey", "#9e9d9e"),
     ("blue_grey", "Blue grey", "#607c8b"),
 ]
-
 
 @bp.route("/settings")
 @login_required
@@ -64,7 +53,6 @@ def index():
         default_password=bool(session.get("starter")),
     )
 
-
 @bp.route("/settings/tmdb", methods=["POST"])
 @login_required
 def save_tmdb():
@@ -78,13 +66,11 @@ def save_tmdb():
     secretstore.set("tmdb_api_key", key, encrypted=True)
     return notify("tmdb", "Key checked against TMDB and saved, encrypted.", "success")
 
-
 @bp.route("/settings/tmdb/clear", methods=["POST"])
 @login_required
 def clear_tmdb():
     secretstore.delete("tmdb_api_key")
     return notify("tmdb", "Key removed.", "success")
-
 
 @bp.route("/settings/account", methods=["POST"])
 @login_required
@@ -94,8 +80,6 @@ def save_account():
     password = request.form.get("password") or ""
     confirm = request.form.get("confirm") or ""
 
-    # Everything is checked before anything is written, so a refusal changes
-    # nothing.
     if not check_current_password(current):
         return notify("account", "Your current password is not right.", "error")
     if not username:
@@ -111,7 +95,6 @@ def save_account():
         return notify("account", "Sign-in details updated. Other browsers were signed out.", "success")
     return notify("account", "Username updated.", "success")
 
-
 @bp.route("/settings/accent", methods=["POST"])
 @login_required
 def save_accent():
@@ -119,7 +102,6 @@ def save_accent():
     if accent in {row[0] for row in ACCENTS}:
         secretstore.set("accent", accent)
     return redirect(url_for("settings.index", _anchor="accent"))
-
 
 @bp.route("/settings/sync", methods=["POST"])
 @login_required
@@ -130,11 +112,9 @@ def run_sync():
         return notify("sync", "A refresh is already running.", "error")
     return notify("sync", "Refresh started. Reload this page in a minute to see how it went.", "success")
 
-
 @bp.route("/settings/availability", methods=["POST"])
 @login_required
 def save_availability():
-    """How long after something airs before Nextup calls it watchable."""
     raw = (request.form.get("available_after_days") or "").strip()
     try:
         days = int(raw)
@@ -153,7 +133,6 @@ def save_availability():
         f"{'s' if days != 1 else ''} after they air.",
         "success",
     )
-
 
 @bp.route("/settings/mail", methods=["POST"])
 @login_required
@@ -187,11 +166,9 @@ def save_mail():
     if site and not site.startswith(("http://", "https://")):
         return notify("mail", "The Nextup address needs to start with http or https.", "error")
     secretstore.set("site_url", site)
-    # An empty box leaves the stored password alone rather than wiping it.
     if password:
         secretstore.set("smtp_password", password, encrypted=True)
     return notify("mail", "Mail settings saved. The password is stored encrypted.", "success")
-
 
 @bp.route("/settings/mail/schedule", methods=["POST"])
 @login_required
@@ -227,15 +204,12 @@ def save_mail_schedule():
         return notify("mail", f"The morning email will go out at {shown}.", "success")
     return notify("mail", f"Time saved as {shown}. The morning email is off.", "success")
 
-
 @bp.route("/settings/clock", methods=["POST"])
 @login_required
 def save_clock():
-    """Switch between the 24 hour clock and am and pm."""
     choice = request.form.get("clock_format", "24")
     secretstore.set("clock_format", "12" if choice == "12" else "24")
     return redirect(url_for("settings.index", _anchor="mail"))
-
 
 @bp.route("/settings/mail/test", methods=["POST"])
 @login_required
@@ -246,16 +220,13 @@ def test_mail():
     except mailer.MailError as exc:
         return notify("mail", str(exc), "error")
 
-
 @bp.route("/settings/mail/preview", methods=["POST"])
 @login_required
 def preview_mail():
-    """Send this morning's email now, whatever the clock says."""
     try:
         return notify("mail", mailer.send_daily(force=True), "success")
     except mailer.MailError as exc:
         return notify("mail", str(exc), "error")
-
 
 @bp.route("/settings/mail/clear", methods=["POST"])
 @login_required
@@ -266,11 +237,9 @@ def clear_mail():
     secretstore.set("daily_email_enabled", "0")
     return notify("mail", "Mail settings removed, including the password.", "success")
 
-
 @bp.route("/settings/export")
 @login_required
 def export_data():
-    """Everything you have, as one file you can keep."""
     include = request.args.get("secrets") == "1"
     payload = transfer.export_data(include_secrets=include)
     body = json.dumps(payload, indent=1, ensure_ascii=False)
@@ -281,16 +250,13 @@ def export_data():
         headers={
             "Content-Disposition": f'attachment; filename="{name}"',
             "Content-Length": str(len(body.encode("utf-8"))),
-            # The file can hold the account hash and, if asked for, the keys.
             "Cache-Control": "no-store",
         },
     )
 
-
 @bp.route("/settings/import", methods=["POST"])
 @login_required
 def import_data():
-    """Put a backup back. All of it or none of it."""
     upload = request.files.get("backup")
     if upload is None or not upload.filename:
         return notify("transfer", "Choose a backup file first.", "error")
@@ -313,7 +279,6 @@ def import_data():
     except transfer.ImportError_ as exc:
         return notify("transfer", str(exc), "error")
 
-    # A restore swaps the account and every setting, so no old sign-in is kept.
     keep_this_browser_signed_in()
     message = f"Restored {transfer.summarise(restored)}."
     if not restored.get("secrets"):

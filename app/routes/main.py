@@ -9,10 +9,7 @@ from ..forms import page_number, whole_number
 
 bp = Blueprint("main", __name__)
 
-# The calendar draws whole weeks around the month, so the years either end are
-# kept clear of the limits of the date type.
 MIN_YEAR, MAX_YEAR = 1970, 2100
-
 
 @bp.route("/")
 @login_required
@@ -32,7 +29,6 @@ def dashboard():
         provider_names=queries.provider_names,
     )
 
-
 @bp.route("/calendar")
 @login_required
 def calendar_view():
@@ -44,7 +40,6 @@ def calendar_view():
     last_day = pycalendar.monthrange(year, month)[1]
     last = date(year, month, last_day)
 
-    # Pad out to whole weeks, Monday first.
     grid_start = first - timedelta(days=first.weekday())
     grid_end = last + timedelta(days=(6 - last.weekday()))
 
@@ -88,7 +83,6 @@ def calendar_view():
         day_names=["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     )
 
-
 @bp.route("/upcoming")
 @login_required
 def upcoming_view():
@@ -103,7 +97,6 @@ def upcoming_view():
         films=queries.films_arriving(days=days),
         days=days,
     )
-
 
 @bp.route("/search")
 @login_required

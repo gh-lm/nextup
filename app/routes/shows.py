@@ -7,7 +7,6 @@ from ..redirects import back_to
 
 bp = Blueprint("shows", __name__)
 
-
 @bp.route("/shows")
 @login_required
 def index():
@@ -31,11 +30,9 @@ def index():
     shows.sort(key=lambda item: (not item["show"]["favourite"], item["show"]["name"].lower()))
     return render_template("pages/shows.html", shows=shows, view=view)
 
-
 @bp.route("/maybe")
 @login_required
 def maybe():
-    """Shows you are curious about but are not following yet."""
     shows = []
     for row in queries.tracked_shows(shortlist=True):
         shows.append({"show": row, "next_air": queries.next_airing(row["id"])})
@@ -43,13 +40,11 @@ def maybe():
         "pages/maybe.html", shows=shows, films=queries.movies(shortlist=True)
     )
 
-
 @bp.route("/show/<int:show_id>")
 @login_required
 def detail(show_id):
     row = db.query("SELECT * FROM show WHERE id = ?", (show_id,), one=True)
     if row is None:
-        # Not seen before - pull it straight from TMDB so the page still works.
         try:
             sync.upsert_show(tmdb.show(show_id))
         except tmdb.TmdbError as exc:
@@ -59,8 +54,6 @@ def detail(show_id):
         if row is None:
             abort(404)
 
-    # The extras are fetched live rather than stored: they change rarely, and a
-    # page that still works when TMDB is unreachable is worth more than a cache.
     extras = {"cast": [], "genres": [], "creators": [], "providers": [],
               "provider_link": None, "trailer": None, "imdb": None,
               "certification": None, "tagline": None, "homepage": None}
@@ -97,11 +90,9 @@ def detail(show_id):
         extras=extras,
     )
 
-
 @bp.route("/show/<int:show_id>/track", methods=["POST"])
 @login_required
 def track(show_id):
-    """Add a show, either to the shows you follow or to the maybe list."""
     wants_maybe = request.form.get("list") == "maybe"
     try:
         name = sync.sync_show(show_id)
@@ -120,11 +111,9 @@ def track(show_id):
     flash(f"Added {name} to your shows.", "success")
     return back_to("shows.index")
 
-
 @bp.route("/show/<int:show_id>/maybe", methods=["POST"])
 @login_required
 def toggle_maybe(show_id):
-    """Move a show between the list you follow and the maybe list."""
     row = queries.show_list_state(show_id)
     if row is None:
         abort(404)
@@ -139,7 +128,6 @@ def toggle_maybe(show_id):
         flash("Now following this show.", "success")
     return back_to("shows.maybe" if moving_to_maybe else "shows.index")
 
-
 @bp.route("/show/<int:show_id>/untrack", methods=["POST"])
 @login_required
 def untrack(show_id):
@@ -147,7 +135,6 @@ def untrack(show_id):
     db.execute("DELETE FROM watched_episode WHERE show_id = ?", (show_id,))
     flash("Removed from your shows, along with its watched history.", "success")
     return back_to("shows.index")
-
 
 @bp.route("/show/<int:show_id>/archive", methods=["POST"])
 @login_required
@@ -161,7 +148,6 @@ def archive(show_id):
     )
     return back_to("shows.index")
 
-
 @bp.route("/show/<int:show_id>/favourite", methods=["POST"])
 @login_required
 def favourite(show_id):
@@ -173,7 +159,6 @@ def favourite(show_id):
         (1 if favouring else 0, show_id),
     )
     return back_to("shows.index")
-
 
 @bp.route("/show/<int:show_id>/refresh", methods=["POST"])
 @login_required
@@ -190,16 +175,9 @@ def refresh(show_id):
         flash(str(exc), "error")
     return back_to("shows.detail", show_id=show_id)
 
-
 @bp.route("/episode/<int:episode_id>")
 @login_required
 def episode(episode_id):
-    """Everything known about one episode.
-
-    Nearly all of it is already in the database. The guest cast and the
-    director are the exception, so those are fetched live and simply left out
-    if TMDB cannot be reached.
-    """
     row = db.query(
         "SELECT e.*, (w.episode_id IS NOT NULL) AS watched FROM episode e"
         " LEFT JOIN watched_episode w ON w.episode_id = e.id WHERE e.id = ?",
@@ -244,7 +222,6 @@ def episode(episode_id):
         following=following,
     )
 
-
 @bp.route("/episode/<int:episode_id>/watch", methods=["POST"])
 @login_required
 def watch_episode(episode_id):
@@ -260,11 +237,9 @@ def watch_episode(episode_id):
         db.execute("DELETE FROM watched_episode WHERE episode_id = ?", (episode_id,))
     return back_to("main.dashboard")
 
-
 @bp.route("/show/<int:show_id>/watch-through/<int:episode_id>", methods=["POST"])
 @login_required
 def watch_through(show_id, episode_id):
-    """Tick this episode and everything before it - the common catch-up case."""
     target = db.query(
         "SELECT season_number, episode_number FROM episode WHERE id = ? AND show_id = ?",
         (episode_id, show_id),
@@ -291,7 +266,6 @@ def watch_through(show_id, episode_id):
     conn.commit()
     flash(f"Marked {len(rows)} episode{'s' if len(rows) != 1 else ''} as watched.", "success")
     return back_to("shows.detail", show_id=show_id)
-
 
 @bp.route("/show/<int:show_id>/season/<int:season_number>/watch", methods=["POST"])
 @login_required

@@ -1,6 +1,5 @@
 from datetime import date, timedelta
 
-
 def _seed_show(app, shortlist=0):
     from app import db
 
@@ -17,7 +16,6 @@ def _seed_show(app, shortlist=0):
         (yesterday,),
     )
 
-
 def test_maybe_shows_stay_out_of_next_up(app):
     from app import queries
 
@@ -27,7 +25,6 @@ def test_maybe_shows_stay_out_of_next_up(app):
         assert [row["id"] for row in queries.tracked_shows(shortlist=True)] == [700]
         assert queries.tracked_shows() == []
 
-
 def test_following_a_show_puts_it_back_in_next_up(app):
     from app import queries
 
@@ -35,7 +32,6 @@ def test_following_a_show_puts_it_back_in_next_up(app):
         _seed_show(app, shortlist=0)
         assert len(queries.ready_to_watch()["rows"]) == 1
         assert queries.tracked_shows(shortlist=True) == []
-
 
 def test_maybe_shows_are_not_in_the_calendar(app):
     from app import queries
@@ -45,7 +41,6 @@ def test_maybe_shows_are_not_in_the_calendar(app):
         start = (date.today() - timedelta(days=7)).isoformat()
         end = (date.today() + timedelta(days=7)).isoformat()
         assert queries.episodes_between(start, end) == []
-
 
 def test_toggle_moves_a_show_between_the_two_lists(signed_in, app):
     from app import queries
@@ -61,7 +56,6 @@ def test_toggle_moves_a_show_between_the_two_lists(signed_in, app):
     with app.app_context():
         assert queries.show_list_state(700)["shortlist"] == 0
 
-
 def _seed_film(app, film_id, title, digital=None, providers=None):
     from app import db
 
@@ -74,7 +68,6 @@ def _seed_film(app, film_id, title, digital=None, providers=None):
         "INSERT OR REPLACE INTO tracked_movie (movie_id, added_at) VALUES (?, '2026-01-01')",
         (film_id,),
     )
-
 
 def test_films_split_by_whether_you_can_watch_them(app):
     from app import queries
@@ -93,7 +86,6 @@ def test_films_split_by_whether_you_can_watch_them(app):
         assert ready == {801, 802}
         assert waiting == {803, 804}
 
-
 def test_films_arriving_only_covers_the_window(app):
     from app import queries
 
@@ -103,7 +95,6 @@ def test_films_arriving_only_covers_the_window(app):
         _seed_film(app, 811, "Soon", digital=soon)
         _seed_film(app, 812, "Much later", digital=later)
         assert [row["id"] for row in queries.films_arriving(days=60)] == [811]
-
 
 def test_digital_release_prefers_a_uk_date():
     from app import tmdb
@@ -121,7 +112,6 @@ def test_digital_release_prefers_a_uk_date():
     }
     assert tmdb.digital_release_date(payload) == "2026-03-15"
 
-
 def test_digital_release_ignores_cinema_dates():
     from app import tmdb
 
@@ -131,7 +121,6 @@ def test_digital_release_ignores_cinema_dates():
         ]},
     ]}
     assert tmdb.digital_release_date(payload) is None
-
 
 def test_providers_read_the_uk_list_and_skip_rentals():
     from app import tmdb
@@ -146,7 +135,6 @@ def test_providers_read_the_uk_list_and_skip_rentals():
     names, link = tmdb.uk_providers(payload)
     assert names == ["Netflix", "ITVX"]
     assert "themoviedb.org" in link
-
 
 def test_pages_still_load_with_the_new_sections(signed_in, app):
     with app.app_context():

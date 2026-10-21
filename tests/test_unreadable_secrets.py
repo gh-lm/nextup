@@ -1,6 +1,5 @@
 """A lost or replaced secret.key must be said out loud, not look like nothing was saved."""
 
-
 def test_a_replaced_key_is_reported(app, signed_in):
     from app import secretstore
 
@@ -8,7 +7,6 @@ def test_a_replaced_key_is_reported(app, signed_in):
         secretstore.set("tmdb_api_key", "abc", encrypted=True)
         assert secretstore.unreadable() == []
 
-    # Same data, new key: what restoring only the database looks like.
     import os
 
     from app import config

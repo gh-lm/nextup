@@ -3,11 +3,8 @@ services:
     image: ghcr.io/gh-lm/nextup:latest
     container_name: nextup
     restart: unless-stopped
-    # Bound to this machine only. Something in front of it - Tailscale Serve, a
-    # reverse proxy - is what makes it reachable, and does the TLS.
     ports:
       - "127.0.0.1:4090:8080"
-    # It never needs to become root, and it only ever writes to /data.
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -17,6 +14,4 @@ services:
       - /tmp
     volumes:
       - /opt/nextup:/data
-      # The morning email and the meaning of "today" both read the clock, so
-      # the container follows whatever timezone this machine is set to.
       - /etc/localtime:/etc/localtime:ro

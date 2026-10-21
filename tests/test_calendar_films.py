@@ -1,6 +1,5 @@
 from datetime import date, timedelta
 
-
 def _seed(app):
     from app import db
 
@@ -30,7 +29,6 @@ def _seed(app):
             (film_id, shortlist, watched),
         )
 
-
 def test_films_between_covers_the_window_only(app):
     from app import queries
 
@@ -39,9 +37,7 @@ def test_films_between_covers_the_window_only(app):
         start = (date.today() - timedelta(days=3)).isoformat()
         end = (date.today() + timedelta(days=3)).isoformat()
         found = {row["id"] for row in queries.films_between(start, end)}
-        # In the window and on the main list, watched or not.
         assert found == {410, 414}
-
 
 def test_maybe_films_stay_off_the_calendar(app):
     from app import queries
@@ -52,7 +48,6 @@ def test_maybe_films_stay_off_the_calendar(app):
         end = (date.today() + timedelta(days=3)).isoformat()
         assert 413 not in {row["id"] for row in queries.films_between(start, end)}
 
-
 def test_a_film_with_no_streaming_date_is_not_placed(app):
     from app import queries
 
@@ -62,7 +57,6 @@ def test_a_film_with_no_streaming_date_is_not_placed(app):
         end = "2099-01-01"
         assert 412 not in {row["id"] for row in queries.films_between(start, end)}
 
-
 def test_the_calendar_page_shows_both_kinds(signed_in, app):
     with app.app_context():
         _seed(app)
@@ -70,9 +64,7 @@ def test_the_calendar_page_shows_both_kinds(signed_in, app):
     assert "A Show" in body
     assert "In the window" in body
     assert "cal-film" in body
-    # The difference must not rest on colour alone.
     assert "<small>Film" in body
-
 
 def test_a_watched_film_is_faded_not_hidden(signed_in, app):
     with app.app_context():

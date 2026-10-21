@@ -1,7 +1,6 @@
 """The morning email carries its own artwork and links back here."""
 from datetime import date, timedelta
 
-
 def _seed(app, poster=True):
     from app import db
 
@@ -24,12 +23,10 @@ def _seed(app, poster=True):
     )
     db.execute("INSERT OR REPLACE INTO tracked_movie (movie_id, added_at) VALUES (501, '2026-01-01')")
 
-
 def _fake_posters(monkeypatch):
     from app import posters
 
     monkeypatch.setattr(posters, "read_bytes", lambda size, path: (b"\x89PNG-pretend", "png"))
-
 
 def test_the_pictures_travel_with_the_message(app, monkeypatch):
     from app import mailer
@@ -44,7 +41,6 @@ def test_the_pictures_travel_with_the_message(app, monkeypatch):
             assert subtype == "png"
             assert f'src="cid:{cid}"' in html
 
-
 def test_nothing_is_fetched_from_another_server(app, monkeypatch):
     from app import mailer
 
@@ -54,9 +50,7 @@ def test_nothing_is_fetched_from_another_server(app, monkeypatch):
         _s, _t, html, _i = mailer.build_digest()
         assert "image.tmdb.org" not in html
         assert "<img" in html
-        # The only address in the message is the credit at the foot.
         assert html.count("http") == html.count("https://lightmorphic.com")
-
 
 def test_each_item_links_to_its_page_here(app, monkeypatch):
     from app import mailer, secretstore
@@ -69,7 +63,6 @@ def test_each_item_links_to_its_page_here(app, monkeypatch):
         assert 'href="https://home.example.ts.net:4090/episode/5001"' in html
         assert 'href="https://home.example.ts.net:4090/movie/501"' in html
 
-
 def test_without_an_address_there_is_simply_nothing_to_click(app, monkeypatch):
     from app import mailer
 
@@ -80,7 +73,6 @@ def test_without_an_address_there_is_simply_nothing_to_click(app, monkeypatch):
         assert "/episode/5001" not in html
         assert "A Series" in html
 
-
 def test_a_nonsense_address_is_ignored_rather_than_linked(app):
     from app import mailer, secretstore
 
@@ -89,7 +81,6 @@ def test_a_nonsense_address_is_ignored_rather_than_linked(app):
             secretstore.set("site_url", bad)
             assert mailer.base_url() == "", bad
             assert mailer.item_url("episode", 1) == ""
-
 
 def test_the_description_is_included_and_kept_short(app, monkeypatch):
     from app import mailer
@@ -101,7 +92,6 @@ def test_the_description_is_included_and_kept_short(app, monkeypatch):
         assert "A thing happens." in html
         assert "A film about something." in html
 
-
 def test_a_long_description_is_cut_on_a_boundary():
     from app import mailer
 
@@ -110,7 +100,6 @@ def test_a_long_description_is_cut_on_a_boundary():
     assert len(cut) <= mailer.SYNOPSIS_LIMIT + 1
     assert cut.endswith(".")
     assert not cut.endswith(" .")
-
 
 def test_a_missing_poster_does_not_stop_the_email(app, monkeypatch):
     from app import mailer, posters
@@ -123,7 +112,6 @@ def test_a_missing_poster_does_not_stop_the_email(app, monkeypatch):
         assert "cid:" not in html
         assert "A Series" in subject or "episode" in subject
 
-
 def test_the_plain_text_version_still_stands_on_its_own(app, monkeypatch):
     from app import mailer
 
@@ -134,9 +122,7 @@ def test_the_plain_text_version_still_stands_on_its_own(app, monkeypatch):
         assert "A Series S02E04" in text
         assert "A Film" in text
 
-
 def test_the_plain_text_carries_the_description_and_the_link(app, monkeypatch):
-    """Whoever reads the text version should not get less than the other one."""
     from app import mailer, secretstore
 
     _fake_posters(monkeypatch)
@@ -149,9 +135,7 @@ def test_the_plain_text_carries_the_description_and_the_link(app, monkeypatch):
         assert "https://home.example.ts.net:4090/episode/5001" in text
         assert "https://home.example.ts.net:4090/movie/501" in text
 
-
 def test_both_the_cover_and_the_title_are_clickable(app, monkeypatch):
-    """One click from either, straight to the page here."""
     import re
 
     from app import mailer, secretstore
@@ -164,18 +148,14 @@ def test_both_the_cover_and_the_title_are_clickable(app, monkeypatch):
 
         for kind, item in (("episode", 5001), ("movie", 501)):
             url = f"https://home.example.ts.net:4090/{kind}/{item}"
-            # The cover: an anchor wrapping the attached image.
             assert re.search(
                 rf'<a href="{re.escape(url)}"[^>]*>\s*<img src="cid:', html
             ), f"cover not linked for {kind}"
-            # The title: an anchor wrapping words, not an image.
             assert re.search(
                 rf'<a href="{re.escape(url)}"[^>]*>[A-Za-z]', html
             ), f"title not linked for {kind}"
 
-
 def test_a_linked_cover_carries_no_border(app, monkeypatch):
-    """Otherwise some mail clients ring it in blue."""
     from app import mailer, secretstore
 
     _fake_posters(monkeypatch)

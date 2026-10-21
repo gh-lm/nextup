@@ -148,10 +148,7 @@
   {% endif %}
   </div>
 
-  {# Sits beside the time because the time is the only thing it changes.
-  The inputs belong to the small form further down the page, which is
-  what lets them stand here without nesting one form inside another. #}
-  <div class="clock-toggle" role="radiogroup" aria-label="Clock">
+    <div class="clock-toggle" role="radiogroup" aria-label="Clock">
   <label>
   <input type="radio" name="clock_format" value="12" form="clock-form"
   {% if mail.clock == '12' %}checked{% endif %}>

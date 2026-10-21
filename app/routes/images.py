@@ -1,8 +1,4 @@
-"""Poster and still proxy.
-
-Images are fetched from TMDB once, written to the data directory and then
-served from this app. Nothing in a page ever points at a third-party host.
-"""
+"""Poster and still proxy."""
 import os
 
 from flask import Blueprint, abort, send_file, send_from_directory
@@ -12,12 +8,9 @@ from ..auth import login_required
 
 bp = Blueprint("images", __name__)
 
-
 @bp.route("/img/<size>/<path:tmdb_path>")
 @login_required
 def poster(size, tmdb_path):
-    """Serve one cached image. The caching itself lives in app.posters, so the
-    morning email can attach the very same file."""
     if size not in posters.ALLOWED_SIZES:
         abort(404)
     clean = posters.normalise(tmdb_path)
@@ -31,7 +24,6 @@ def poster(size, tmdb_path):
     return send_from_directory(
         config.CACHE_DIR, os.path.basename(path), max_age=60 * 60 * 24 * 30, conditional=True
     )
-
 
 @bp.route("/img/placeholder")
 def placeholder():

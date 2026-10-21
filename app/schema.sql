@@ -1,4 +1,3 @@
--- Nextup schema. Applied on every boot; each statement is idempotent.
 
 CREATE TABLE IF NOT EXISTS settings (
     key         TEXT PRIMARY KEY,
@@ -48,8 +47,6 @@ CREATE TABLE IF NOT EXISTS tracked_show (
     added_at    TEXT NOT NULL,
     archived    INTEGER NOT NULL DEFAULT 0,
     favourite   INTEGER NOT NULL DEFAULT 0,
-    -- A show on the maybe list is one you are curious about but not following.
-    -- It stays out of Next up, the calendar and the coming-soon list.
     shortlist   INTEGER NOT NULL DEFAULT 0
 );
 
@@ -79,12 +76,9 @@ CREATE TABLE IF NOT EXISTS tracked_movie (
     movie_id    INTEGER PRIMARY KEY REFERENCES movie(id) ON DELETE CASCADE,
     added_at    TEXT NOT NULL,
     watched_at  TEXT,
-    -- As with shows: a film you like the look of but have not committed to.
     shortlist   INTEGER NOT NULL DEFAULT 0
 );
 
--- Things you said no to on the Discover pages. They stay out of Discover but
--- still turn up in a search, so nothing is ever lost for good.
 CREATE TABLE IF NOT EXISTS dismissed (
     kind         TEXT NOT NULL CHECK (kind IN ('tv', 'movie')),
     item_id      INTEGER NOT NULL,

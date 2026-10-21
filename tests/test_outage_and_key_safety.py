@@ -2,7 +2,6 @@
 import pytest
 import requests
 
-
 def test_a_network_error_never_carries_the_api_key(app, monkeypatch):
     from app import tmdb
 
@@ -22,8 +21,7 @@ def test_a_network_error_never_carries_the_api_key(app, monkeypatch):
     for exc in (caught.value, checked.value):
         assert secret not in str(exc)
         assert secret not in repr(exc.__cause__)
-        assert exc.__suppress_context__  # the traceback hides the original too
-
+        assert exc.__suppress_context__
 
 def test_an_outage_leaves_the_saved_streaming_services_alone(app, monkeypatch):
     from app import db, sync, tmdb
@@ -44,12 +42,10 @@ def test_an_outage_leaves_the_saved_streaming_services_alone(app, monkeypatch):
     assert row["providers"] == "Netflix"
     assert row["digital_release"] == "2026-01-01"
 
-
 def _season(number):
     return {"season_number": number, "episodes": [
         {"id": 9000 + number, "season_number": number, "episode_number": 1, "name": "x", "air_date": "2026-01-01"}
     ]}
-
 
 def test_a_show_is_not_marked_fresh_while_a_season_is_missing(app, monkeypatch):
     from app import db, sync, tmdb
@@ -74,7 +70,6 @@ def test_a_show_is_not_marked_fresh_while_a_season_is_missing(app, monkeypatch):
         sync.sync_show(500, failed)
         assert failed == []
         assert db.query("SELECT synced_at FROM show WHERE id = 500", one=True)["synced_at"]
-
 
 def test_old_sync_history_holding_a_key_is_scrubbed_on_start(data_dir):
     from app import db

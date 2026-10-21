@@ -4,7 +4,7 @@
   if (!line) { return; }
 
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
-  if (reduced && reduced.matches) { return; }   // leave the first answer standing
+  if (reduced && reduced.matches) { return; }
 
   var lines;
   try { lines = JSON.parse(line.dataset.lines); } catch (e) { return; }
@@ -30,7 +30,7 @@
       deleting = true;
       return setTimeout(tick, 2600);
     }
-    // A touch of unevenness, so it reads as typing rather than a machine.
+
     return setTimeout(tick, 45 + Math.random() * 55);
   }
 

@@ -1,6 +1,5 @@
 from datetime import date, timedelta
 
-
 def _seed(app):
     from app import db
 
@@ -23,7 +22,6 @@ def _seed(app):
     )
     conn.commit()
 
-
 def test_progress_ignores_specials_and_unaired(app):
     from app import queries
 
@@ -35,7 +33,6 @@ def test_progress_ignores_specials_and_unaired(app):
         assert progress["watched"] == 0
         assert progress["remaining"] == 2
 
-
 def test_next_unwatched_is_the_earliest_aired(app):
     from app import queries
 
@@ -44,7 +41,6 @@ def test_next_unwatched_is_the_earliest_aired(app):
         episode = queries.next_unwatched(900)
         assert episode["episode_number"] == 1
         assert episode["season_number"] == 1
-
 
 def test_watch_through_ticks_everything_before_it(signed_in, app):
     from app import queries
@@ -58,9 +54,7 @@ def test_watch_through_ticks_everything_before_it(signed_in, app):
         progress = queries.show_progress(900)
         assert progress["watched"] == 2
         assert progress["complete"] is True
-        # The unaired episode must not have been ticked.
         assert queries.next_unwatched(900) is None
-
 
 def test_next_airing_looks_forward_only(app):
     from app import queries

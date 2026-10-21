@@ -10,7 +10,6 @@ def test_key_is_stored_encrypted(app):
         assert row["encrypted"] == 1
         assert "abc123secret" not in row["value"]
 
-
 def test_plain_settings_round_trip(app):
     from app import secretstore
 

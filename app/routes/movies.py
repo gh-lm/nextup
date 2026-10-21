@@ -7,7 +7,6 @@ from ..redirects import back_to
 
 bp = Blueprint("movies", __name__)
 
-
 @bp.route("/movies")
 @login_required
 def index():
@@ -19,7 +18,6 @@ def index():
         seen=films["seen"],
         provider_names=queries.provider_names,
     )
-
 
 @bp.route("/movie/<int:movie_id>")
 @login_required
@@ -61,7 +59,6 @@ def detail(movie_id):
         streamable=queries.is_streamable(row),
     )
 
-
 @bp.route("/movie/<int:movie_id>/track", methods=["POST"])
 @login_required
 def track(movie_id):
@@ -75,7 +72,6 @@ def track(movie_id):
         "INSERT OR IGNORE INTO tracked_movie (movie_id, added_at) VALUES (?, ?)",
         (movie_id, clock.now_iso()),
     )
-    # Work out straight away whether it can be watched at home yet.
     try:
         digital, names = sync.sync_movie_availability(movie_id)
     except tmdb.TmdbError:
@@ -89,7 +85,6 @@ def track(movie_id):
         flash(f"Added {title}. No streaming date announced yet.", "success")
     return back_to("movies.index")
 
-
 @bp.route("/movie/<int:movie_id>/refresh", methods=["POST"])
 @login_required
 def refresh(movie_id):
@@ -100,18 +95,15 @@ def refresh(movie_id):
         flash(str(exc), "error")
     return back_to("movies.index")
 
-
 @bp.route("/movie/<int:movie_id>/untrack", methods=["POST"])
 @login_required
 def untrack(movie_id):
     db.execute("DELETE FROM tracked_movie WHERE movie_id = ?", (movie_id,))
     return back_to("movies.index")
 
-
 @bp.route("/movie/<int:movie_id>/maybe", methods=["POST"])
 @login_required
 def toggle_maybe(movie_id):
-    """Move a film between your films and the maybe list."""
     row = queries.movie_list_state(movie_id)
     if row is None:
         abort(404)
@@ -122,7 +114,6 @@ def toggle_maybe(movie_id):
     )
     flash("Moved to your maybe list." if moving else "Moved to your films.", "success")
     return back_to("shows.maybe" if moving else "movies.index")
-
 
 @bp.route("/movie/<int:movie_id>/watched", methods=["POST"])
 @login_required

@@ -8,7 +8,6 @@ from flask import Flask
 from . import config, db
 
 def _read_version():
-    """VERSION at the repo root is the single source of truth."""
     path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "VERSION")
     try:
         with open(path, "r", encoding="utf-8") as fh:
@@ -16,12 +15,9 @@ def _read_version():
     except OSError:
         return "0.0.0"
 
-
 __version__ = _read_version()
 
-
 def _session_secret():
-    """A stable session key kept beside the database, not in the environment."""
     path = os.path.join(config.DATA_DIR, "session.key")
     os.makedirs(config.DATA_DIR, exist_ok=True)
     if os.path.exists(path):
@@ -35,18 +31,13 @@ def _session_secret():
         fh.write(value)
     return value
 
-
 def create_app(start_sync=True):
     app = Flask(__name__)
     app.config.update(
         SECRET_KEY=_session_secret(),
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
-        # Off by default: the container speaks plain HTTP and something in
-        # front of it (Tailscale Serve, a reverse proxy) does the TLS. Turn it
-        # on with NEXTUP_HTTPS_ONLY=1 when every route in really is HTTPS.
         SESSION_COOKIE_SECURE=config.HTTPS_ONLY,
-        # Big enough for a backup of a large library to be uploaded back.
         MAX_CONTENT_LENGTH=64 * 1024 * 1024,
         JSON_SORT_KEYS=False,
         TEMPLATES_AUTO_RELOAD=False,
@@ -83,11 +74,6 @@ def create_app(start_sync=True):
 
     return app
 
-
-# Nothing here loads from anywhere else, so the page is allowed to load only
-# from this app. Inline styles are permitted because progress bars and a few
-# widths are set on the element; scripts are not, which is the part that
-# matters for cross-site scripting.
 CSP = (
     "default-src 'self'; "
     "script-src 'self'; "
@@ -101,7 +87,6 @@ CSP = (
     "object-src 'none'"
 )
 
-
 def _register_headers(app):
     @app.after_request
     def security_headers(response):
@@ -110,7 +95,6 @@ def _register_headers(app):
         response.headers.setdefault("Referrer-Policy", "same-origin")
         response.headers.setdefault("X-Frame-Options", "DENY")
         return response
-
 
 def _register_filters(app):
     @app.template_filter("pretty_date")
@@ -173,7 +157,6 @@ def _register_filters(app):
         days, hours = divmod(hours, 24)
         return f"{days}d {hours}h"
 
-
 def _register_context(app):
     from flask import get_flashed_messages, request, session
 
@@ -187,9 +170,6 @@ def _register_context(app):
             accent = secretstore.get("accent", "brand") or "brand"
         except Exception:
             app.logger.exception("Could not read the accent colour; using the default")
-        # Read once here, because reading clears them. Both the layout and the
-        # page itself need them: a message tagged with a panel is shown beside
-        # that panel, and anything untagged falls back to the top of the page.
         notes = []
         for category, message in get_flashed_messages(with_categories=True):
             kind, _, panel = (category or "info").partition(":")

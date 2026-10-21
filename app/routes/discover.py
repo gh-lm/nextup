@@ -1,9 +1,4 @@
-"""Discover: what is arriving, and a quick yes, no or maybe on each.
-
-Films are filtered to home releases rather than cinema ones, because a
-cinema date is no help if you wait for things to reach a service you
-already pay for.
-"""
+"""Discover: what is arriving, and a quick yes, no or maybe on each."""
 from datetime import date, timedelta
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
@@ -19,15 +14,12 @@ WINDOWS = [7, 14, 30, 60]
 DEFAULT_DAYS = 14
 MAX_PAGES = 3
 
-
 def _window(default=DEFAULT_DAYS):
     days = whole_number(request.args.get("days"), 1, 180, default)
     today = date.today()
     return days, today.isoformat(), (today + timedelta(days=days)).isoformat()
 
-
 def _collect(fetch, start, end, wanted=40):
-    """Walk a few pages of a Discover endpoint until we have enough."""
     items, page = [], 1
     while len(items) < wanted and page <= MAX_PAGES:
         payload = fetch(start, end, page=page)
@@ -40,12 +32,10 @@ def _collect(fetch, start, end, wanted=40):
         page += 1
     return items
 
-
 @bp.route("/")
 @login_required
 def index():
     return redirect(url_for("discover.films"))
-
 
 @bp.route("/films")
 @login_required
@@ -83,7 +73,6 @@ def films():
         error=error,
         dismissed_count=len(queries.dismissed_ids("movie")),
     )
-
 
 @bp.route("/tv")
 @login_required
@@ -126,10 +115,8 @@ def tv():
         dismissed_count=len(queries.dismissed_ids("tv")),
     )
 
-
 def _undismiss(kind, item_id):
     db.execute("DELETE FROM dismissed WHERE kind = ? AND item_id = ?", (kind, item_id))
-
 
 @bp.route("/show/<int:show_id>/<action>", methods=["POST"])
 @login_required
@@ -162,7 +149,6 @@ def decide_show(show_id, action):
         "success",
     )
     return back_to("discover.tv")
-
 
 @bp.route("/film/<int:movie_id>/<action>", methods=["POST"])
 @login_required
@@ -202,11 +188,9 @@ def decide_film(movie_id, action):
     )
     return back_to("discover.films")
 
-
 @bp.route("/restore", methods=["POST"])
 @login_required
 def restore():
-    """Bring back everything you said no to, for one kind or both."""
     kind = request.form.get("kind")
     if kind in {"tv", "movie"}:
         db.execute("DELETE FROM dismissed WHERE kind = ?", (kind,))

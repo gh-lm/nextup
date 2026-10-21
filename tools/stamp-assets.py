@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
-"""Stamp the stylesheet and script links in docs/*.html with a short hash of
-the file they point at.
-
-The browser caches css/site.css?v=... against that exact address, so a change
-to the file only reaches people once the address changes. Run this after
-editing the stylesheet or the script and before deploying; it is safe to run
-twice.
-"""
+"""Stamp the stylesheet and script links in docs/*.html with a short hash of"""
 import hashlib
 import pathlib
 import re
@@ -14,10 +7,8 @@ import re
 DOCS = pathlib.Path(__file__).resolve().parent.parent / "docs"
 ASSETS = {"css/site.css": None, "js/typed.js": None}
 
-
 def short_hash(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()[:10]
-
 
 def main():
     for name in ASSETS:
@@ -37,7 +28,6 @@ def main():
     for name, digest in ASSETS.items():
         print("%s -> ?v=%s" % (name, digest))
     print("%d page(s) updated" % len(changed))
-
 
 if __name__ == "__main__":
     main()

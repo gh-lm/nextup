@@ -1,8 +1,4 @@
 # Runs the tests, then builds the image and publishes it to this repository's
-# own container registry. The job uses the token GitHub hands to the workflow,
-# which already carries permission to write packages, so no personal token is
-# involved. Actions are pinned to commit hashes, with the tag they came from
-# beside each one.
 name: Publish the image
 
 on:
@@ -22,8 +18,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.12'
       - run: pip install -r requirements-dev.txt
@@ -36,12 +32,10 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
 
-      # Inputs reach the shell through the environment, never pasted into the
-      # script text.
       - name: Work out the version
         id: v
         env:
@@ -59,8 +53,6 @@ jobs:
           esac
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-          # "latest" only moves for the newest version, so publishing an older
-          # one again cannot put old code under that name.
           newest="$(git tag -l 'v*' | sed 's/^v//' | sort -V | tail -n 1)"
           if [ "$version" = "$newest" ] || [ -z "$newest" ]; then
             echo "latest=true" >> "$GITHUB_OUTPUT"
@@ -78,18 +70,43 @@ jobs:
             exit 1
           fi
 
-      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
 
-      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
         with:
           context: .
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:${{ steps.v.outputs.version }}
-            ${{ steps.v.outputs.latest == 'true' && format('ghcr.io/{0}:latest', github.repository) || '' }}
+          load: true
+          push: false
+          tags: ghcr.io/${{ github.repository }}:${{ steps.v.outputs.version }}
+
+      - name: Install Trivy (checksum checked)
+        env:
+          TRIVY_VERSION: 0.75.0
+          TRIVY_SHA256: c6e65abddb348e25f10549df887045629cf28cc72453cd1c63acb717316b3f3f
+        run: |
+          curl -sSfL -o trivy.tar.gz "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          echo "${TRIVY_SHA256}  trivy.tar.gz" | sha256sum -c -
+          tar xzf trivy.tar.gz trivy
+
+      - name: Scan the image
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}:${{ steps.v.outputs.version }}
+        run: ./trivy image --no-progress --ignore-unfixed --severity HIGH,CRITICAL --exit-code 1 "$IMAGE"
+
+      - name: Publish
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}
+          VERSION: ${{ steps.v.outputs.version }}
+          LATEST: ${{ steps.v.outputs.latest }}
+        run: |
+          docker push "$IMAGE:$VERSION"
+          if [ "$LATEST" = "true" ]; then
+            docker tag "$IMAGE:$VERSION" "$IMAGE:latest"
+            docker push "$IMAGE:latest"
+          fi
