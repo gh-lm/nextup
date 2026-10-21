@@ -116,7 +116,7 @@ def test_a_good_restore_puts_the_settings_back(app):
 
     with app.app_context():
         secretstore.set("accent", "brand")
-        secretstore.set("tmdb_api_key", "0123456789abcdef", encrypted=True)
+        secretstore.set("tmdb_api_key", "0123456789abcdef", encrypted=True)  # gitleaks:allow
         payload = transfer.export_data(include_secrets=True)
 
         db.execute("DELETE FROM settings")
