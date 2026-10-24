@@ -49,10 +49,18 @@ def tracked_shows(include_archived=False, shortlist=False, everything=False):
 
 def show_list_state(show_id):
     return db.query(
-        "SELECT archived, favourite, shortlist FROM tracked_show WHERE show_id = ?",
+        "SELECT archived, favourite, shortlist, auto_unarchive FROM tracked_show WHERE show_id = ?",
         (show_id,),
         one=True,
     )
+
+def latest_season(show_id):
+    row = db.query(
+        "SELECT MAX(season_number) AS n FROM episode WHERE show_id = ? AND season_number > 0",
+        (show_id,),
+        one=True,
+    )
+    return (row["n"] or 0) if row else 0
 
 def is_tracked(show_id):
     return db.query("SELECT 1 FROM tracked_show WHERE show_id = ?", (show_id,), one=True) is not None

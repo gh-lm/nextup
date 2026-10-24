@@ -3,6 +3,12 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.6.12], 2026-10-24
+
+- **The Settings cards now sit in three fixed columns, so the Languages card stays at the bottom of the left column when you switch Show every language off, instead of jumping to the top of the middle.**
+- **The Maybe lists, TV and Movies, now follow the Order setting like the other lists, by first air date or release date, and use the same aligned poster grid.**
+- **An archived show now has a box, "Unarchive when a new season arrives", ticked by default. While it is ticked, Nextup keeps checking the show and brings it back to your list by itself once a newer season turns up. Untick it and the show stays archived and is no longer checked.**
+
 ## [1.6.11], 2026-10-24
 
 - **The language of a show or movie now sits at the right of its card in a small outlined label, instead of next to the date. It looks like a button but cannot be pressed. A new Languages setting lets you keep Discover to English and the languages you add; it starts on every language, so nothing changes until you switch it off.**

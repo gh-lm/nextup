@@ -186,6 +186,8 @@
     {{ n.notes_for(notes, "mail") }}
   </section>
 
+  <div class="bento-cols">
+  <div class="bento-col">
   <section class="panel" id="transfer">
     <div class="panel-head">
       <h2>Take it with you</h2>
@@ -319,6 +321,8 @@
     {{ n.notes_for(notes, "languages") }}
   </section>
 
+  </div>
+  <div class="bento-col">
   <section class="panel" id="account">
     <div class="panel-head">
       <h2>Sign in</h2>
@@ -383,6 +387,8 @@
     </p>
   </section>
 
+  </div>
+  <div class="bento-col">
   <section class="panel" id="accent">
     <div class="panel-head"><h2>Accent colour</h2></div>
     <form data-autosave method="post" action="{{ url_for('settings.save_accent') }}">
@@ -481,6 +487,8 @@
     </form>
     {{ n.notes_for(notes, "sync") }}
   </section>
+  </div>
+  </div>
 
 </div>
 {% endblock %}

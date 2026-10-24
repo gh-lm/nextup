@@ -47,9 +47,9 @@ def maybe():
     shows = []
     for row in queries.tracked_shows(shortlist=True):
         shows.append({"show": row, "next_air": queries.next_airing(row["id"])})
-    return render_template(
-        "pages/maybe.html", kind=kind, shows=shows, films=queries.movies(shortlist=True)
-    )
+    shows = queries.dated(shows, lambda item: item["show"]["first_air_date"])
+    films = queries.dated(queries.movies(shortlist=True), lambda row: row["release_date"])
+    return render_template("pages/maybe.html", kind=kind, shows=shows, films=films)
 
 @bp.route("/show/<int:show_id>")
 @login_required
@@ -96,6 +96,7 @@ def detail(show_id):
         show=row,
         tracked=tracked_row is not None,
         archived=bool(tracked_row and tracked_row["archived"]),
+        auto_unarchive=bool(tracked_row and tracked_row["auto_unarchive"]),
         show_favourite=bool(tracked_row and tracked_row["favourite"]),
         shortlisted=bool(tracked_row and tracked_row["shortlist"]),
         seasons=queries.show_seasons(show_id),
@@ -166,10 +167,21 @@ def archive(show_id):
     if queries.show_list_state(show_id) is None:
         abort(404)
     db.execute(
-        "UPDATE tracked_show SET archived = ? WHERE show_id = ?",
-        (1 if archiving else 0, show_id),
+        "UPDATE tracked_show SET archived = ?, archived_season = ? WHERE show_id = ?",
+        (1 if archiving else 0, queries.latest_season(show_id), show_id),
     )
     return back_to("shows.index")
+
+@bp.route("/show/<int:show_id>/auto-unarchive", methods=["POST"])
+@login_required
+def auto_unarchive(show_id):
+    if queries.show_list_state(show_id) is None:
+        abort(404)
+    db.execute(
+        "UPDATE tracked_show SET auto_unarchive = ? WHERE show_id = ?",
+        (1 if request.form.get("on") else 0, show_id),
+    )
+    return back_to("shows.detail", show_id=show_id)
 
 @bp.route("/show/<int:show_id>/favourite", methods=["POST"])
 @login_required

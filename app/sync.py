@@ -3,7 +3,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 
-from . import clock, config, db, secretstore, tmdb
+from . import clock, config, db, queries, secretstore, tmdb
 
 _sync_lock = threading.Lock()
 _running = False
@@ -101,7 +101,22 @@ def upsert_episodes(show_id, season_payload):
     conn.commit()
     return len(rows)
 
+def _note_archived_season(show_id):
+    db.execute(
+        "UPDATE tracked_show SET archived_season = ?"
+        " WHERE show_id = ? AND archived = 1 AND archived_season IS NULL",
+        (queries.latest_season(show_id), show_id),
+    )
+
+def _unarchive_if_new_season(show_id):
+    db.execute(
+        "UPDATE tracked_show SET archived = 0"
+        " WHERE show_id = ? AND archived = 1 AND auto_unarchive = 1 AND archived_season < ?",
+        (show_id, queries.latest_season(show_id)),
+    )
+
 def sync_show(show_id, failed=None):
+    _note_archived_season(show_id)
     payload = tmdb.show(show_id)
     upsert_show(payload, stamp=False)
     missed = []
@@ -118,6 +133,7 @@ def sync_show(show_id, failed=None):
             failed.extend(missed)
     else:
         db.execute("UPDATE show SET synced_at = ? WHERE id = ?", (clock.now_iso(), show_id))
+    _unarchive_if_new_season(show_id)
     return payload.get("name")
 
 def upsert_movie(payload):
@@ -200,7 +216,7 @@ def sync_all(force=False):
         rows = db.query(
             "SELECT s.id, s.name, s.status, s.synced_at FROM show s"
             " JOIN tracked_show t ON t.show_id = s.id"
-            " WHERE t.archived = 0 AND t.shortlist = 0"
+            " WHERE t.shortlist = 0 AND (t.archived = 0 OR t.auto_unarchive = 1)"
         )
         for row in rows:
             if not _needs_refresh(row, force):
