@@ -39,10 +39,6 @@
     </p>
   </div>
   <span class="spacer"></span>
-  <nav class="tabs" aria-label="Elsewhere">
-    <a href="{{ url_for('discover.films') }}">Discover movies</a>
-    <a href="{{ url_for('shows.maybe') }}">Maybe list</a>
-  </nav>
   <a class="btn btn-primary" href="{{ url_for('main.search') }}">Add a movie</a>
 </div>
 
@@ -53,7 +49,7 @@
     <span class="hint">On a streaming service in your country, or already released for home viewing.</span>
   </div>
   {% if ready %}
-    <div class="show-grid">
+    <div class="show-grid show-grid-aligned">
       {% for film in ready %}
         {% call film_tile(film) %}
           <form method="post" action="{{ url_for('movies.watched', movie_id=film.id) }}">
@@ -110,7 +106,7 @@
 {% if seen %}
 <section class="panel">
   <div class="panel-head"><h2>Seen</h2></div>
-  <div class="show-grid">
+  <div class="show-grid show-grid-aligned">
     {% for film in seen %}
       {{ film_tile(film, show_state=False) }}
     {% endfor %}

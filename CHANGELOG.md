@@ -3,6 +3,16 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.6.5], 2026-10-24
+
+- **Movie names on the Movies page are cut to two lines,** with three dots if
+  longer, and the year, running time, streaming date and Mark watched button
+  line up across each row.
+- **The menu reads Shows, Movies, Discover, Maybe, Coming soon, Calendar, Settings,** and My shows is now just Shows.
+- **Show names are cut to two lines too,** so the bar, the count and the next date line up across each row.
+- **The Movies page heading no longer repeats Discover movies and Maybe list,**
+  which are already in the menu.
+
 ## [1.6.4], 2026-10-24
 
 - **Coming soon includes your movies.** On the front page and on the Coming

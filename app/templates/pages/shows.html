@@ -1,9 +1,9 @@
 {% extends 'layout/base.html' %}
-{% block title %}My shows | Nextup{% endblock %}
+{% block title %}Shows | Nextup{% endblock %}
 {% block body %}
 <div class="page-head">
   <div>
-    <h1>My shows</h1>
+    <h1>Shows</h1>
     <p>{{ shows|length }} show{{ '' if shows|length == 1 else 's' }}.</p>
   </div>
   <span class="spacer"></span>
@@ -11,13 +11,12 @@
     <a href="{{ url_for('shows.index') }}" {% if view == 'active' %}class="current" aria-current="page"{% endif %}>All</a>
     <a href="{{ url_for('shows.index', view='behind') }}" {% if view == 'behind' %}class="current" aria-current="page"{% endif %}>Behind</a>
     <a href="{{ url_for('shows.index', view='archived') }}" {% if view == 'archived' %}class="current" aria-current="page"{% endif %}>Archived</a>
-    <a href="{{ url_for('shows.maybe') }}">Maybe</a>
   </nav>
   <a class="btn btn-primary" href="{{ url_for('main.search') }}">Add a show</a>
 </div>
 
 {% if shows %}
-<div class="show-grid">
+<div class="show-grid show-grid-aligned">
   {% for item in shows %}
     {% set show = item.show %}
     <article class="show-tile">
