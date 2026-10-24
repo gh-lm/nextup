@@ -44,7 +44,7 @@
     });
   }
 
-  document.querySelectorAll('form[data-confirm]').forEach(function (form) {
+  function armConfirms(root) { root.querySelectorAll('form[data-confirm]').forEach(function (form) {
     var live = document.createElement('span');
     live.className = 'visually-hidden';
     live.setAttribute('aria-live', 'polite');
@@ -90,7 +90,8 @@
 
       button.addEventListener('blur', function () { if (armed) { disarm(); } });
     });
-  });
+  }); }
+  armConfirms(document);
 
   var zone = '';
   try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) { zone = ''; }
@@ -117,9 +118,12 @@
     var focus = active && panel.contains(active) && active.name
       ? { name: active.name, value: active.type === 'checkbox' || active.type === 'radio' ? active.value : null }
       : null;
+    var body;
+    try { body = submitter ? new FormData(form, submitter) : new FormData(form); }
+    catch (e) { rememberPage(); form.submit(); return; }
     window.fetch(form.action, {
       method: 'POST',
-      body: submitter ? new FormData(form, submitter) : new FormData(form),
+      body: body,
       credentials: 'same-origin'
     }).then(function (response) {
       if (!response.ok) { throw new Error('save failed'); }
@@ -133,6 +137,7 @@
       else { document.documentElement.setAttribute('data-accent', accent); }
       panel.innerHTML = fresh.innerHTML;
       hideSaveButtons(panel);
+      armConfirms(panel);
       applyZone(panel);
       if (focus) {
         var again = Array.prototype.filter.call(panel.querySelectorAll('[name]'), function (el) {

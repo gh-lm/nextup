@@ -1,4 +1,5 @@
 """Names for the language codes TMDB gives, so a card can say Korean rather than ko."""
+from . import secretstore
 
 NAMES = {
     "af": "Afrikaans", "ar": "Arabic", "bg": "Bulgarian", "bn": "Bengali",
@@ -20,15 +21,15 @@ NAMES = {
 UNLABELLED = {"en", "xx", ""}
 
 def show_all():
-    from . import secretstore
-
     return secretstore.get("watch_all_languages", "1") != "0"
 
 def watched():
-    from . import secretstore
-
     chosen = [c for c in (secretstore.get("watch_languages") or "").split(",") if c in NAMES and c != "en"]
     return ["en"] + chosen
+
+def choices():
+    have = watched()
+    return sorted(((c, n) for c, n in NAMES.items() if c not in have and c != "nb"), key=lambda x: x[1])
 
 def label(code):
     code = (code or "").strip().lower()

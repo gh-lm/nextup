@@ -66,17 +66,15 @@ def detail(show_id):
             abort(404)
 
     extras = {"cast": [], "genres": [], "creators": [], "providers": [],
-              "provider_link": None, "trailer": None, "imdb": None,
+              "trailer": None, "imdb": None,
               "certification": None, "tagline": None, "homepage": None}
     try:
         payload = tmdb.show_detail(show_id)
-        names, link = tmdb.providers_from(payload)
         extras.update(
             cast=tmdb.cast_from(payload),
             genres=tmdb.genres_from(payload),
             creators=tmdb.creators_from(payload),
-            providers=names,
-            provider_link=link,
+            providers=tmdb.providers_from(payload)[0],
             trailer=tmdb.trailer_from(payload),
             imdb=tmdb.imdb_from(payload),
             certification=tmdb.certification_from(payload),
@@ -225,7 +223,11 @@ def episode(episode_id):
     if show is None:
         abort(404)
 
-    guests, crew, rating = [], [], None
+    guests, crew, rating, providers = [], [], None, []
+    try:
+        providers = tmdb.watch_providers(tmdb.show_providers(row["show_id"]))[0]
+    except tmdb.TmdbError:
+        pass
     try:
         payload = tmdb.episode(row["show_id"], row["season_number"], row["episode_number"])
         guests = [
@@ -253,6 +255,7 @@ def episode(episode_id):
         guests=guests,
         crew=crew,
         rating=rating,
+        providers=providers,
         previous=previous,
         following=following,
     )

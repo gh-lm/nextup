@@ -53,6 +53,7 @@
       <nav class="changelog-index" aria-label="Versions">
         <h2>Versions</h2>
         <ul>
+          <li><a href="#v1.7.2">1.7.2</a></li>
           <li><a href="#v1.7.1">1.7.1</a></li>
           <li><a href="#v1.6.0">1.6.0</a></li>
           <li><a href="#v1.5.5">1.5.5</a></li>
@@ -66,6 +67,22 @@
       </nav>
       <div class="prose">
         <div class="prose-cards changelog-entries">
+          <section>
+        <h2 id="v1.7.2">1.7.2<span class="when"> &middot; 24 October 2026</span></h2>
+        <p>Fixes and tidying. Your data is untouched.</p>
+        <ul>
+          <li><strong>A show no longer fails to sync when TMDB moves an episode.</strong> If TMDB gave an episode a new season or number under the same id, the show stopped updating with a "unique constraint failed" error. The episode now moves and keeps its watched mark.
+          </li>
+          <li><strong>Where to watch.</strong> The button that sent you to TMDB is gone. The services are named on the page, and the episode page names them too.
+          </li>
+          <li><strong>Trailers open in a new tab.</strong>
+          </li>
+          <li><strong>Up to here goes grey</strong> on an episode you have already marked watched.
+          </li>
+          <li><strong>Smaller fixes.</strong> The Mail Remove button keeps its two-click confirm after a setting saves. Discover asks for several languages at once and says so if TMDB cannot give release dates, instead of showing "Nothing new". The email address is filled in once from the page and is no longer changed by opening Settings from another address.
+          </li>
+        </ul>
+          </section>
           <section>
         <h2 id="v1.7.1">1.7.1<span class="when"> &middot; 24 October 2026</span></h2>
         <p>Everything since 1.6.0 in one release. Your data is untouched.</p>

@@ -41,6 +41,13 @@
     <p class="subtle">TMDB has no synopsis for this episode yet.</p>
   {% endif %}
 
+  {% if providers %}
+    <p class="subtle mb-6">
+      <strong>Watch it on:</strong>
+      {% for name in providers %}<span class="badge badge-info">{{ name }}</span> {% endfor %}
+    </p>
+  {% endif %}
+
   {% if tracked %}
     <div class="btn-row mt-16">
       <form method="post" action="{{ url_for('shows.watch_episode', episode_id=episode.id) }}">
