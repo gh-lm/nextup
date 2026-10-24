@@ -1,19 +1,20 @@
 # ---- Build stage: install dependencies into a self-contained venv ----
-FROM python:3.12-slim-bookworm@sha256:5d9e6adc9abd558bc0ce05f9ab16cef71328916fc9728f6b81e337af86a737e2 AS build
+FROM python:3.14-slim-trixie@sha256:0514bc76712d64f8bb48adcb95b1ab0d88c69fee95d62fe4c18ee948bee9b1e1 AS build
 
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir --upgrade pip setuptools \
- && pip install --no-cache-dir -r /tmp/requirements.txt \
- && pip uninstall -y pip setuptools wheel 2>/dev/null || true
+COPY requirements.lock /tmp/requirements.lock
+RUN pip install --no-cache-dir pip==26.2.2 \
+ && pip install --no-cache-dir --require-hashes --only-binary=:all: -r /tmp/requirements.lock \
+ && pip uninstall -y pip
 
-FROM python:3.12-slim-bookworm@sha256:5d9e6adc9abd558bc0ce05f9ab16cef71328916fc9728f6b81e337af86a737e2
+FROM python:3.14-slim-trixie@sha256:0514bc76712d64f8bb48adcb95b1ab0d88c69fee95d62fe4c18ee948bee9b1e1
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends tzdata \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ && python -m pip uninstall -y pip
 
 RUN useradd --uid 1000 --create-home --shell /usr/sbin/nologin nextup
 

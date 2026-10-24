@@ -1,19 +1,72 @@
 """Thin TMDB client."""
+import json
+import re
 import time
+from datetime import datetime, timedelta, timezone
+from urllib.parse import urlsplit
 
 import requests
 
-from . import secretstore
+from . import secretstore, timezones
 
 BASE = "https://api.themoviedb.org/3"
 IMAGE_BASE = "https://image.tmdb.org/t/p"
 TIMEOUT = 20
+
+NO_COUNTRY = "-"
+
+RELEASE_DIGITAL = 4
+RELEASE_PHYSICAL = 5
+RELEASE_TV = 6
+
+COUNTRIES_MAX_AGE = timedelta(days=7)
+COUNTRIES_TIMEOUT = 5
 
 class TmdbError(RuntimeError):
     pass
 
 class MissingKey(TmdbError):
     pass
+
+def country():
+    code = (secretstore.get("country") or "").strip().upper()
+    return code if len(code) == 2 and code.isalpha() else None
+
+def remember_country(zone):
+    if secretstore.get("country"):
+        return False
+    code = timezones.country_for(zone)
+    if code:
+        secretstore.set("country", code)
+    return bool(code)
+
+def _stored_countries():
+    try:
+        rows = json.loads(secretstore.get("countries_cache") or "")
+        fetched = datetime.fromisoformat(secretstore.get("countries_fetched_at") or "")
+        return [(code, name) for code, name in rows], fetched
+    except (ValueError, TypeError):
+        return None, None
+
+def countries():
+    saved, fetched = _stored_countries()
+    if saved and fetched.tzinfo and datetime.now(timezone.utc) - fetched < COUNTRIES_MAX_AGE:
+        return saved
+    try:
+        rows = _get("/configuration/countries", tries=1, timeout=COUNTRIES_TIMEOUT)
+    except TmdbError:
+        if saved:
+            return saved
+        raise
+    found = {
+        row["iso_3166_1"].upper(): row.get("english_name") or row["iso_3166_1"]
+        for row in rows if isinstance(row, dict)
+        and len(row.get("iso_3166_1") or "") == 2 and row["iso_3166_1"].isalpha()
+    }
+    listed = sorted(found.items(), key=lambda pair: pair[1])
+    secretstore.set("countries_cache", json.dumps(listed))
+    secretstore.set("countries_fetched_at", datetime.now(timezone.utc).isoformat(timespec="seconds"))
+    return listed
 
 def api_key():
     key = secretstore.get("tmdb_api_key")
@@ -33,21 +86,24 @@ def _wait_seconds(retry_after):
         asked = 2
     return min(max(asked, 0), MAX_WAIT) + 1
 
-def _get(path, params=None, **kwargs):
+def _get(path, params=None, tries=3, timeout=TIMEOUT, **kwargs):
     params = dict(params or {})
     params.update(kwargs)
     params["api_key"] = api_key()
-    params.setdefault("language", "en-GB")
+    params.setdefault("language", "en")
     url = f"{BASE}{path}"
-    for attempt in range(3):
+    for attempt in range(tries):
+        last = attempt == tries - 1
         try:
-            resp = requests.get(url, params=params, timeout=TIMEOUT)
+            resp = requests.get(url, params=params, timeout=timeout)
         except requests.RequestException as exc:
-            if attempt == 2:
+            if last:
                 raise _unreachable(exc) from None
             time.sleep(1 + attempt)
             continue
         if resp.status_code == 429:
+            if last:
+                break
             time.sleep(_wait_seconds(resp.headers.get("Retry-After")))
             continue
         if resp.status_code == 401:
@@ -55,11 +111,14 @@ def _get(path, params=None, **kwargs):
         if resp.status_code == 404:
             raise TmdbError("TMDB has no record of that.")
         if not resp.ok:
-            if attempt == 2:
+            if last:
                 raise TmdbError(f"TMDB returned {resp.status_code}.")
             time.sleep(1 + attempt)
             continue
-        return resp.json()
+        try:
+            return resp.json()
+        except ValueError:
+            raise TmdbError("TMDB sent a reply Nextup could not read.") from None
     raise TmdbError("TMDB kept rate-limiting the request.")
 
 def search_multi(query, page=1):
@@ -115,12 +174,6 @@ def episode(show_id, season_number, episode_number):
 def movie(movie_id):
     return _get(f"/movie/{movie_id}")
 
-RELEASE_DIGITAL = 4
-RELEASE_PHYSICAL = 5
-RELEASE_TV = 6
-
-COUNTRIES = ("GB", "IE", "US")
-
 def movie_release_dates(movie_id):
     return _get(f"/movie/{movie_id}/release_dates")
 
@@ -140,30 +193,33 @@ def digital_release_date(payload):
         if dates:
             by_country[code] = min(dates)
 
-    for code in COUNTRIES:
-        if code in by_country:
-            return by_country[code]
+    code = country()
+    if code in by_country:
+        return by_country[code]
     return min(by_country.values()) if by_country else None
 
-def uk_providers(payload):
-    results = payload.get("results", {})
-    for code in COUNTRIES:
-        country = results.get(code)
-        if not country:
-            continue
-        names = []
-        for key in ("flatrate", "free", "ads"):
-            for provider in country.get(key, []):
-                name = provider.get("provider_name")
-                if name and name not in names:
-                    names.append(name)
-        if names:
-            return names, country.get("link")
-    return [], None
+def safe_url(value):
+    try:
+        parts = urlsplit(value or "")
+    except ValueError:
+        return None
+    return value if parts.scheme in ("http", "https") and parts.netloc else None
+
+def watch_providers(payload):
+    code = country()
+    region = (payload.get("results") or {}).get(code) if code else None
+    if not region:
+        return [], None
+    names = []
+    for key in ("flatrate", "free", "ads"):
+        for provider in region.get(key, []):
+            name = provider.get("provider_name")
+            if name and name not in names:
+                names.append(name)
+    return (names, safe_url(region.get("link"))) if names else ([], None)
 
 def discover_films_reaching_streaming(start, end, page=1):
-    return _get("/discover/movie", {
-        "region": "GB",
+    params = {
         "with_release_type": "4|6",
         "release_date.gte": start,
         "release_date.lte": end,
@@ -171,7 +227,10 @@ def discover_films_reaching_streaming(start, end, page=1):
         "vote_count.gte": 0,
         "include_adult": "false",
         "page": page,
-    })
+    }
+    if country():
+        params["region"] = country()
+    return _get("/discover/movie", params)
 
 def discover_new_series(start, end, page=1):
     return _get("/discover/tv", {
@@ -227,25 +286,26 @@ def genres_from(payload):
 
 def trailer_from(payload):
     for video in ((payload.get("videos") or {}).get("results") or []):
-        if video.get("site") == "YouTube" and video.get("type") in ("Trailer", "Teaser"):
-            return {
-                "name": video.get("name"),
-                "url": f"https://www.youtube.com/watch?v={video.get('key')}",
-            }
+        key = video.get("key") or ""
+        if (video.get("site") == "YouTube" and video.get("type") in ("Trailer", "Teaser")
+                and re.fullmatch(r"[A-Za-z0-9_-]+", key)):
+            return {"name": video.get("name"), "url": f"https://www.youtube.com/watch?v={key}"}
     return None
 
 def imdb_from(payload):
     imdb_id = payload.get("imdb_id") or (payload.get("external_ids") or {}).get("imdb_id")
-    return f"https://www.imdb.com/title/{imdb_id}/" if imdb_id else None
+    if not re.fullmatch(r"tt\d+", str(imdb_id or "")):
+        return None
+    return f"https://www.imdb.com/title/{imdb_id}/"
 
 def certification_from(payload):
+    code = country()
+    if not code:
+        return None
     ratings = (payload.get("content_ratings") or {}).get("results")
     if ratings:
         by_country = {r.get("iso_3166_1"): r.get("rating") for r in ratings}
-        for code in COUNTRIES:
-            if by_country.get(code):
-                return by_country[code]
-        return None
+        return by_country.get(code) or None
 
     releases = (payload.get("release_dates") or {}).get("results") or []
     by_country = {}
@@ -253,13 +313,10 @@ def certification_from(payload):
         for release in entry.get("release_dates", []):
             if release.get("certification"):
                 by_country.setdefault(entry.get("iso_3166_1"), release["certification"])
-    for code in COUNTRIES:
-        if by_country.get(code):
-            return by_country[code]
-    return None
+    return by_country.get(code)
 
 def providers_from(payload):
-    return uk_providers(payload.get("watch/providers") or {})
+    return watch_providers(payload.get("watch/providers") or {})
 
 def verify_key(candidate):
     try:
@@ -272,4 +329,3 @@ def verify_key(candidate):
         raise TmdbError("TMDB rejected that key.")
     if not resp.ok:
         raise TmdbError(f"TMDB returned {resp.status_code}.")
-    return True

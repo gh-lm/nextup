@@ -20,7 +20,7 @@
   </nav>
 </div>
 
-<div class="panel" style="margin-bottom:20px; display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+<div class="panel toolbar">
   <nav class="tabs" aria-label="Which series">
     <a href="{{ url_for('discover.tv', mode='new', days=days) }}"
        {% if mode == 'new' %}class="current" aria-current="page"{% endif %}>Brand new</a>
@@ -33,7 +33,7 @@
          {% if days == option %}class="current" aria-current="page"{% endif %}>{{ option }} days</a>
     {% endfor %}
   </nav>
-  <span class="spacer" style="margin-left:auto"></span>
+  <span class="spacer"></span>
   <span class="hint">
     <strong>Yes</strong> adds it &nbsp; <strong>Maybe</strong> saves it for later &nbsp; <strong>No</strong> hides it here
   </span>
@@ -51,7 +51,7 @@
 </div>
 
 {% if error %}
-  <p class="note note-error"><span class="note-mark" aria-hidden="true">!</span><span>{{ error }}</span></p>
+  <p class="note note-error">{{ error }}</p>
 {% endif %}
 
 {% if items %}
@@ -87,7 +87,7 @@
            stroke-linecap="round" stroke-linejoin="round">
         <rect x="2" y="7" width="20" height="14" rx="2.5"/><path d="m8 3 4 4 4-4"/>
       </svg>
-      <h3>Nothing new in this window</h3>
+      <h2>Nothing new in this window</h2>
       <p>Try a longer window, or the On air now tab for series already running.</p>
       <a class="btn btn-primary" href="{{ url_for('discover.tv', mode='returning', days=days) }}">See what is on air</a>
     </div>

@@ -10,10 +10,14 @@ data/
 secret.key
 session.key
 .env
-.publish/
 
 .publish/
 charlie-tasks.md
 
 .claude/
 .prismor/
+
+REVIEW-LOG.md
+REVIEW-STATUS.md
+code-review-*.md
+brag-output*/

@@ -56,8 +56,10 @@ def test_no_trailer_is_not_an_error():
     assert tmdb.trailer_from({}) is None
     assert tmdb.trailer_from({"videos": {"results": []}}) is None
 
-def test_certification_prefers_the_uk_rating():
+def test_certification_uses_the_chosen_country(monkeypatch):
     from app import tmdb
+
+    monkeypatch.setattr(tmdb, "country", lambda: "GB")
 
     show = {"content_ratings": {"results": [
         {"iso_3166_1": "US", "rating": "TV-MA"},
@@ -71,11 +73,14 @@ def test_certification_prefers_the_uk_rating():
     ]}}
     assert tmdb.certification_from(film) == "12A"
 
-def test_certification_falls_back_when_there_is_no_uk_one():
+def test_no_certification_from_another_country(monkeypatch):
     from app import tmdb
 
     payload = {"content_ratings": {"results": [{"iso_3166_1": "US", "rating": "TV-14"}]}}
-    assert tmdb.certification_from(payload) == "TV-14"
+    monkeypatch.setattr(tmdb, "country", lambda: "GB")
+    assert tmdb.certification_from(payload) is None
+    monkeypatch.setattr(tmdb, "country", lambda: None)
+    assert tmdb.certification_from(payload) is None
 
 def test_imdb_link_from_either_shape():
     from app import tmdb
@@ -94,8 +99,10 @@ def test_genres_and_creators():
     assert tmdb.genres_from(payload) == ["Drama", "Crime"]
     assert tmdb.creators_from(payload) == ["Someone"]
 
-def test_providers_read_from_an_appended_block():
+def test_providers_read_from_an_appended_block(monkeypatch):
     from app import tmdb
+
+    monkeypatch.setattr(tmdb, "country", lambda: "GB")
 
     payload = {"watch/providers": {"results": {"GB": {
         "link": "https://example.invalid/watch",
@@ -122,7 +129,7 @@ def test_a_detail_page_still_renders_when_tmdb_is_down(signed_in, app, monkeypat
     assert signed_in.get("/show/500").status_code == 200
     assert signed_in.get("/movie/501").status_code == 200
 
-def test_the_image_proxy_accepts_a_profile_path(signed_in):
+def test_the_image_proxy_accepts_a_profile_path():
     from app.posters import PATH_RE
 
     assert PATH_RE.fullmatch("/8Ac2mfkQiCJj5nDNMMBQZLwEEEG.jpg")

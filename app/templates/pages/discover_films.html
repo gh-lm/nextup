@@ -14,14 +14,14 @@
   </nav>
 </div>
 
-<div class="panel" style="margin-bottom:20px; display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+<div class="panel toolbar">
   <nav class="tabs" aria-label="How far ahead">
     {% for option in windows %}
       <a href="{{ url_for('discover.films', days=option) }}"
          {% if days == option %}class="current" aria-current="page"{% endif %}>{{ option }} days</a>
     {% endfor %}
   </nav>
-  <span class="spacer" style="margin-left:auto"></span>
+  <span class="spacer"></span>
   <span class="hint">
     <strong>Yes</strong> adds it &nbsp; <strong>Maybe</strong> saves it for later &nbsp; <strong>No</strong> hides it here
   </span>
@@ -39,7 +39,7 @@
 </div>
 
 {% if error %}
-  <p class="note note-error"><span class="note-mark" aria-hidden="true">!</span><span>{{ error }}</span></p>
+  <p class="note note-error">{{ error }}</p>
 {% endif %}
 
 {% if items %}
@@ -75,7 +75,7 @@
            stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/>
       </svg>
-      <h3>Nothing new in this window</h3>
+      <h2>Nothing new in this window</h2>
       <p>
         Either nothing is landing in the next {{ days }} days, or you have already
         had your say on all of it. Try a longer window.

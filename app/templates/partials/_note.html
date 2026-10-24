@@ -1,9 +1,6 @@
-{% import 'partials/_icons.html' as icons %}
-{% macro note(item) -%}
-<p class="note note-{{ item.kind }}" role="status">
-  <span class="note-mark">{{ icons.alert() if item.kind == 'error' else icons.tick() }}</span>
-  <span>{{ item.message }}</span>
-</p>
+{# A quiet line of confirmation, shown beside whatever caused it rather than as #}
+{% macro note(item, live=true) -%}
+<p class="note note-{{ item.kind }}"{% if live %} role="status"{% endif %}>{{ item.message }}</p>
 {%- endmacro %}
 
 {% macro notes_for(items, panel) -%}

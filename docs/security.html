@@ -54,12 +54,16 @@
         <section>
           <h2>Telling us about a problem</h2>
           <p>
-            Write to <a href="mailto:complaints@lightmorphic.com">complaints@lightmorphic.com</a>.
+            The best way is GitHub's private vulnerability reporting: open the
+            <a href="https://github.com/gh-lm/nextup/security">Security tab</a> of the
+            repository and choose Report a vulnerability. Only you and the maintainer can
+            see it. Or write to <a href="mailto:complaints@lightmorphic.com">complaints@lightmorphic.com</a>
+            with Nextup security in the subject.
             Say what you found and how to make it happen, and give the version number from
             the corner of any page in the app.
           </p>
           <p>
-            There is no public tracker, so nothing you send is published while it is being
+            Neither route is public, so nothing you send is published while it is being
             looked at. If it turns out to be real, the fix goes into the next release and
             the <a href="whats-new.html">what's new</a> page says what changed.
           </p>
@@ -122,9 +126,10 @@ tmpfs:
           <ul>
             <li>One account, no second user, and no two-factor.</li>
             <li>
-              Only a simple limit on password guesses: eight wrong ones from one address
-              pause sign-in for fifteen minutes. The count lives in memory, so a restart
-              clears it, and behind a proxy every visitor shares the proxy's address. A
+              Only a simple limit on password guesses: five wrong tries for one username
+              from one address are free, then each try must wait twice as long as the
+              last, up to five minutes. The count lives in memory, so a restart clears
+              it, and behind a proxy every visitor shares the proxy's address. A
               weak password on an open address would still be guessed in the end.
             </li>
             <li>No audit log of who signed in and when.</li>
@@ -230,7 +235,7 @@ tmpfs:
           &copy; Lightmorphic Ltd. Registered in England and Wales, company number
           17423646.<br>
           Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.<br>
-          Page last updated: <time datetime="2026-10-17">17 October 2026</time>.
+          Page last updated: <time datetime="2026-10-24">24 October 2026</time>.
         </p>
         <nav aria-label="Legal">
           <a href="privacy.html">Privacy</a>

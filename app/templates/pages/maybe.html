@@ -11,12 +11,12 @@
 </div>
 
 {% if shows or films %}
-<p class="hint" style="margin-bottom:20px">
+<p class="hint mb-20">
   Nothing here shows up in Next up, the calendar or Coming soon. When you decide
   to watch one, press Start watching and it joins your shows.
 </p>
 {% if shows %}
-<h2 style="font-size:1.25rem; margin-bottom:14px">Shows</h2>
+<h2 class="h-section">Shows</h2>
 <div class="show-grid">
   {% for item in shows %}
     {% set show = item.show %}
@@ -47,7 +47,7 @@
 {% endif %}
 
 {% if films %}
-<h2 style="font-size:1.25rem; margin: 32px 0 14px">Films</h2>
+<h2 class="h-section mt-32">Films</h2>
 <div class="show-grid">
   {% for film in films %}
     <article class="show-tile">
@@ -74,7 +74,7 @@
          stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 21s-7.5-4.6-9.5-9A5.2 5.2 0 0 1 12 6.6 5.2 5.2 0 0 1 21.5 12c-2 4.4-9.5 9-9.5 9Z"/>
     </svg>
-    <h3>Nothing on the maybe list</h3>
+    <h2>Nothing on the maybe list</h2>
     <p>
       When you come across a show that looks interesting but you are not ready to
       commit to, put it here instead of your main list.

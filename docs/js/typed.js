@@ -10,7 +10,7 @@
   try { lines = JSON.parse(line.dataset.lines); } catch (e) { return; }
   if (!lines || lines.length < 2) { return; }
 
-  var index = 0, at = lines[0].length, deleting = false;
+  var index = 0, at = lines[0].length, deleting = false, left = lines.length * 2;
 
   function tick() {
     var text = lines[index];
@@ -27,6 +27,7 @@
     at += 1;
     line.textContent = text.slice(0, at);
     if (at === text.length) {
+      if (--left <= 0 && index === 0) { return; }
       deleting = true;
       return setTimeout(tick, 2600);
     }

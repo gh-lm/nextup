@@ -1,12 +1,12 @@
 import json
-from datetime import date
 
 from flask import (Blueprint, Response, current_app, flash, redirect, render_template,
                    request, session, url_for)
 
-from .. import db, mailer, queries, secretstore, sync, tmdb, transfer
-from ..auth import change_account, check_current_password, keep_this_browser_signed_in, login_required
-from ..forms import whole_number
+from .. import clock, db, mailer, queries, secretstore, sync, timezones, tmdb, transfer
+from ..auth import (change_account, check_current_password, keep_this_browser_signed_in,
+                    login_required, uses_default_password)
+from ..forms import confirmed, whole_number
 
 bp = Blueprint("settings", __name__)
 
@@ -28,6 +28,14 @@ ACCENTS = [
     ("blue_grey", "Blue grey", "#607c8b"),
 ]
 
+def _country_choices():
+    if not secretstore.has("tmdb_api_key"):
+        return []
+    try:
+        return tmdb.countries()
+    except tmdb.TmdbError:
+        return []
+
 @bp.route("/settings")
 @login_required
 def index():
@@ -46,6 +54,8 @@ def index():
         mail_ready=mailer.is_configured(),
         securities=mailer.SECURITIES,
         available_after=queries.available_after_days(),
+        country=tmdb.country(),
+        countries=_country_choices(),
         accents=ACCENTS,
         last_sync=sync.last_run(),
         syncing=sync.is_running(),
@@ -69,6 +79,8 @@ def save_tmdb():
 @bp.route("/settings/tmdb/clear", methods=["POST"])
 @login_required
 def clear_tmdb():
+    if not confirmed():
+        return notify("tmdb", "Tick \"Yes, remove it\" to remove the key.", "error")
     secretstore.delete("tmdb_api_key")
     return notify("tmdb", "Key removed.", "success")
 
@@ -84,6 +96,8 @@ def save_account():
         return notify("account", "Your current password is not right.", "error")
     if not username:
         return notify("account", "The username cannot be empty.", "error")
+    if session.get("starter") and not password:
+        return notify("account", "Choose a new password. The starting one is public.", "error")
     if password or confirm:
         if password != confirm:
             return notify("account", "The two passwords did not match.", "error")
@@ -134,6 +148,27 @@ def save_availability():
         "success",
     )
 
+@bp.route("/settings/country", methods=["POST"])
+@login_required
+def save_country():
+    code = (request.form.get("country") or "").strip().upper()
+    if not code and request.form.get("timezone"):
+        code = timezones.country_for(request.form.get("timezone")) or ""
+        if not code:
+            return notify("country", "Your time zone does not belong to one country. Pick yours from the list.", "error")
+    if code == tmdb.NO_COUNTRY:
+        secretstore.set("country", tmdb.NO_COUNTRY)
+        message = "No country chosen. Films show their first home release anywhere."
+    else:
+        names = dict(_country_choices())
+        if code not in names:
+            return notify("country", "Pick a country from the list.", "error")
+        secretstore.set("country", code)
+        message = f"Country set to {names[code]}. Dates, services and age ratings now follow it."
+    if secretstore.has("tmdb_api_key"):
+        sync.start_now(current_app._get_current_object())
+    return notify("country", message, "success")
+
 @bp.route("/settings/mail", methods=["POST"])
 @login_required
 def save_mail():
@@ -153,6 +188,9 @@ def save_mail():
     for label, value in (("from", from_address), ("to", to_address)):
         if value and "@" not in value:
             return notify("mail", f"That {label} address does not look like an email address.", "error")
+    site = (request.form.get("site_url") or "").strip().rstrip("/")
+    if site and not site.startswith(("http://", "https://")):
+        return notify("mail", "The Nextup address needs to start with http or https.", "error")
 
     secretstore.set("smtp_host", host)
     secretstore.set("smtp_port", port or str(mailer.DEFAULT_PORT))
@@ -162,9 +200,6 @@ def save_mail():
     secretstore.set("mail_from_name", from_name or "Nextup")
     secretstore.set("mail_to", to_address)
 
-    site = (request.form.get("site_url") or "").strip().rstrip("/")
-    if site and not site.startswith(("http://", "https://")):
-        return notify("mail", "The Nextup address needs to start with http or https.", "error")
     secretstore.set("site_url", site)
     if password:
         secretstore.set("smtp_password", password, encrypted=True)
@@ -231,6 +266,8 @@ def preview_mail():
 @bp.route("/settings/mail/clear", methods=["POST"])
 @login_required
 def clear_mail():
+    if not confirmed():
+        return notify("mail", "Tick \"Yes, remove it\" to remove the mail settings.", "error")
     for key in ("smtp_host", "smtp_port", "smtp_security", "smtp_username",
                 "smtp_password", "mail_from", "mail_from_name", "mail_to"):
         secretstore.delete(key)
@@ -243,7 +280,7 @@ def export_data():
     include = request.args.get("secrets") == "1"
     payload = transfer.export_data(include_secrets=include)
     body = json.dumps(payload, indent=1, ensure_ascii=False)
-    name = f"nextup-backup-{date.today().isoformat()}.json"
+    name = f"nextup-backup-{clock.today()}.json"
     return Response(
         body,
         mimetype="application/json",
@@ -276,10 +313,11 @@ def import_data():
 
     try:
         restored = transfer.import_data(payload)
-    except transfer.ImportError_ as exc:
+    except transfer.BackupError as exc:
         return notify("transfer", str(exc), "error")
 
     keep_this_browser_signed_in()
+    session["starter"] = uses_default_password()
     message = f"Restored {transfer.summarise(restored)}."
     if not restored.get("secrets"):
         message += " The file had no keys in it, so type your TMDB key and mail password in again."

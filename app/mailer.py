@@ -6,8 +6,9 @@ import time
 from datetime import date, datetime, time as clock_time, timedelta
 from email.message import EmailMessage
 from email.utils import formataddr, formatdate
+from html import escape
 
-from . import db, posters, queries, secretstore
+from . import clock, posters, queries, secretstore
 
 SITE_URL = "https://lightmorphic.com"
 POSTER_SIZE = "w185"
@@ -62,9 +63,10 @@ def parse_time(raw):
     if not raw or ":" not in str(raw):
         return None
     hours, _, minutes = str(raw).partition(":")
-    if not (hours.strip().isdigit() and minutes.strip().isdigit()):
+    try:
+        hour, minute = int(hours), int(minutes)
+    except ValueError:
         return None
-    hour, minute = int(hours), int(minutes)
     if not (0 <= hour <= 23 and 0 <= minute <= 59):
         return None
     return clock_time(hour=hour, minute=minute)
@@ -121,6 +123,7 @@ def is_configured():
 
 def _connect(settings):
     password = secretstore.get("smtp_password", "")
+    server = None
     try:
         if settings["security"] == "ssl":
             server = smtplib.SMTP_SSL(
@@ -135,9 +138,11 @@ def _connect(settings):
         if settings["username"] and password:
             server.login(settings["username"], password)
         return server
-    except smtplib.SMTPAuthenticationError as exc:
-        raise MailError("The mail server rejected that username and password.") from exc
     except (smtplib.SMTPException, OSError, ssl.SSLError) as exc:
+        if server is not None:
+            server.close()
+        if isinstance(exc, smtplib.SMTPAuthenticationError):
+            raise MailError("The mail server rejected that username and password.") from exc
         raise MailError(f"Could not reach the mail server: {exc}") from exc
 
 def send(subject, text_body, html_body=None, images=None):
@@ -146,9 +151,12 @@ def send(subject, text_body, html_body=None, images=None):
         raise MailError("Fill in the mail server, the from address and the to address first.")
 
     message = EmailMessage()
-    message["Subject"] = subject
-    message["From"] = formataddr((settings["from_name"], settings["from_address"]))
-    message["To"] = settings["to_address"]
+    try:
+        message["Subject"] = subject
+        message["From"] = formataddr((settings["from_name"], settings["from_address"]))
+        message["To"] = settings["to_address"]
+    except ValueError as exc:
+        raise MailError(f"The name or an address cannot be used in a message: {exc}") from exc
     message["Date"] = formatdate(localtime=True)
     message["Auto-Submitted"] = "auto-generated"
     message.set_content(text_body)
@@ -195,7 +203,7 @@ def send_test():
 def _episode_line(row):
     code = f"S{row['season_number']:02d}E{row['episode_number']:02d}"
     name = row["name"] or f"Episode {row['episode_number']}"
-    watched = " (already ticked off)" if row["watched"] else ""
+    watched = " (already watched)" if row["watched"] else ""
     return f"{row['show_name']} {code} - {name}{watched}"
 
 def build_digest():
@@ -228,7 +236,6 @@ def build_digest():
     if episodes:
         lines.append("Television")
         for row in episodes:
-            services = f" - {row['network']}" if row["network"] else ""
             lines += block(
                 _episode_line(row), None, row["overview"],
                 item_url("episode", row["id"]),
@@ -249,23 +256,22 @@ def build_digest():
     return subject, text, html, images
 
 def _esc(value):
-    return (
-        str(value or "")
-        .replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace('"', "&quot;")
-    )
+    return escape(str(value or ""))
 
-def _html_shell(heading, inner, standfirst=""):
+def _html_shell(heading, inner="", standfirst="", preheader="", rows=""):
+    inner_row = f'<tr><td style="padding:16px 32px 24px 32px">{inner}</td></tr>' if inner else ""
+    hidden = (
+        f'<div style="display:none;max-height:0;overflow:hidden;opacity:0">{preheader}</div>'
+        if preheader else ""
+    )
     return f"""<!doctype html>
-<html lang="en-GB"><head><meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
 <meta name="supported-color-schemes" content="dark">
 <title>Nextup</title></head>
 <body style="margin:0;padding:0;background:{WASH};">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+{hidden}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
        style="background:{WASH};padding:28px 12px">
   <tr><td align="center">
     <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
@@ -285,7 +291,7 @@ def _html_shell(heading, inner, standfirst=""):
           {heading}</p>
         {standfirst}
       </td></tr>
-      <tr><td style="padding:16px 32px 24px 32px">{inner}</td></tr>
+      {inner_row}{rows}
       <tr><td style="padding:16px 32px 22px 32px;border-top:1px solid {LINE};
                      background:{WASH}">
         <p style="margin:0;font:400 13px/1.6 {FONT};color:{MUTED}">
@@ -368,7 +374,7 @@ def _html_digest(when, episodes, films):
         if row["network"]:
             detail += f" · {row['network']}"
         if row["watched"]:
-            detail += " · already ticked off"
+            detail += " · already watched"
         tv_rows.append({
             "headline": row["show_name"],
             "detail": detail,
@@ -397,58 +403,21 @@ def _html_digest(when, episodes, films):
     if film_rows:
         body += _html_section("Films", film_rows)
 
-    return f"""<!doctype html>
-<html lang="en-GB"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="dark">
-<meta name="supported-color-schemes" content="dark">
-<title>Nextup</title></head>
-<body style="margin:0;padding:0;background:{WASH};">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0">
-Available to watch now, from {_esc(when)}.</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-       style="background:{WASH};padding:28px 12px">
-  <tr><td align="center">
-    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
-           style="width:100%;max-width:600px;background:{CARD};border:1px solid {LINE};
-                  border-radius:18px;overflow:hidden">
-
-      <tr><td style="padding:26px 32px 4px 32px">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-          <td style="background:{BRAND};border-radius:9px;width:34px;height:34px;
-                     text-align:center;vertical-align:middle;
-                     font:700 17px/34px {FONT};color:{ON_BRAND}">N</td>
-          <td style="padding-left:11px;font:800 21px/1.2 {FONT};letter-spacing:-.03em;
-                     color:{INK}">Nextup</td>
-        </tr></table>
-      </td></tr>
-
-      <tr><td style="padding:16px 32px 0 32px">
-        <p style="margin:0;font:700 20px/1.3 {FONT};letter-spacing:-.02em;color:{INK}">
-          Ready to watch</p>
-        <p style="margin:6px 0 0;font:400 15px/1.5 {FONT};color:{MUTED}">
-          Everything below became available on {_esc(when)}.</p>
-      </td></tr>
-
-      {body}
-
-      <tr><td style="padding:20px 32px 26px 32px">
-        <p style="margin:0;font:400 13px/1.6 {FONT};color:{MUTED}">
-          Sent by Nextup, running on your own server. To change when this arrives,
-          or to stop it, open the Settings page.</p>
-      </td></tr>
-
-      <tr><td style="padding:16px 32px 22px 32px;border-top:1px solid {LINE};
-                     background:{WASH}">
-        <p style="margin:0;font:400 13px/1.6 {FONT};color:{MUTED}">
-          Made by <a href="{SITE_URL}" style="color:{INK};font-weight:700;
-          text-decoration:none">Lightmorphic</a></p>
-      </td></tr>
-
-    </table>
-  </td></tr>
-</table>
-</body></html>""", images
+    note = (
+        '<tr><td style="padding:20px 32px 26px 32px">'
+        f'<p style="margin:0;font:400 13px/1.6 {FONT};color:{MUTED}">'
+        "Sent by Nextup, running on your own server. To change when this arrives, "
+        "or to stop it, open the Settings page.</p></td></tr>"
+    )
+    return _html_shell(
+        "Ready to watch",
+        standfirst=(
+            f'<p style="margin:6px 0 0;font:400 15px/1.5 {FONT};color:{MUTED}">'
+            f"Everything below became available on {_esc(when)}.</p>"
+        ),
+        preheader=f"Available to watch now, from {_esc(when)}.",
+        rows=body + note,
+    ), images
 
 RETRY_AFTER_FAILURE = timedelta(minutes=30)
 
@@ -466,7 +435,7 @@ def send_daily(force=False):
     if not is_configured():
         return "The mail settings are not complete."
 
-    today = date.today().isoformat()
+    today = clock.today()
     if not force and settings["last_sent"] == today:
         return "Already sent today."
 

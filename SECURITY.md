@@ -4,7 +4,7 @@
 
 | Version | Supported |
 |---|---|
-| 1.5.5 (latest) | Yes |
+| 1.6.0 (latest) | Yes |
 | Anything older | No |
 
 There is one line of releases and no long-term branch. A fix goes into the
@@ -41,6 +41,11 @@ bounty programme.
 - The TMDB key and the mail password are encrypted before they reach the
   database. The key that encrypts them sits beside it at 0600, readable only
   by the user the app runs as, and never leaves that server.
+- Forms carry no separate anti-forgery token. Protection against another
+  site posting a form to Nextup rests on the session cookie being SameSite
+  Lax: browsers do not send it with a form posted from another site, so such
+  a request arrives signed out and is refused. Every change goes through a
+  POST, never a GET.
 - The login cookie is signed, HttpOnly and SameSite Lax, and marked Secure
   when `NEXTUP_HTTPS_ONLY` is set.
 - The `next` parameter on the sign-in page only accepts a plain path, so it
@@ -56,9 +61,10 @@ bounty programme.
 Worth knowing before you decide where to put it.
 
 - One account, no second user, and no two-factor.
-- Only a simple limit on password guesses: eight wrong ones from one address
-  pause sign-in for fifteen minutes. The count lives in memory, so a restart
-  clears it, and behind a proxy every visitor shares the proxy's address.
+- Only a simple limit on password guesses: five wrong tries for one username
+  from one address are free, then each try must wait twice as long as the
+  last, up to five minutes. The count lives in memory, so a restart clears
+  it, and behind a proxy every visitor shares the proxy's address.
   A weak password on an open address would still be guessed in the end.
 - No audit log of who signed in and when.
 

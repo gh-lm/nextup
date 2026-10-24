@@ -16,6 +16,8 @@ TABLES = [
     ("dismissed", None),
 ]
 
+NOT_BACKED_UP = ("session_epoch", "countries_cache", "countries_fetched_at")
+
 def _rows(table):
     return [dict(row) for row in db.query(f"SELECT * FROM {table}")]
 
@@ -25,7 +27,10 @@ def counts():
         for table, _key in TABLES
     }
     found["settings"] = db.query(
-        "SELECT COUNT(*) AS n FROM settings WHERE encrypted = 0 AND value IS NOT NULL", one=True
+        "SELECT COUNT(*) AS n FROM settings WHERE encrypted = 0 AND value IS NOT NULL"
+        f" AND key NOT IN ({', '.join('?' for _ in NOT_BACKED_UP)})",
+        NOT_BACKED_UP,
+        one=True,
     )["n"]
     return found
 
@@ -49,6 +54,8 @@ def export_data(include_secrets=False):
 
     plain, secrets = {}, {}
     for row in db.query("SELECT key, encrypted FROM settings"):
+        if row["key"] in NOT_BACKED_UP:
+            continue
         value = secretstore.get(row["key"])
         if value is None:
             continue
@@ -69,22 +76,22 @@ def export_data(include_secrets=False):
 
     return payload
 
-class ImportError_(ValueError):
+class BackupError(ValueError):
     pass
 
 def _check(payload):
     if not isinstance(payload, dict):
-        raise ImportError_("That file does not contain a Nextup backup.")
+        raise BackupError("That file does not contain a Nextup backup.")
     if payload.get("format") != FORMAT:
-        raise ImportError_("That is not a Nextup backup file.")
+        raise BackupError("That is not a Nextup backup file.")
     version = payload.get("version")
     if not isinstance(version, int) or version > VERSION:
-        raise ImportError_(
+        raise BackupError(
             f"That backup was made by a newer version of Nextup (format {version}). "
             "Update this copy first."
         )
     if not isinstance(payload.get("data"), dict):
-        raise ImportError_("That backup has nothing in it.")
+        raise BackupError("That backup has nothing in it.")
 
 def _insert(conn, table, rows):
     if not rows:
@@ -136,9 +143,10 @@ def import_data(payload):
 
         settings = data.get("settings")
         if isinstance(settings, dict):
-            for key, value in settings.items():
+            kept = {k: v for k, v in settings.items() if k not in NOT_BACKED_UP}
+            for key, value in kept.items():
                 _put_setting(conn, key, str(value), encrypted=False)
-            restored["settings"] = len(settings)
+            restored["settings"] = len(kept)
 
         secrets = data.get("secrets")
         if isinstance(secrets, dict):
@@ -149,7 +157,7 @@ def import_data(payload):
         conn.commit()
     except Exception as exc:  # noqa: BLE001 - anything at all means put it back
         conn.rollback()
-        raise ImportError_(f"Nothing was changed. The backup could not be read: {exc}") from exc
+        raise BackupError(f"Nothing was changed. The backup could not be read: {exc}") from exc
 
     return restored
 

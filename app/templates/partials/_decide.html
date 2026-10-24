@@ -1,4 +1,4 @@
-{# Three one-tap decisions: tick to add it, question mark for the maybe list, #}
+{# Three one-tap decisions: plus to add it, question mark for the maybe list, #}
 <div class="decide" role="group" aria-label="Decide about {{ title }}">
   <form method="post" action="{{ yes_url }}">
     <input type="hidden" name="next" value="{{ request.full_path }}">
@@ -7,7 +7,7 @@
             aria-label="Yes, add {{ title }} to my list">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"
            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="m5 13 4.5 4.5L19 7"/>
+        <path d="M12 5v14M5 12h14"/>
       </svg>
       <span class="decide-word">Yes</span>
     </button>

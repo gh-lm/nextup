@@ -17,7 +17,7 @@
       {% set names = provider_names(film) %}
       <div class="show-tile-badges">
         {% if names %}
-          {% for name in names[:3] %}<span class="badge badge-success">{{ name }}</span>{% endfor %}
+          {% for name in names[:3] %}<span class="badge badge-info">{{ name }}</span>{% endfor %}
         {% elif film.digital_release %}
           <span class="badge badge-info">Streaming {{ film.digital_release|short_date }}</span>
         {% else %}
@@ -48,9 +48,9 @@
 
 <section class="panel">
   <div class="panel-head">
-    <h2 style="font-size:1.25rem">Ready to watch</h2>
+    <h2>Ready to watch</h2>
     <span class="spacer"></span>
-    <span class="hint">On a streaming service in the UK, or already released for home viewing.</span>
+    <span class="hint">On a streaming service in your country, or already released for home viewing.</span>
   </div>
   {% if ready %}
     <div class="show-grid">
@@ -64,13 +64,13 @@
       {% endfor %}
     </div>
   {% else %}
-    <p class="subtle" style="margin:0">Nothing of yours has landed on streaming yet.</p>
+    <p class="subtle m-0">Nothing of yours has landed on streaming yet.</p>
   {% endif %}
 </section>
 
 <section class="panel">
   <div class="panel-head">
-    <h2 style="font-size:1.25rem">Coming to streaming</h2>
+    <h2>Coming to streaming</h2>
     <span class="spacer"></span>
     <span class="hint">Checked against TMDB every few days.</span>
   </div>
@@ -83,7 +83,7 @@
               <img src="{{ url_for('images.poster', size='w92', tmdb_path=film.poster_path.lstrip('/')) }}" alt="" loading="lazy">
             {% else %}<span class="poster-empty"></span>{% endif %}
           </a>
-          <div style="min-width:0">
+          <div class="min-0">
             <a class="show-tile-name" href="{{ url_for('movies.detail', movie_id=film.id) }}">{{ film.title }}</a>
             <div class="ep-date">
               {% if film.digital_release %}
@@ -103,13 +103,13 @@
       {% endfor %}
     </div>
   {% else %}
-    <p class="subtle" style="margin:0">Nothing waiting. Add a film you are looking forward to.</p>
+    <p class="subtle m-0">Nothing waiting. Add a film you are looking forward to.</p>
   {% endif %}
 </section>
 
 {% if seen %}
 <section class="panel">
-  <div class="panel-head"><h2 style="font-size:1.25rem">Seen</h2></div>
+  <div class="panel-head"><h2>Seen</h2></div>
   <div class="show-grid">
     {% for film in seen %}
       {{ film_tile(film, show_state=False) }}

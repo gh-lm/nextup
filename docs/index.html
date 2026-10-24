@@ -34,9 +34,9 @@
       "applicationCategory": "MultimediaApplication",
       "applicationSubCategory": "Media tracker",
       "operatingSystem": "Linux, via Docker",
-      "description": "A self-hosted tracker for TV shows and films. It records which episodes you have watched, shows the next one to watch, lists when new episodes air, tells you when a film reaches streaming in the UK, and emails you each morning.",
+      "description": "A self-hosted tracker for TV shows and films. It records which episodes you have watched, shows the next one to watch, lists when new episodes air, tells you when a film reaches streaming in your country, and emails you each morning.",
       "license": "https://www.gnu.org/licenses/gpl-3.0.html",
-      "softwareVersion": "1.5.2",
+      "softwareVersion": "1.6.0",
       "programmingLanguage": "Python",
       "isAccessibleForFree": true,
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
@@ -77,7 +77,7 @@
         {
           "@type": "Question",
           "name": "How does Nextup know when a film reaches streaming?",
-          "acceptedAnswer": { "@type": "Answer", "text": "TMDB records several release dates for a film, including the digital, physical and television ones. Nextup reads those, prefers a UK date, and falls back to Ireland then the United States. It also lists which UK subscription, free and ad-supported services carry the film, using the JustWatch data TMDB publishes." }
+          "acceptedAnswer": { "@type": "Answer", "text": "TMDB records several release dates for a film, including the digital, physical and television ones. Nextup reads those and uses the date for the country chosen in its settings, which starts as the country of your time zone. It also lists which subscription, free and ad-supported services in that country carry the film, using the JustWatch data TMDB publishes." }
         },
         {
           "@type": "Question",
@@ -192,7 +192,7 @@
       <figure>
         <div class="shot">
           <img src="images/nextup-show.webp"
-               alt="The Slow Horses page in Nextup, showing the poster, the cast, a details panel with network and episode count, and the first season's episodes listed with a tick beside each."
+               alt="The Slow Horses page in Nextup, showing the poster, the cast, a details panel with network and episode count, and the first season's episodes listed, each with a button to mark it watched."
                width="1400" height="1283" loading="lazy" decoding="async">
         </div>
       </figure>
@@ -200,13 +200,13 @@
         <h2>Catching up without forty clicks</h2>
         <p>
           Pick the last episode you remember watching and press <b>Up to here</b>.
-          Everything before it is ticked in one go. That is how you get a show
+          Everything before it is marked watched in one go. That is how you get a show
           you started three years ago back under control.
         </p>
         <p>
           Every episode has its own page too, with the still, the synopsis, the
           air date, the guest cast and the director. Episodes that have not aired
-          cannot be ticked by accident, and the progress bar counts only what has
+          cannot be marked by accident, and the progress bar counts only what has
           actually been broadcast, so a show is never quietly unfinished because
           of a Christmas special.
         </p>
@@ -222,7 +222,7 @@
         <h2>Yes, no, or maybe</h2>
         <p>
           Discover shows you what is arriving and asks one question about each of
-          it. A tick puts it on your list. A question mark parks it on the maybe
+          it. A plus puts it on your list. A question mark parks it on the maybe
           list. A cross sends it away and it does not come back.
         </p>
         <p>
@@ -235,7 +235,7 @@
       <figure>
         <div class="shot">
           <img src="images/nextup-discover.webp"
-               alt="The Discover page in Nextup, a grid of film covers each with a tick, a question mark and a cross underneath."
+               alt="The Discover page in Nextup, a grid of film covers each with a plus, a question mark and a cross underneath."
                width="1400" height="1089" loading="lazy" decoding="async">
         </div>
       </figure>
@@ -258,11 +258,11 @@
         <p>
           A cinema date is no use if you wait for things to reach a service you
           already have. Nextup reads the digital, physical and television release
-          dates a film has been given, prefers the UK one, and shows you that
-          instead.
+          dates a film has been given, picks the one for your country, and
+          shows you that instead.
         </p>
         <p>
-          It also names which UK services carry a film right now. Subscription,
+          It also names which services in your country carry a film right now. Subscription,
           free and ad-supported ones are listed. Rental and purchase are left out,
           because the question is what you can put on tonight without paying for
           it twice.
@@ -320,7 +320,7 @@
     </div>
     <ul class="plain-list">
       <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>Artwork is fetched once and then served by Nextup itself.</b> Covers are cached in your data directory, so no page in the app ever points your browser at a third-party host, and the email carries its pictures inside the message.</span></li>
-      <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>The only outbound calls are to TMDB</b>, made by your server, to look up the shows and films you asked for and to ask when a film reaches streaming.</span></li>
+      <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>The only outbound calls are to TMDB and your own mail server</b>, both made by your server: TMDB to look up the shows and films you asked for and when a film reaches streaming, and your mail server only if you turn on the morning email.</span></li>
       <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>No analytics, no telemetry, no crash reporting</b> and no third-party scripts, in the app or on this page. The only script here that is not part of the page is the Lightmorphic apps menu, which is ours and reports nothing.</span></li>
       <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>No account with us</b>, because there is no us. Nextup has no server of its own to phone.</span></li>
       <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>One cookie, and it is yours.</b> It keeps you signed in. It never leaves your server and it tracks nothing.</span></li>
@@ -364,7 +364,16 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
     container_name: nextup
     restart: unless-stopped
     ports:
-      - "4090:8080"
+      - "127.0.0.1:4090:8080"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    mem_limit: 512m
+    pids_limit: 128
+    tmpfs:
+      - /tmp
     volumes:
       - /opt/nextup:/data
       - /etc/localtime:/etc/localtime:ro</code></pre>
@@ -376,8 +385,8 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
           <h3>Sign in and change the password</h3>
           <p>
             Open it in a browser and sign in with <code>admin</code> and
-            <code>nextup</code>. The app keeps telling you off until you change
-            both, which is the idea.
+            <code>nextup</code>. Nothing else opens until you choose your own
+            password, which is the idea.
           </p>
         </div>
       </li>
@@ -438,7 +447,7 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
       </div>
       <div>
         <dt>How does it know when a film reaches streaming?</dt>
-        <dd>TMDB records several release dates for a film, including the digital, physical and television ones. Nextup reads those, prefers a UK date, and falls back to Ireland then the United States. It also lists which UK subscription, free and ad-supported services carry the film, using the JustWatch data TMDB publishes. Rental and purchase are left out.</dd>
+        <dd>TMDB records several release dates for a film, including the digital, physical and television ones. Nextup reads those and uses the date for the country chosen in its settings, which starts as the country of your time zone. It also lists which subscription, free and ad-supported services in that country carry the film, using the JustWatch data TMDB publishes. Rental and purchase are left out.</dd>
       </div>
       <div>
         <dt>Can I keep a list of shows I might watch one day?</dt>
@@ -545,7 +554,7 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
           &copy; Lightmorphic Ltd. Registered in England and Wales, company number
           17423646.<br>
           Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.<br>
-          Page last updated: <time datetime="2026-10-17">17 October 2026</time>.
+          Page last updated: <time datetime="2026-10-24">24 October 2026</time>.
         </p>
         <nav aria-label="Legal">
           <a href="privacy.html">Privacy</a>

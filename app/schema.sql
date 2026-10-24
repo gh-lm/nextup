@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS movie (
     runtime              INTEGER,
     vote_average         REAL,
     digital_release      TEXT,   -- the date it lands on streaming or download
-    providers            TEXT,   -- UK streaming services, one per line
+    providers            TEXT,   -- streaming services in the chosen country, one per line
     provider_link        TEXT,   -- TMDB's "where to watch" page
     providers_checked_at TEXT,
     synced_at            TEXT

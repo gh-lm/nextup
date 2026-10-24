@@ -9,9 +9,8 @@
   </div>
 </div>
 
-<form class="panel" action="{{ url_for('main.search') }}" method="get" role="search"
-      style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
-  <div class="field" style="flex:1; min-width:240px; margin:0;">
+<form class="panel search-form" action="{{ url_for('main.search') }}" method="get" role="search">
+  <div class="field">
     <label for="term">What are you looking for?</label>
     <input id="term" name="q" type="search" value="{{ term }}" autocomplete="off"
            placeholder="A show or film title" {% if not term %}autofocus{% endif %}>
@@ -20,12 +19,12 @@
 </form>
 
 {% if error %}
-  <p class="note note-error" style="margin-top:20px"><span class="note-mark" aria-hidden="true">!</span><span>{{ error }}</span></p>
+  <p class="note note-error mt-20">{{ error }}</p>
 {% endif %}
 
 {% if term and not error %}
   {% if results %}
-    <div class="result-grid" style="margin-top:20px">
+    <div class="result-grid mt-20">
       {% for item in results %}
         {% set target = url_for('shows.detail', show_id=item.id) if item.kind == 'tv' else url_for('movies.detail', movie_id=item.id) %}
         <article class="result">
@@ -35,13 +34,13 @@
                    alt="" loading="lazy">
             {% else %}<span class="poster-empty">{{ item.title }}</span>{% endif %}
           </a>
-          <div style="min-width:0">
+          <div class="min-0">
             <a class="watch-card-show" href="{{ target }}">{{ item.title }}</a>
             <div class="watch-card-meta">
               <span class="badge {{ 'badge-accent' if item.kind == 'tv' else '' }}">{{ 'TV show' if item.kind == 'tv' else 'Film' }}</span>
               {% if item.date %}<span class="badge">{{ item.date|year }}</span>{% endif %}
               {% if item.vote_average %}<span class="badge">{{ icons.star() }}{{ '%.1f'|format(item.vote_average) }}</span>{% endif %}
-              {% if item.tracked %}<span class="badge badge-success">On your list</span>{% endif %}
+              {% if item.tracked %}<span class="badge">On your list</span>{% endif %}
             </div>
             {% if item.overview %}<p>{{ item.overview }}</p>{% endif %}
           </div>
@@ -53,7 +52,7 @@
                 <button class="btn btn-primary btn-small" type="submit">Add</button>
               </form>
               {% if item.kind == 'tv' %}
-                <form method="post" action="{{ url_for('shows.track', show_id=item.id) }}" style="margin-top:8px">
+                <form method="post" action="{{ url_for('shows.track', show_id=item.id) }}" class="mt-8">
                   <input type="hidden" name="next" value="{{ request.full_path }}">
                   <input type="hidden" name="list" value="maybe">
                   <button class="btn btn-small" type="submit"
@@ -80,9 +79,9 @@
       </div>
     {% endif %}
   {% else %}
-    <div class="panel" style="margin-top:20px">
+    <div class="panel mt-20">
       <div class="empty">
-        <h3>Nothing found</h3>
+        <h2>Nothing found</h2>
         <p>TMDB has no show or film matching that. Try a shorter title.</p>
       </div>
     </div>

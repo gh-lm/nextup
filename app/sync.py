@@ -1,11 +1,21 @@
 """Pulling show and episode data from TMDB into the local database."""
 import threading
+import time
 from datetime import datetime, timedelta, timezone
 
-from . import clock, config, db, tmdb
+from . import clock, config, db, secretstore, tmdb
 
 _sync_lock = threading.Lock()
 _running = False
+
+def _age(stamp):
+    try:
+        then = datetime.fromisoformat(stamp)
+    except (TypeError, ValueError):
+        return None
+    if then.tzinfo is None:
+        then = then.replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc) - then
 
 def _network_name(payload):
     networks = payload.get("networks") or []
@@ -137,7 +147,7 @@ def upsert_movie(payload):
 
 def sync_movie_availability(movie_id):
     digital = tmdb.digital_release_date(tmdb.movie_release_dates(movie_id))
-    names, link = tmdb.uk_providers(tmdb.movie_providers(movie_id))
+    names, link = tmdb.watch_providers(tmdb.movie_providers(movie_id))
 
     db.execute(
         "UPDATE movie SET digital_release = COALESCE(?, digital_release),"
@@ -155,15 +165,9 @@ def sync_all_movies(force=False):
     )
     done = 0
     for row in rows:
-        if not force and row["providers_checked_at"]:
-            try:
-                last = datetime.fromisoformat(row["providers_checked_at"])
-                if last.tzinfo is None:
-                    last = last.replace(tzinfo=timezone.utc)
-                if datetime.now(timezone.utc) - last < timedelta(days=3):
-                    continue
-            except ValueError:
-                pass
+        age = _age(row["providers_checked_at"])
+        if not force and age is not None and age < timedelta(days=3):
+            continue
         try:
             sync_movie_availability(row["id"])
             done += 1
@@ -172,15 +176,9 @@ def sync_all_movies(force=False):
     return done
 
 def _needs_refresh(row, force):
-    if force or not row["synced_at"]:
+    age = _age(row["synced_at"])
+    if force or age is None:
         return True
-    try:
-        last = datetime.fromisoformat(row["synced_at"])
-    except ValueError:
-        return True
-    if last.tzinfo is None:
-        last = last.replace(tzinfo=timezone.utc)
-    age = datetime.now(timezone.utc) - last
     ended = (row["status"] or "").lower() in {"ended", "canceled", "cancelled"}
     return age > timedelta(days=14) if ended else age > timedelta(hours=config.SYNC_INTERVAL_HOURS)
 
@@ -188,14 +186,13 @@ def sync_all(force=False):
     global _running
     if not _sync_lock.acquire(blocking=False):
         return (0, 0, ["A sync is already running."])
-    _running = True
     done = skipped = 0
     errors = []
-    run = db.execute(
-        "INSERT INTO sync_run (started_at) VALUES (?)", (clock.now_iso(),)
-    )
-    run_id = run.lastrowid
     try:
+        _running = True
+        run_id = db.execute(
+            "INSERT INTO sync_run (started_at) VALUES (?)", (clock.now_iso(),)
+        ).lastrowid
         rows = db.query(
             "SELECT s.id, s.name, s.status, s.synced_at FROM show s"
             " JOIN tracked_show t ON t.show_id = s.id"
@@ -213,7 +210,7 @@ def sync_all(force=False):
                     errors.append(f"{row['name']}: season {seasons} could not be fetched")
                 else:
                     done += 1
-            except tmdb.TmdbError as exc:
+            except Exception as exc:  # noqa: BLE001 - one bad show must not stop the rest
                 errors.append(f"{row['name']}: {exc}")
         try:
             sync_all_movies(force=force)
@@ -245,7 +242,7 @@ def last_run():
     )
 
 def start_now(app, force=True):
-    if _running:
+    if _sync_lock.locked():
         return False
 
     def work():
@@ -261,19 +258,15 @@ def start_now(app, force=True):
 def start_background(app):
 
     def loop():
-        import time
-
         time.sleep(20)
         while True:
             with app.app_context():
                 try:
-                    from . import secretstore
-
                     if secretstore.has("tmdb_api_key"):
                         sync_all(force=False)
                 except Exception:
                     app.logger.exception("Background sync failed")
-            time.sleep(max(1, config.SYNC_INTERVAL_HOURS) * 3600)
+            time.sleep(config.SYNC_INTERVAL_HOURS * 3600)
 
     thread = threading.Thread(target=loop, name="nextup-sync", daemon=True)
     thread.start()

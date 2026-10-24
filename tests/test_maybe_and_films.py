@@ -96,8 +96,10 @@ def test_films_arriving_only_covers_the_window(app):
         _seed_film(app, 812, "Much later", digital=later)
         assert [row["id"] for row in queries.films_arriving(days=60)] == [811]
 
-def test_digital_release_prefers_a_uk_date():
+def test_digital_release_prefers_the_chosen_country(monkeypatch):
     from app import tmdb
+
+    monkeypatch.setattr(tmdb, "country", lambda: "GB")
 
     payload = {
         "results": [
@@ -111,9 +113,13 @@ def test_digital_release_prefers_a_uk_date():
         ]
     }
     assert tmdb.digital_release_date(payload) == "2026-03-15"
+    monkeypatch.setattr(tmdb, "country", lambda: None)
+    assert tmdb.digital_release_date(payload) == "2026-02-01"
 
-def test_digital_release_ignores_cinema_dates():
+def test_digital_release_ignores_cinema_dates(monkeypatch):
     from app import tmdb
+
+    monkeypatch.setattr(tmdb, "country", lambda: "GB")
 
     payload = {"results": [
         {"iso_3166_1": "GB", "release_dates": [
@@ -122,8 +128,10 @@ def test_digital_release_ignores_cinema_dates():
     ]}
     assert tmdb.digital_release_date(payload) is None
 
-def test_providers_read_the_uk_list_and_skip_rentals():
+def test_providers_read_the_chosen_country_and_skip_rentals(monkeypatch):
     from app import tmdb
+
+    monkeypatch.setattr(tmdb, "country", lambda: "GB")
 
     payload = {"results": {"GB": {
         "link": "https://www.themoviedb.org/movie/1/watch",
@@ -132,7 +140,7 @@ def test_providers_read_the_uk_list_and_skip_rentals():
         "rent": [{"provider_name": "Apple TV"}],
         "buy": [{"provider_name": "Amazon Video"}],
     }}}
-    names, link = tmdb.uk_providers(payload)
+    names, link = tmdb.watch_providers(payload)
     assert names == ["Netflix", "ITVX"]
     assert "themoviedb.org" in link
 
