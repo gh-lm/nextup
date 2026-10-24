@@ -162,16 +162,22 @@ def test_the_search_box_names_its_shortcut_and_it_needs_a_modifier(seeded):
     box = [i for i in _page(seeded, "/").find_all("input") if i.attrs.get("id") == "q"][0]
     assert box.attrs["aria-keyshortcuts"] == "Alt+/"
 
-def test_the_dashboard_draws_a_chart_beside_every_number(seeded):
-    seeded.post("/show/900/season/1/watch", data={"mode": "watch"})
+def test_the_dashboard_shows_an_icon_not_a_chart_beside_every_number(seeded):
     page = _page(seeded, "/")
     stats = [n for n in page.find_all("div") if n.has_class("stat")]
     assert len(stats) == 4
-    labels = [s.find_all("svg")[0].attrs["aria-label"] for s in stats]
-    assert labels[0] == "1 of 1 shows have an episode to watch"
-    assert labels[1].endswith(": 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2")
-    assert labels[3] == "1 films to watch and 0 watched"
-    assert all(s.find_all("svg")[0].attrs.get("role") == "img" for s in stats)
+    assert all(len(s.find_all("svg")) == 1 and s.find_all("svg")[0].attrs.get("aria-hidden") == "true" for s in stats)
+    assert not [n for n in page.find_all("div") if n.has_class("progress")]
+
+def test_the_last_refresh_says_what_the_problems_were(seeded, app):
+    from app import db
+    with app.app_context():
+        db.execute(
+            "INSERT INTO sync_run (started_at, shows_done, status, message)"
+            " VALUES ('2026-10-24T09:00:00', 3, 'error', 'A Show: season 2 could not be fetched; Films: timed out')"
+        )
+    text = seeded.get("/").get_data(as_text=True)
+    assert "A Show: season 2 could not be fetched" in text and "Films: timed out" in text
 
 def test_a_sign_in_error_is_red_words_under_the_password_in_space_already_kept(client):
     empty = parse(client.get("/login").get_data(as_text=True))

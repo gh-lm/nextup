@@ -3,6 +3,15 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.6.2], 2026-10-24
+
+Dashboard clean-up.
+
+- **The dashboard numbers carry a plain icon** instead of a ring or small bar
+  chart, and the Next up list no longer shows a progress bar on each show.
+- **The Last refresh panel says what the problems were,** one line each,
+  instead of only the word "problems".
+
 ## [1.6.1], 2026-10-24
 
 Small tidy-ups to the show page and the progress bars.

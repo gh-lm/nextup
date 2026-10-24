@@ -20,7 +20,6 @@
   --accent-container: #4b3c05;  --on-accent-container: #fde694;
 
   --link: #2295f1;  --link-hover: #8c7cff;
-  --chart-track: #3f4255;
   --danger: #f55a4f;   --danger-bg: #350f0c;
   --danger-solid: #d6302a;  --danger-solid-hover: #bf2923;
   --warning: #ffc006;  --warning-bg: #382a01;
@@ -249,13 +248,8 @@ textarea { min-height: 120px; resize: vertical; }
         background: var(--panel); border: 1px solid var(--panel-border);
         box-shadow: var(--shadow-panel);
         display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.chart { flex: none; height: 44px; }
-.chart-columns { width: 88px; }
-.chart-ring { width: 44px; }
-.chart-base { fill: var(--chart-track); stroke: var(--chart-track); }
-.chart-bar { fill: var(--accent); stroke: var(--accent); }
-.chart-columns .chart-base, .chart-columns .chart-bar { stroke: none; }
-.chart-ring .chart-base, .chart-ring .chart-bar { fill: none; }
+.sync-problems { margin: 10px 0 0; padding-left: 18px; color: var(--muted-fg); font-size: 0.875rem; overflow-wrap: anywhere; }
+.stat-icon { flex: none; display: flex; color: var(--muted-fg); font-size: 2rem; }
 .stat-value { font-size: 1.875rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
 .stat-label { font-size: 0.8125rem; color: var(--muted-fg); font-weight: 600;
               text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }

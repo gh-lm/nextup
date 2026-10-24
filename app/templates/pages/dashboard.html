@@ -1,5 +1,5 @@
 {% extends 'layout/base.html' %}
-{% import 'partials/_charts.html' as charts %}
+{% import 'partials/_icons.html' as icons %}
 {% block title %}Next up | Nextup{% endblock %}
 {% block body %}
 
@@ -39,32 +39,28 @@
       <div class="stat-value">{{ counts.shows }}</div>
       <div class="stat-label">Shows tracked</div>
     </div>
-    {{ charts.ring(chart.shows_waiting, counts.shows,
-                   chart.shows_waiting ~ " of " ~ counts.shows ~ " shows have an episode to watch") }}
+    <span class="stat-icon">{{ icons.tv() }}</span>
   </div>
   <div class="stat">
     <div>
       <div class="stat-value">{{ counts.episodes_watched }}</div>
       <div class="stat-label">Episodes watched</div>
     </div>
-    {{ charts.columns(chart.episodes, "Episodes watched in each of the last 12 weeks, oldest first: "
-                      ~ chart.episodes|join(", ")) }}
+    <span class="stat-icon">{{ icons.eye() }}</span>
   </div>
   <div class="stat">
     <div>
       <div class="stat-value">{{ counts.minutes_watched|runtime_hours }}</div>
       <div class="stat-label">Time watched</div>
     </div>
-    {{ charts.columns(chart.minutes, "Time watched in each of the last 12 weeks, oldest first: "
-                      ~ chart.minutes|map("runtime_hours")|join(", ")) }}
+    <span class="stat-icon">{{ icons.clock() }}</span>
   </div>
   <div class="stat">
     <div>
       <div class="stat-value">{{ counts.movies_to_watch }}</div>
       <div class="stat-label">Films to watch</div>
     </div>
-    {{ charts.ring(counts.movies_to_watch, counts.movies_to_watch + chart.films_watched,
-                   counts.movies_to_watch ~ " films to watch and " ~ chart.films_watched ~ " watched") }}
+    <span class="stat-icon">{{ icons.film() }}</span>
   </div>
 </div>
 
@@ -94,12 +90,6 @@
                     <span class="badge badge-warning">{{ item.progress.remaining }} behind</span>
                   {% endif %}
                 </div>
-                {% if item.lead %}
-                  <div class="progress" role="img"
-                       aria-label="{{ item.progress.watched }} of {{ item.progress.aired }} aired episodes watched">
-                    <span style="width: {{ item.progress.percent }}%"></span>
-                  </div>
-                {% endif %}
               </div>
               <div class="watch-card-actions">
                 <form method="post" action="{{ url_for('shows.watch_episode', episode_id=ep.id) }}">
@@ -243,6 +233,11 @@
         {% elif last_sync.status == 'error' %}<span class="badge badge-danger">problems</span>
         {% else %}<span class="badge">running</span>{% endif %}
       </p>
+      {% if last_sync.status == 'error' and last_sync.message %}
+        <ul class="sync-problems">
+          {% for line in last_sync.message.split('; ') %}<li>{{ line }}</li>{% endfor %}
+        </ul>
+      {% endif %}
     </section>
     {% endif %}
   </aside>
