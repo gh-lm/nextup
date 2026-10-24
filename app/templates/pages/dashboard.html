@@ -94,8 +94,8 @@
               <div class="watch-card-actions">
                 <form method="post" action="{{ url_for('shows.watch_episode', episode_id=ep.id) }}">
                   <input type="hidden" name="next" value="{{ request.full_path }}">
-                  <button class="btn btn-primary btn-small" type="submit" name="to" value="1">
-                    Watched
+                  <button class="btn btn-small btn-block" type="submit" name="to" value="1">
+                    Mark watched
                   </button>
                 </form>
                 <form method="post"
@@ -135,8 +135,8 @@
               <div class="watch-card-actions">
                 <form method="post" action="{{ url_for('movies.watched', movie_id=film.id) }}">
                   <input type="hidden" name="next" value="{{ request.full_path }}">
-                  <button class="btn btn-primary btn-small" type="submit" name="to" value="1">
-                    Watched
+                  <button class="btn btn-small btn-block" type="submit" name="to" value="1">
+                    Mark watched
                   </button>
                 </form>
                 <a class="btn btn-small btn-block" href="{{ url_for('movies.detail', movie_id=film.id) }}">Open</a>

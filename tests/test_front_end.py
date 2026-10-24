@@ -214,3 +214,8 @@ def test_watched_buttons_carry_the_word_with_no_tick_or_green(seeded):
         assert "badge-success" not in seeded.get(path).get_data(as_text=True), path
     css = (TEMPLATES.parent / "static" / "css" / "main.css").read_text()
     assert "--success" not in css and ".tick" not in css
+
+def test_a_button_that_asks_you_to_mark_something_never_says_just_watched(seeded):
+    page = _page(seeded, "/")
+    labels = [b.text for b in page.find_all("button") if b.attrs.get("name") == "to"]
+    assert labels and "Watched" not in labels
