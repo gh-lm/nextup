@@ -235,7 +235,7 @@ def watch_providers(payload):
                 names.append(name)
     return (names, safe_url(region.get("link"))) if names else ([], None)
 
-def discover_films_reaching_streaming(start, end, page=1):
+def discover_films_reaching_streaming(start, end, page=1, language=None):
     params = {
         "with_release_type": "4|6",
         "release_date.gte": start,
@@ -248,25 +248,33 @@ def discover_films_reaching_streaming(start, end, page=1):
     }
     if country():
         params["region"] = country()
+    if language:
+        params["with_original_language"] = language
     return _get("/discover/movie", params)
 
-def discover_new_series(start, end, page=1):
-    return _get("/discover/tv", {
+def discover_new_series(start, end, page=1, language=None):
+    params = {
         "first_air_date.gte": start,
         "first_air_date.lte": end,
         "sort_by": "popularity.desc",
         "include_adult": "false",
         "page": page,
-    })
+    }
+    if language:
+        params["with_original_language"] = language
+    return _get("/discover/tv", params)
 
-def discover_returning_series(start, end, page=1):
-    return _get("/discover/tv", {
+def discover_returning_series(start, end, page=1, language=None):
+    params = {
         "air_date.gte": start,
         "air_date.lte": end,
         "sort_by": "popularity.desc",
         "include_adult": "false",
         "page": page,
-    })
+    }
+    if language:
+        params["with_original_language"] = language
+    return _get("/discover/tv", params)
 
 def cast_from(payload, limit=14):
     credits = payload.get("aggregate_credits") or payload.get("credits") or {}

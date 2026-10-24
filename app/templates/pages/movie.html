@@ -15,7 +15,7 @@
       <div class="show-hero-meta">
         {% if movie.release_date %}<span class="badge">{{ movie.release_date|year }}</span>{% endif %}
         {% if movie.runtime %}<span class="badge">{{ movie.runtime }} min</span>{% endif %}
-        {% if movie.original_language|language %}<span class="badge">{{ movie.original_language|language }}</span>{% endif %}
+        {% if movie.original_language|language %}<span class="lang-tag">{{ movie.original_language|language }}</span>{% endif %}
         {% if extras.certification %}<span class="badge">{{ extras.certification }}</span>{% endif %}
         {% for genre in extras.genres %}<span class="badge">{{ genre }}</span>{% endfor %}
         {% if movie.vote_average %}<span class="badge">{{ icons.star() }}{{ '%.1f'|format(movie.vote_average) }}</span>{% endif %}

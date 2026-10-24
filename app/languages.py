@@ -19,6 +19,17 @@ NAMES = {
 
 UNLABELLED = {"en", "xx", ""}
 
+def show_all():
+    from . import secretstore
+
+    return secretstore.get("watch_all_languages", "1") != "0"
+
+def watched():
+    from . import secretstore
+
+    chosen = [c for c in (secretstore.get("watch_languages") or "").split(",") if c in NAMES and c != "en"]
+    return ["en"] + chosen
+
 def label(code):
     code = (code or "").strip().lower()
     if code in UNLABELLED:

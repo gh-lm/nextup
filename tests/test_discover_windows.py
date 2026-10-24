@@ -8,7 +8,7 @@ def test_discover_movies_split_days_ahead_from_the_last_two_weeks(signed_in, mon
     past_day = (today - timedelta(days=5)).isoformat()
     calls = []
 
-    def fake_discover(start, end, page=1):
+    def fake_discover(start, end, page=1, language=None):
         calls.append((start, end))
         if end >= today.isoformat() and start == today.isoformat():
             return {"results": [

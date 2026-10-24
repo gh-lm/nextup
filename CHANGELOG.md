@@ -3,6 +3,10 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.6.11], 2026-10-24
+
+- **The language of a show or movie now sits at the right of its card in a small outlined label, instead of next to the date. It looks like a button but cannot be pressed. A new Languages setting lets you keep Discover to English and the languages you add; it starts on every language, so nothing changes until you switch it off.**
+
 ## [1.6.10], 2026-10-24
 
 - **The address used for links in the morning email is no longer typed in. Settings shows the address you opened the page at, and the email uses it. The Settings cards are also rebalanced so the three columns end at about the same height instead of leaving a big gap at the bottom.**

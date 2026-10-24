@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 
-from .. import clock, db, queries, sync, tmdb
+from .. import clock, db, languages, queries, sync, tmdb
 from ..auth import login_required
 from ..forms import whole_number
 from ..redirects import back_to
@@ -25,9 +25,15 @@ def _window(default=DEFAULT_DAYS):
     return days, today.isoformat(), (today + timedelta(days=days)).isoformat()
 
 def _collect(fetch, start, end, wanted=40):
+    items = []
+    for code in ([None] if languages.show_all() else languages.watched()):
+        items.extend(_collect_language(fetch, start, end, code, wanted))
+    return items
+
+def _collect_language(fetch, start, end, code, wanted):
     items, page = [], 1
     while len(items) < wanted and page <= MAX_PAGES:
-        payload = fetch(start, end, page=page)
+        payload = fetch(start, end, page=page, language=code)
         results = payload.get("results", [])
         if not results:
             break
