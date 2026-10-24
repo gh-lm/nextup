@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.7.0-fbc711?style=flat-square&labelColor=282b34" alt="Version 1.7.0" />
+  <img src="https://img.shields.io/badge/version-1.7.1-fbc711?style=flat-square&labelColor=282b34" alt="Version 1.7.1" />
   <img src="https://img.shields.io/badge/licence-GPL%20v3-7fd99a?style=flat-square&labelColor=282b34" alt="GPL v3" />
   <img src="https://img.shields.io/badge/image-ghcr.io-5eb6ff?style=flat-square&labelColor=282b34" alt="Image on ghcr.io" />
   <img src="https://img.shields.io/badge/tracking-none-c2c2cc?style=flat-square&labelColor=282b34" alt="No tracking" />
@@ -113,7 +113,7 @@ travel inside the message, so it reads properly with no signal.
 
 <table>
 <tr>
-<td width="50%"><img src="docs/images/nextup-email.webp" alt="The morning email, headed Ready to watch, listing two episodes and a movie" /></td>
+<td width="50%"><img src="docs/images/nextup-email.webp" alt="The morning email, headed Ready to watch, showing an episode with its cover and description" /></td>
 <td width="50%"><img src="docs/images/nextup-films.webp" alt="The movies list split into ready to watch, coming to streaming, and seen" /></td>
 </tr>
 <tr>
