@@ -10,7 +10,7 @@
   <div class="btn-row">
     <span class="cal-key">
       <span class="cal-key-swatch cal-key-tv" aria-hidden="true"></span> Episodes
-      <span class="cal-key-swatch cal-key-film" aria-hidden="true"></span> Films
+      <span class="cal-key-swatch cal-key-film" aria-hidden="true"></span> Movies
     </span>
     <a class="btn btn-small" href="{{ url_for('main.calendar_view', y=prev_month.year, m=prev_month.month) }}">Previous</a>
     <a class="btn btn-small" href="{{ url_for('main.calendar_view') }}">This month</a>
@@ -23,7 +23,7 @@
     <table class="calendar">
       <caption>
         {{ month_label }}. Yellow entries are episodes of your shows, blue ones
-        are films reaching home viewing. Each is labelled, and faded entries are
+        are movies reaching home viewing. Each is labelled, and faded entries are
         ones you have already watched.
       </caption>
       <thead>
@@ -48,7 +48,7 @@
                      href="{{ url_for('movies.detail', movie_id=film.id) }}"
                      title="{{ film.title }}">
                     {{ film.title }}
-                    <small>Film{% if film.watched_at %} watched{% endif %}</small>
+                    <small>Movie{% if film.watched_at %} watched{% endif %}</small>
                   </a>
                 {% endfor %}
               </td>

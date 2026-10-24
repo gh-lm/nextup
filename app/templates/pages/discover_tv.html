@@ -13,13 +13,15 @@
       {% endif %}
     </p>
   </div>
-  <span class="spacer"></span>
+</div>
+
+<div class="toolbar-row">
+<div class="panel toolbar toolbar-switch">
   <nav class="tabs" aria-label="Discover">
-    <a href="{{ url_for('discover.films') }}">Films</a>
+    <a href="{{ url_for('discover.films') }}">Movies</a>
     <a href="{{ url_for('discover.tv') }}" class="current" aria-current="page">TV</a>
   </nav>
 </div>
-
 <div class="panel toolbar">
   <nav class="tabs" aria-label="Which series">
     <a href="{{ url_for('discover.tv', mode='new', days=days) }}"
@@ -48,6 +50,7 @@
       </button>
     </form>
   {% endif %}
+</div>
 </div>
 
 {% if error %}

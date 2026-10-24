@@ -3,6 +3,18 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.6.4], 2026-10-24
+
+- **Coming soon includes your movies.** On the front page and on the Coming
+  soon page, a movie sits on the day it reaches streaming, among the episodes,
+  instead of in a panel of its own.
+- **Films are now called movies** everywhere you can see the word: menus,
+  pages, buttons, the morning email and the help pages. Your data is unchanged.
+- **Maybe has a TV | Movies switch,** like Discover, so shows and movies are
+  no longer stacked on one long page.
+- **On Discover, the Movies | TV switch has its own card,** beside the days
+  card, instead of sitting in the page heading.
+
 ## [1.6.3], 2026-10-24
 
 - **The button on a Next up card says "Mark watched"** for an episode or a film

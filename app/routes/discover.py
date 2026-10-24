@@ -185,8 +185,8 @@ def decide_film(movie_id, action):
     except tmdb.TmdbError:
         pass
     flash(
-        f"{payload.get('title') or 'The film'} added to your "
-        f"{'maybe list' if action == 'maybe' else 'films'}.",
+        f"{payload.get('title') or 'The movie'} added to your "
+        f"{'maybe list' if action == 'maybe' else 'movies'}.",
         "success",
     )
     return back_to("discover.films")

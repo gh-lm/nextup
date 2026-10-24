@@ -10,13 +10,21 @@
   <a class="btn btn-primary" href="{{ url_for('main.search') }}">Find something</a>
 </div>
 
-{% if shows or films %}
+<div class="toolbar-row">
+<div class="panel toolbar toolbar-switch">
+  <nav class="tabs" aria-label="Maybe list">
+    <a href="{{ url_for('shows.maybe', kind='tv') }}"{% if kind == 'tv' %} class="current" aria-current="page"{% endif %}>TV ({{ shows|length }})</a>
+    <a href="{{ url_for('shows.maybe', kind='movies') }}"{% if kind == 'movies' %} class="current" aria-current="page"{% endif %}>Movies ({{ films|length }})</a>
+  </nav>
+</div>
+</div>
+
+{% if kind == 'tv' and shows or kind == 'movies' and films %}
 <p class="hint mb-20">
   Nothing here shows up in Next up, the calendar or Coming soon. When you decide
-  to watch one, press Start watching and it joins your shows.
+  to watch one, press Start watching and it joins your {{ 'shows' if kind == 'tv' else 'movies' }}.
 </p>
-{% if shows %}
-<h2 class="h-section">Shows</h2>
+{% if kind == 'tv' %}
 <div class="show-grid">
   {% for item in shows %}
     {% set show = item.show %}
@@ -44,10 +52,8 @@
     </article>
   {% endfor %}
 </div>
-{% endif %}
 
-{% if films %}
-<h2 class="h-section mt-32">Films</h2>
+{% else %}
 <div class="show-grid">
   {% for film in films %}
     <article class="show-tile">
@@ -61,7 +67,7 @@
       <div class="show-tile-meta">{{ film.release_date|year }}</div>
       <form method="post" action="{{ url_for('movies.toggle_maybe', movie_id=film.id) }}">
         <input type="hidden" name="next" value="{{ request.full_path }}">
-        <button class="btn btn-small btn-primary btn-block" type="submit" name="maybe" value="0">Move to my films</button>
+        <button class="btn btn-small btn-primary btn-block" type="submit" name="maybe" value="0">Move to my movies</button>
       </form>
     </article>
   {% endfor %}

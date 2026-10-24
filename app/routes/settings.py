@@ -158,7 +158,7 @@ def save_country():
             return notify("country", "Your time zone does not belong to one country. Pick yours from the list.", "error")
     if code == tmdb.NO_COUNTRY:
         secretstore.set("country", tmdb.NO_COUNTRY)
-        message = "No country chosen. Films show their first home release anywhere."
+        message = "No country chosen. Movies show their first home release anywhere."
     else:
         names = dict(_country_choices())
         if code not in names:

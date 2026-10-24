@@ -1,19 +1,21 @@
 {% extends 'layout/base.html' %}
 {% import 'partials/_icons.html' as icons %}
-{% block title %}Discover films | Nextup{% endblock %}
+{% block title %}Discover movies | Nextup{% endblock %}
 {% block body %}
 <div class="page-head">
   <div>
-    <h1>Discover films</h1>
-    <p>Films reaching streaming or television in the next {{ days }} days. Cinema releases are left out.</p>
+    <h1>Discover movies</h1>
+    <p>Movies reaching streaming or television in the next {{ days }} days. Cinema releases are left out.</p>
   </div>
-  <span class="spacer"></span>
+</div>
+
+<div class="toolbar-row">
+<div class="panel toolbar toolbar-switch">
   <nav class="tabs" aria-label="Discover">
-    <a href="{{ url_for('discover.films') }}" class="current" aria-current="page">Films</a>
+    <a href="{{ url_for('discover.films') }}" class="current" aria-current="page">Movies</a>
     <a href="{{ url_for('discover.tv') }}">TV</a>
   </nav>
 </div>
-
 <div class="panel toolbar">
   <nav class="tabs" aria-label="How far ahead">
     {% for option in windows %}
@@ -31,11 +33,12 @@
       <input type="hidden" name="next" value="{{ request.full_path }}">
       <button class="btn btn-small btn-quiet" type="submit"
               title="Show what you said no to"
-              aria-label="Bring back the {{ dismissed_count }} films you said no to">
+              aria-label="Bring back the {{ dismissed_count }} movies you said no to">
         Bring back {{ dismissed_count }} hidden
       </button>
     </form>
   {% endif %}
+</div>
 </div>
 
 {% if error %}

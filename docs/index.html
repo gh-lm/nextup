@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nextup: a self-hosted TV and film tracker</title>
+<title>Nextup: a self-hosted TV and movie tracker</title>
 <meta name="description" content="Nextup remembers which episode you are on for every show you watch, tells you when the next one airs, and emails you each morning with what has become watchable. Free, open source, runs on your own server.">
 <link rel="canonical" href="https://nextup.lightmorphic.com/">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/site.css?v=bdb6c43945">
+<link rel="stylesheet" href="css/site.css?v=f378da080b">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Nextup">
-<meta property="og:title" content="Nextup: a self-hosted TV and film tracker">
+<meta property="og:title" content="Nextup: a self-hosted TV and movie tracker">
 <meta property="og:description" content="Which episode were you on? Nextup remembers, tells you when the next one airs, and emails you each morning. Free, open source, on your own server.">
 <meta property="og:url" content="https://nextup.lightmorphic.com/">
 <meta property="og:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
@@ -19,7 +19,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="The Nextup dashboard, listing TV shows with the next episode to watch.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Nextup: a self-hosted TV and film tracker">
+<meta name="twitter:title" content="Nextup: a self-hosted TV and movie tracker">
 <meta name="twitter:description" content="Which episode were you on? Nextup remembers, tells you when the next one airs, and emails you each morning.">
 <meta name="twitter:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
 
@@ -34,9 +34,9 @@
       "applicationCategory": "MultimediaApplication",
       "applicationSubCategory": "Media tracker",
       "operatingSystem": "Linux, via Docker",
-      "description": "A self-hosted tracker for TV shows and films. It records which episodes you have watched, shows the next one to watch, lists when new episodes air, tells you when a film reaches streaming in your country, and emails you each morning.",
+      "description": "A self-hosted tracker for TV shows and movies. It records which episodes you have watched, shows the next one to watch, lists when new episodes air, tells you when a movie reaches streaming in your country, and emails you each morning.",
       "license": "https://www.gnu.org/licenses/gpl-3.0.html",
-      "softwareVersion": "1.6.3",
+      "softwareVersion": "1.6.4",
       "programmingLanguage": "Python",
       "isAccessibleForFree": true,
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
@@ -76,8 +76,8 @@
         },
         {
           "@type": "Question",
-          "name": "How does Nextup know when a film reaches streaming?",
-          "acceptedAnswer": { "@type": "Answer", "text": "TMDB records several release dates for a film, including the digital, physical and television ones. Nextup reads those and uses the date for the country chosen in its settings, which starts as the country of your time zone. It also lists which subscription, free and ad-supported services in that country carry the film, using the JustWatch data TMDB publishes." }
+          "name": "How does Nextup know when a movie reaches streaming?",
+          "acceptedAnswer": { "@type": "Answer", "text": "TMDB records several release dates for a movie, including the digital, physical and television ones. Nextup reads those and uses the date for the country chosen in its settings, which starts as the country of your time zone. It also lists which subscription, free and ad-supported services in that country carry the movie, using the JustWatch data TMDB publishes." }
         },
         {
           "@type": "Question",
@@ -135,7 +135,7 @@
       <p class="lede">
         Nextup remembers, for every show you watch, wherever you watched it. It
         works out what is waiting, tells you when the next one airs, and lets you
-        know when a film you wanted finally turns up on something you already pay
+        know when a movie you wanted finally turns up on something you already pay
         for.
       </p>
       <div class="hero-actions">
@@ -150,10 +150,10 @@
   <figure>
     <div class="shot">
       <img src="images/nextup-dashboard.webp"
-           alt="The Nextup dashboard. A list of everything waiting, newest first, each line naming the episode or film and the day it came out, with how far behind you are, a progress bar and a Watched button. A panel beside it lists episodes airing in the next few days."
+           alt="The Nextup dashboard. A list of everything waiting, newest first, each line naming the episode or movie and the day it came out, with how far behind you are, a progress bar and a Watched button. A panel beside it lists episodes airing in the next few days."
            width="1800" height="1250" fetchpriority="high" decoding="async">
     </div>
-    <figcaption>The first screen. Everything that has come out and is still waiting, newest first, films among the episodes.</figcaption>
+    <figcaption>The first screen. Everything that has come out and is still waiting, newest first, movies among the episodes.</figcaption>
   </figure>
 </div>
 
@@ -164,7 +164,7 @@
         <h2>One email, every morning</h2>
         <p>
           A short message listing what became watchable overnight. The cover of
-          each show and film, a couple of sentences about it, which channel or
+          each show and movie, a couple of sentences about it, which channel or
           service it is on, and a link straight to it. If nothing became
           available, nothing is sent.
         </p>
@@ -178,7 +178,7 @@
       <figure class="letter">
         <div class="shot">
           <img src="images/nextup-email.webp"
-               alt="The Nextup morning email, headed Ready to watch, listing two television episodes and a film, each with its cover, the channel or service it is on and a short description."
+               alt="The Nextup morning email, headed Ready to watch, listing two television episodes and a movie, each with its cover, the channel or service it is on and a short description."
                width="760" height="900" loading="lazy" decoding="async">
         </div>
       </figure>
@@ -226,7 +226,7 @@
           list. A cross sends it away and it does not come back.
         </p>
         <p>
-          The film list asks for home releases rather than cinema ones, so it
+          The movie list asks for home releases rather than cinema ones, so it
           answers the question someone who does not go to the cinema is actually
           asking. A cross deletes nothing: the title still turns up in a search,
           and one button brings back everything you dismissed.
@@ -235,7 +235,7 @@
       <figure>
         <div class="shot">
           <img src="images/nextup-discover.webp"
-               alt="The Discover page in Nextup, a grid of film covers each with a plus, a question mark and a cross underneath."
+               alt="The Discover page in Nextup, a grid of movie covers each with a plus, a question mark and a cross underneath."
                width="1400" height="1089" loading="lazy" decoding="async">
         </div>
       </figure>
@@ -249,20 +249,20 @@
       <figure>
         <div class="shot">
           <img src="images/nextup-films.webp"
-               alt="The Films page in Nextup, split into Ready to watch with service names under each cover, and Coming to streaming listing films with the date they arrive."
+               alt="The Movies page in Nextup, split into Ready to watch with service names under each cover, and Coming to streaming listing movies with the date they arrive."
                width="1400" height="1089" loading="lazy" decoding="async">
         </div>
       </figure>
       <div>
-        <h2>Films, and when you can actually watch them</h2>
+        <h2>Movies, and when you can actually watch them</h2>
         <p>
           A cinema date is no use if you wait for things to reach a service you
           already have. Nextup reads the digital, physical and television release
-          dates a film has been given, picks the one for your country, and
+          dates a movie has been given, picks the one for your country, and
           shows you that instead.
         </p>
         <p>
-          It also names which services in your country carry a film right now. Subscription,
+          It also names which services in your country carry a movie right now. Subscription,
           free and ad-supported ones are listed. Rental and purchase are left out,
           because the question is what you can put on tonight without paying for
           it twice.
@@ -278,14 +278,14 @@
       <div>
         <h3>The month at a glance</h3>
         <p>
-          Every tracked show on the day it airs, in yellow, with films reaching
+          Every tracked show on the day it airs, in yellow, with movies reaching
           home viewing in blue. Each is labelled, so the two are told apart
           without relying on colour, and anything you have watched fades back.
         </p>
         <figure>
           <div class="shot">
             <img src="images/nextup-calendar.webp"
-                 alt="A month calendar in Nextup with episodes marked in yellow and films in blue on the days they arrive."
+                 alt="A month calendar in Nextup with episodes marked in yellow and movies in blue on the days they arrive."
                  width="1400" height="972" loading="lazy" decoding="async">
           </div>
         </figure>
@@ -320,7 +320,7 @@
     </div>
     <ul class="plain-list">
       <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>Artwork is fetched once and then served by Nextup itself.</b> Covers are cached in your data directory, so no page in the app ever points your browser at a third-party host, and the email carries its pictures inside the message.</span></li>
-      <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>The only outbound calls are to TMDB and your own mail server</b>, both made by your server: TMDB to look up the shows and films you asked for and when a film reaches streaming, and your mail server only if you turn on the morning email.</span></li>
+      <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>The only outbound calls are to TMDB and your own mail server</b>, both made by your server: TMDB to look up the shows and movies you asked for and when a movie reaches streaming, and your mail server only if you turn on the morning email.</span></li>
       <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>No analytics, no telemetry, no crash reporting</b> and no third-party scripts, in the app or on this page. The only script here that is not part of the page is the Lightmorphic apps menu, which is ours and reports nothing.</span></li>
       <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>No account with us</b>, because there is no us. Nextup has no server of its own to phone.</span></li>
       <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>One cookie, and it is yours.</b> It keeps you signed in. It never leaves your server and it tracks nothing.</span></li>
@@ -446,8 +446,8 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
         <dd>Yes, and it is free. Make an account, then go straight to <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a> and copy the API Key for v3 auth. You paste it into the Settings page inside Nextup, where it is stored encrypted.</dd>
       </div>
       <div>
-        <dt>How does it know when a film reaches streaming?</dt>
-        <dd>TMDB records several release dates for a film, including the digital, physical and television ones. Nextup reads those and uses the date for the country chosen in its settings, which starts as the country of your time zone. It also lists which subscription, free and ad-supported services in that country carry the film, using the JustWatch data TMDB publishes. Rental and purchase are left out.</dd>
+        <dt>How does it know when a movie reaches streaming?</dt>
+        <dd>TMDB records several release dates for a movie, including the digital, physical and television ones. Nextup reads those and uses the date for the country chosen in its settings, which starts as the country of your time zone. It also lists which subscription, free and ad-supported services in that country carry the movie, using the JustWatch data TMDB publishes. Rental and purchase are left out.</dd>
       </div>
       <div>
         <dt>Can I keep a list of shows I might watch one day?</dt>
@@ -485,7 +485,7 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
       <div>
         <a class="wordmark" href="index.html" style="margin-bottom:.75rem"><img src="favicon.svg" alt="" width="30" height="30">Nextup</a>
         <p>
-          A self-hosted tracker for the TV shows and films you watch. Made by
+          A self-hosted tracker for the TV shows and movies you watch. Made by
           Lightmorphic and given away under the GPL.
         </p>
       </div>
@@ -546,7 +546,7 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
       <p class="sub-footer-note">
         This product uses the TMDB API but is not endorsed or certified by TMDB.
         Streaming availability is supplied by JustWatch through TMDB. Show and
-        film artwork in the screenshots comes from TMDB and belongs to its
+        movie artwork in the screenshots comes from TMDB and belongs to its
         respective owners.
       </p>
       <div class="sub-footer-inner">
@@ -567,7 +567,7 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
     </div>
   </div>
 </footer>
-<script src="js/typed.js?v=e0e18cae7d" defer></script>
+<script src="js/typed.js?v=87668e7762" defer></script>
 <script src="https://apps.lightmorphic.com/launcher.js" defer></script>
 </body>
 </html>

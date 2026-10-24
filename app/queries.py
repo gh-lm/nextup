@@ -398,6 +398,12 @@ def films_arriving(days=60):
         (clock.today(), end),
     )
 
+def coming_soon(days=21, limit=12):
+    items = [("episode", row["air_date"], row) for row in upcoming(days=days)]
+    items += [("film", row["digital_release"], row) for row in films_arriving(days=days)]
+    items.sort(key=lambda item: item[1])
+    return items[:limit]
+
 def dashboard_counts():
     row = db.query(
         """

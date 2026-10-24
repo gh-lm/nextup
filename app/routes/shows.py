@@ -43,11 +43,12 @@ def index():
 @bp.route("/maybe")
 @login_required
 def maybe():
+    kind = "movies" if request.args.get("kind") == "movies" else "tv"
     shows = []
     for row in queries.tracked_shows(shortlist=True):
         shows.append({"show": row, "next_air": queries.next_airing(row["id"])})
     return render_template(
-        "pages/maybe.html", shows=shows, films=queries.movies(shortlist=True)
+        "pages/maybe.html", kind=kind, shows=shows, films=queries.movies(shortlist=True)
     )
 
 @bp.route("/show/<int:show_id>")

@@ -45,7 +45,7 @@ def test_the_top_bar_no_longer_repeats_next_up(signed_in):
 def test_the_search_box_is_still_reachable(signed_in):
     body = signed_in.get("/").data.decode()
     assert 'id="q"' in body
-    assert "Search shows and films" in body
+    assert "Search shows and movies" in body
 
 def test_there_is_no_appearance_switch_any_more(signed_in):
     body = signed_in.get("/").data.decode()

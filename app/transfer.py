@@ -166,7 +166,7 @@ def summarise(restored):
     for table, label in (
         ("tracked_show", "show"),
         ("watched_episode", "watched episode"),
-        ("tracked_movie", "film"),
+        ("tracked_movie", "movie"),
     ):
         n = restored.get(table, 0)
         if n:

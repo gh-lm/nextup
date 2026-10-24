@@ -98,7 +98,7 @@ def test_the_digest_names_what_is_ready(app):
         secretstore.set("available_after_days", "1")
         _seed(app, air_offset_days=1, digital_offset_days=1)
         subject, text, html, _images = mailer.build_digest()
-        assert "1 episode" in subject and "1 film" in subject
+        assert "1 episode" in subject and "1 movie" in subject
         assert "Late Night Show S01E01" in text
         assert "A Late Film" in text
         assert "Late Night Show" in html

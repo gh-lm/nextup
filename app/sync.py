@@ -215,7 +215,7 @@ def sync_all(force=False):
         try:
             sync_all_movies(force=force)
         except Exception as exc:  # noqa: BLE001
-            errors.append(f"Films: {exc}")
+            errors.append(f"Movies: {exc}")
 
         db.execute(
             "UPDATE sync_run SET finished_at = ?, shows_done = ?, status = ?,"

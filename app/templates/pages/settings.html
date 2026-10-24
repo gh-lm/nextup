@@ -257,7 +257,7 @@
     <p class="subtle">
       A programme that goes out at eleven at night is not really available
       until the next day. This setting decides how long Nextup waits before it
-      puts something in Next up, moves a film into Ready to watch, and puts it
+      puts something in Next up, moves a movie into Ready to watch, and puts it
       in the morning email.
     </p>
     <form data-autosave method="post" action="{{ url_for('settings.save_availability') }}">
@@ -280,8 +280,8 @@
       <h2>Your country</h2>
     </div>
     <p class="subtle">
-      Shows and films use this country's streaming services and age ratings,
-      and films its home release date. It starts as the country of your computer's time zone when you
+      Shows and movies use this country's streaming services and age ratings,
+      and movies its home release date. It starts as the country of your computer's time zone when you
       sign in, and changing it refreshes everything.
     </p>
     {% if countries %}
@@ -335,7 +335,7 @@
       <h2>Take it with you</h2>
     </div>
     <p class="subtle">
-      One file holds every show and film you have added, everything you have
+      One file holds every show and movie you have added, everything you have
       marked as watched, the things you said no to, and how you like Nextup set
       up. Put it on another machine and you carry on where you left off, before
       it has even spoken to TMDB.
@@ -343,7 +343,7 @@
     <p class="hint">
       Right now that is {{ backup.tracked_show }} show{{ '' if backup.tracked_show == 1 else 's' }},
       {{ backup.watched_episode }} watched episode{{ '' if backup.watched_episode == 1 else 's' }},
-      {{ backup.tracked_movie }} film{{ '' if backup.tracked_movie == 1 else 's' }}
+      {{ backup.tracked_movie }} movie{{ '' if backup.tracked_movie == 1 else 's' }}
       and {{ backup.settings }} settings.
     </p>
 
@@ -385,7 +385,7 @@
   <section class="panel">
     <div class="panel-head"><h2>What is stored</h2></div>
     <p class="hint m-0">
-      {{ stats.shows }} shows, {{ stats.episodes }} episodes and {{ stats.movies }} films
+      {{ stats.shows }} shows, {{ stats.episodes }} episodes and {{ stats.movies }} movies
       cached locally. Posters are downloaded once and served from this server, so no page
       ever calls out to another site.
     </p>

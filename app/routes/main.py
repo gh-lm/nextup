@@ -20,7 +20,7 @@ def dashboard():
         "pages/dashboard.html",
         ready=queries.ready_to_watch(order, page=page),
         order=order,
-        upcoming=queries.upcoming(days=21, limit=12),
+        soon=queries.coming_soon(days=21, limit=12),
         recent=queries.recently_watched(6),
         counts=queries.dashboard_counts(),
         has_key=secretstore.has("tmdb_api_key"),
@@ -87,14 +87,14 @@ def calendar_view():
 @login_required
 def upcoming_view():
     days = whole_number(request.args.get("days"), 1, 365, 60)
-    episodes = queries.upcoming(days=days)
     grouped = {}
-    for episode in episodes:
-        grouped.setdefault(episode["air_date"][:10], []).append(episode)
+    for episode in queries.upcoming(days=days):
+        grouped.setdefault(episode["air_date"][:10], []).append(("episode", episode))
+    for film in queries.films_arriving(days=days):
+        grouped.setdefault(film["digital_release"][:10], []).append(("film", film))
     return render_template(
         "pages/upcoming.html",
         grouped=sorted(grouped.items()),
-        films=queries.films_arriving(days=days),
         days=days,
     )
 
