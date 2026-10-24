@@ -110,7 +110,7 @@
 </article>
 
 {% if extras.cast or extras.creators or extras.imdb or extras.trailer %}
-<div class="split">
+<div class="split split-even">
   {% with cast=extras.cast %}{% include 'partials/_cast.html' %}{% endwith %}
   <section class="panel">
     <div class="panel-head"><h2>Details</h2></div>
@@ -152,8 +152,16 @@
 </div>
 {% endif %}
 
+{% if seasons|length > 1 %}
+<nav class="season-jump" aria-label="Jump to a season">
+  {% for season in seasons %}
+    <a class="btn btn-small" href="#season-{{ season.number }}">{{ 'Specials' if season.number == 0 else 'Season ' ~ season.number }}</a>
+  {% endfor %}
+</nav>
+{% endif %}
+
 {% for season in seasons %}
-  <section class="season panel" data-season="{{ season.number }}">
+  <section class="season panel" id="season-{{ season.number }}" data-season="{{ season.number }}">
     <div class="season-head">
       <h2>{{ 'Specials' if season.number == 0 else 'Season ' ~ season.number }}</h2>
       <span class="badge">{{ season.watched_count }} / {{ season.aired_count }} aired</span>

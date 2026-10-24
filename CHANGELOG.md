@@ -3,6 +3,20 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.6.1], 2026-10-24
+
+Small tidy-ups to the show page and the progress bars.
+
+- **Season buttons.** A show with more than one season has a row of buttons
+  under the top panel that jump to each season.
+- **Cast and Details are the same size,** side by side, with a gap under the
+  top panel.
+- **Progress bars show the part still to watch** as a visible grey track, so a
+  bar reads as filling up rather than as an underline.
+- **The watched button is plain grey** rather than the highlight colour.
+- **No ticks and no green anywhere.** Watched is shown by the word alone, and
+  the chosen highlight colour is ringed instead of ticked.
+
 ## [1.6.0], 2026-10-24
 
 Nextup no longer assumes you live in the UK. Your data is untouched.
