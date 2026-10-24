@@ -76,7 +76,7 @@ def track(movie_id):
         digital, names = sync.sync_movie_availability(movie_id)
     except tmdb.TmdbError:
         digital, names = None, []
-    title = payload.get("title") or "this film"
+    title = payload.get("title") or "this movie"
     if names:
         flash(f"Added {title}. It is on {', '.join(names)} now.", "success")
     elif digital:
@@ -99,7 +99,7 @@ def refresh(movie_id):
 @login_required
 def untrack(movie_id):
     if not confirmed():
-        flash("Tick \"Yes, remove it\" to remove the film.", "error")
+        flash("Tick \"Yes, remove it\" to remove the movie.", "error")
         return redirect(url_for("movies.detail", movie_id=movie_id))
     db.execute("DELETE FROM tracked_movie WHERE movie_id = ?", (movie_id,))
     return back_to("movies.index")
@@ -115,7 +115,7 @@ def toggle_maybe(movie_id):
         "UPDATE tracked_movie SET shortlist = ? WHERE movie_id = ?",
         (1 if moving else 0, movie_id),
     )
-    flash("Moved to your maybe list." if moving else "Moved to your films.", "success")
+    flash("Moved to your maybe list." if moving else "Moved to your movies.", "success")
     return back_to("shows.maybe" if moving else "movies.index")
 
 @bp.route("/movie/<int:movie_id>/watched", methods=["POST"])

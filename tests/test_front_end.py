@@ -174,10 +174,10 @@ def test_the_last_refresh_says_what_the_problems_were(seeded, app):
     with app.app_context():
         db.execute(
             "INSERT INTO sync_run (started_at, shows_done, status, message)"
-            " VALUES ('2026-10-24T09:00:00', 3, 'error', 'A Show: season 2 could not be fetched; Films: timed out')"
+            " VALUES ('2026-10-24T09:00:00', 3, 'error', 'A Show: season 2 could not be fetched; Movies: timed out')"
         )
     text = seeded.get("/").get_data(as_text=True)
-    assert "A Show: season 2 could not be fetched" in text and "Films: timed out" in text
+    assert "A Show: season 2 could not be fetched" in text and "Movies: timed out" in text
 
 def test_a_sign_in_error_is_red_words_under_the_password_in_space_already_kept(client):
     empty = parse(client.get("/login").get_data(as_text=True))

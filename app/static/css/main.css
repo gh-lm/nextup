@@ -799,6 +799,10 @@ input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px;
 .toolbar {
   margin-bottom: 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
 }
+.toolbar-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: stretch; margin-bottom: 20px; }
+.toolbar-row > .toolbar { margin-bottom: 0; }
+.toolbar-row > .toolbar:last-child { flex: 1; min-width: 0; }
+.toolbar-row > .toolbar-switch:last-child { flex: none; }
 .login { max-width: 400px; margin: 8vh auto 0; }
 .login-head { text-align: center; margin-bottom: 22px; }
 .sign-in-error { color: var(--danger); font-size: 0.875rem; line-height: 1.5; min-height: 3em; margin: 6px 0 0; }

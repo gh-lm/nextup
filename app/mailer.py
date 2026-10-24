@@ -217,7 +217,7 @@ def build_digest():
     if episodes:
         counts.append(f"{len(episodes)} episode{'s' if len(episodes) != 1 else ''}")
     if films:
-        counts.append(f"{len(films)} film{'s' if len(films) != 1 else ''}")
+        counts.append(f"{len(films)} movie{'s' if len(films) != 1 else ''}")
     subject = "Ready to watch: " + " and ".join(counts)
 
     def block(headline, detail, overview, url):
@@ -241,7 +241,7 @@ def build_digest():
                 item_url("episode", row["id"]),
             )
     if films:
-        lines.append("Films")
+        lines.append("Movies")
         for row in films:
             services = queries.provider_names(row)
             where = "On " + ", ".join(services) if services else "Out for home viewing"
@@ -401,7 +401,7 @@ def _html_digest(when, episodes, films):
     if tv_rows:
         body += _html_section("Television", tv_rows)
     if film_rows:
-        body += _html_section("Films", film_rows)
+        body += _html_section("Movies", film_rows)
 
     note = (
         '<tr><td style="padding:20px 32px 26px 32px">'

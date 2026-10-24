@@ -64,7 +64,7 @@ def test_the_calendar_page_shows_both_kinds(signed_in, app):
     assert "A Show" in body
     assert "In the window" in body
     assert "cal-film" in body
-    assert "<small>Film" in body
+    assert "<small>Movie" in body
 
 def test_a_watched_film_is_faded_not_hidden(signed_in, app):
     with app.app_context():

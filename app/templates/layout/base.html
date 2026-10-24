@@ -32,14 +32,14 @@
       <a href="{{ url_for('shows.maybe') }}" {% if here == 'shows.maybe' %}class="current" aria-current="page"{% endif %}>Maybe</a>
       <a href="{{ url_for('main.calendar_view') }}" {% if here == 'main.calendar_view' %}class="current" aria-current="page"{% endif %}>Calendar</a>
       <a href="{{ url_for('main.upcoming_view') }}" {% if here == 'main.upcoming_view' %}class="current" aria-current="page"{% endif %}>Coming soon</a>
-      <a href="{{ url_for('movies.index') }}" {% if here.startswith('movies.') %}class="current" aria-current="page"{% endif %}>Films</a>
+      <a href="{{ url_for('movies.index') }}" {% if here.startswith('movies.') %}class="current" aria-current="page"{% endif %}>Movies</a>
       <a href="{{ url_for('settings.index') }}" {% if here.startswith('settings.') %}class="current" aria-current="page"{% endif %}>Settings</a>
     </nav>
 
     <div class="topbar-right">
       <form class="searchbox" action="{{ url_for('main.search') }}" method="get" role="search">
-        <label class="visually-hidden" for="q">Search for a show or film</label>
-        <input id="q" name="q" type="search" placeholder="Search shows and films"
+        <label class="visually-hidden" for="q">Search for a show or movie</label>
+        <input id="q" name="q" type="search" placeholder="Search shows and movies"
                value="{{ request.args.get('q', '') }}" autocomplete="off"
                aria-keyshortcuts="Alt+/">
         <button type="submit" aria-label="Search">
@@ -66,7 +66,7 @@
 {% if user %}
 <footer class="site-footer">
   <span>Nextup {{ app_version }}</span>
-  <span>Show and film data from TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.</span>
+  <span>Show and movie data from TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.</span>
   <span class="spacer"></span>
   <form method="post" action="{{ url_for('auth.logout') }}">
     <button class="btn btn-quiet btn-small" type="submit">Sign out</button>

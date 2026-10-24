@@ -150,3 +150,18 @@ def test_pages_still_load_with_the_new_sections(signed_in, app):
         _seed_film(app, 821, "Something", providers="Netflix")
     for path in ["/maybe", "/movies", "/upcoming", "/movie/821", "/show/700"]:
         assert signed_in.get(path).status_code == 200, path
+
+def test_the_dashboard_coming_soon_panel_lists_films_with_the_episodes(signed_in, app):
+    with app.app_context():
+        _seed_show(app)
+        _seed_film(app, 830, "Soon Film", digital=(date.today() + timedelta(days=3)).isoformat())
+    page = signed_in.get("/").get_data(as_text=True)
+    assert "Soon Film" in page and "Movie · " in page
+
+def test_the_coming_soon_page_puts_films_on_their_day_among_the_episodes(signed_in, app):
+    soon = (date.today() + timedelta(days=3)).isoformat()
+    with app.app_context():
+        _seed_film(app, 831, "Same Day Film", digital=soon)
+    page = signed_in.get("/upcoming").get_data(as_text=True)
+    assert "Same Day Film" in page
+    assert "Movies landing on streaming" not in page

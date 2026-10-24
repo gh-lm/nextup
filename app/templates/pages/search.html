@@ -5,7 +5,7 @@
 <div class="page-head">
   <div>
     <h1>Search</h1>
-    <p>Shows and films from TMDB.</p>
+    <p>Shows and movies from TMDB.</p>
   </div>
 </div>
 
@@ -13,7 +13,7 @@
   <div class="field">
     <label for="term">What are you looking for?</label>
     <input id="term" name="q" type="search" value="{{ term }}" autocomplete="off"
-           placeholder="A show or film title" {% if not term %}autofocus{% endif %}>
+           placeholder="A show or movie title" {% if not term %}autofocus{% endif %}>
   </div>
   <button class="btn btn-primary" type="submit">Search</button>
 </form>
@@ -37,7 +37,7 @@
           <div class="min-0">
             <a class="watch-card-show" href="{{ target }}">{{ item.title }}</a>
             <div class="watch-card-meta">
-              <span class="badge {{ 'badge-accent' if item.kind == 'tv' else '' }}">{{ 'TV show' if item.kind == 'tv' else 'Film' }}</span>
+              <span class="badge {{ 'badge-accent' if item.kind == 'tv' else '' }}">{{ 'TV show' if item.kind == 'tv' else 'Movie' }}</span>
               {% if item.date %}<span class="badge">{{ item.date|year }}</span>{% endif %}
               {% if item.vote_average %}<span class="badge">{{ icons.star() }}{{ '%.1f'|format(item.vote_average) }}</span>{% endif %}
               {% if item.tracked %}<span class="badge">On your list</span>{% endif %}
@@ -82,7 +82,7 @@
     <div class="panel mt-20">
       <div class="empty">
         <h2>Nothing found</h2>
-        <p>TMDB has no show or film matching that. Try a shorter title.</p>
+        <p>TMDB has no show or movie matching that. Try a shorter title.</p>
       </div>
     </div>
   {% endif %}

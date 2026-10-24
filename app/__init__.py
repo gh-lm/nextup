@@ -1,4 +1,4 @@
-"""Nextup - a personal TV and film tracker."""
+"""Nextup - a personal TV and movie tracker."""
 import os
 import secrets as pysecrets
 from datetime import datetime

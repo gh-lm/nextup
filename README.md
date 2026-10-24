@@ -1,22 +1,22 @@
 <p align="center">
-  <img src="docs/images/banner.png" alt="Nextup: a tracker for the television and films you watch, kept on your own server" width="100%" />
+  <img src="docs/images/banner.png" alt="Nextup: a tracker for the television and movies you watch, kept on your own server" width="100%" />
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.6.3-fbc711?style=flat-square&labelColor=282b34" alt="Version 1.6.3" />
+  <img src="https://img.shields.io/badge/version-1.6.4-fbc711?style=flat-square&labelColor=282b34" alt="Version 1.6.4" />
   <img src="https://img.shields.io/badge/licence-GPL%20v3-7fd99a?style=flat-square&labelColor=282b34" alt="GPL v3" />
   <img src="https://img.shields.io/badge/image-ghcr.io-5eb6ff?style=flat-square&labelColor=282b34" alt="Image on ghcr.io" />
   <img src="https://img.shields.io/badge/tracking-none-c2c2cc?style=flat-square&labelColor=282b34" alt="No tracking" />
 </p>
 
 Nextup remembers where you are in every show you watch, works out what is
-waiting for you, and tells you when a film reaches home viewing. It runs on
+waiting for you, and tells you when a movie reaches home viewing. It runs on
 your own server, has one account and no signup, and never contacts us.
 
 What you get for running it yourself: your watch history stays on your disk,
 artwork is cached by your own server so no page ever points a browser at a
 third party, and the only thing it ever calls out to is TMDB, to look up the
-shows and films you asked for.
+shows and movies you asked for.
 
 <p align="center">
   <img src="docs/images/nextup-dashboard.webp" alt="The Nextup dashboard listing shows with an episode waiting, each with a watched button and a progress bar" width="100%" />
@@ -91,7 +91,7 @@ broadcast.
 <table>
 <tr>
 <td width="50%"><img src="docs/images/nextup-show.webp" alt="A show page with its seasons, cast photographs and episode list" /></td>
-<td width="50%"><img src="docs/images/nextup-calendar.webp" alt="The month at a glance, with episodes in yellow and films in blue" /></td>
+<td width="50%"><img src="docs/images/nextup-calendar.webp" alt="The month at a glance, with episodes in yellow and movies in blue" /></td>
 </tr>
 <tr>
 <td align="center"><b>Every season and episode, with the detail worth reading</b></td>
@@ -102,18 +102,18 @@ broadcast.
 ## One email, every morning
 
 A short message listing what became watchable overnight: the cover of each
-show and film, a couple of sentences about it, which service it is on, and a
+show and movie, a couple of sentences about it, which service it is on, and a
 link straight to it. If nothing became available, nothing is sent. The covers
 travel inside the message, so it reads properly with no signal.
 
 <table>
 <tr>
-<td width="50%"><img src="docs/images/nextup-email.webp" alt="The morning email, headed Ready to watch, listing two episodes and a film" /></td>
-<td width="50%"><img src="docs/images/nextup-films.webp" alt="The films list split into ready to watch, coming to streaming, and seen" /></td>
+<td width="50%"><img src="docs/images/nextup-email.webp" alt="The morning email, headed Ready to watch, listing two episodes and a movie" /></td>
+<td width="50%"><img src="docs/images/nextup-films.webp" alt="The movies list split into ready to watch, coming to streaming, and seen" /></td>
 </tr>
 <tr>
 <td align="center"><b>The morning email</b></td>
-<td align="center"><b>Films, and when you can actually watch them</b></td>
+<td align="center"><b>Movies, and when you can actually watch them</b></td>
 </tr>
 </table>
 
@@ -125,15 +125,15 @@ travel inside the message, so it reads properly with no signal.
   the ones you are behind on
 - **Show pages**: every season and episode, marked watched one at a time, a whole
   season at once, or up to here for catching up
-- **Calendar**: a month at a glance, episodes in yellow and films reaching
+- **Calendar**: a month at a glance, episodes in yellow and movies reaching
   home viewing in blue, each labelled so colour is not the only signal
 - **Coming soon**: the next 14 to 180 days as a plain list
 - **Maybe**: shows you fancy the look of but are not following, kept out of
   Next up, the calendar and the email until you decide
-- **Films**: split into ready to watch, coming to streaming, and seen, with
+- **Movies**: split into ready to watch, coming to streaming, and seen, with
   the date each one reaches home viewing and which services in your country
   carry it
-- **Discover**: separate pages for films and television, with a plus, a
+- **Discover**: separate pages for movies and television, with a plus, a
   question mark and a cross on every card
 - **Episode pages**: the still, synopsis, air date, runtime, guest cast and
   director, with links either side
@@ -148,7 +148,7 @@ travel inside the message, so it reads properly with no signal.
   calls out to anyone
 
 Tracked shows refresh every 12 hours by default; finished shows are checked
-far less often. Film availability is re-checked every few days. Streaming
+far less often. Movie availability is re-checked every few days. Streaming
 service listings come from JustWatch by way of TMDB.
 
 ## Settings
@@ -177,7 +177,7 @@ One directory, the one you mounted:
 
 Backing up that directory backs up everything. The Settings page also has a
 **Download a backup** button that writes one JSON file holding every show and
-film you added, what you marked watched, what you dismissed and your settings.
+movie you added, what you marked watched, what you dismissed and your settings.
 Your TMDB key and mail password are left out by default, because they are
 encrypted with a key that stays on that server; a second button includes them
 as plain text, so keep that file somewhere safe. Every backup, with or

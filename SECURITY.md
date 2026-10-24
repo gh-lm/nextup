@@ -4,7 +4,7 @@
 
 | Version | Supported |
 |---|---|
-| 1.6.3 (latest) | Yes |
+| 1.6.4 (latest) | Yes |
 | Anything older | No |
 
 There is one line of releases and no long-term branch. A fix goes into the
