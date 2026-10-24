@@ -304,6 +304,11 @@ textarea { min-height: 120px; resize: vertical; }
 .show-tile-name:hover { color: var(--link-hover); }
 .show-tile-meta { font-size: 0.8125rem; color: var(--muted-fg); }
 .show-tile-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.show-grid-aligned .show-tile-name {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+  overflow: hidden; min-height: 2.7em; overflow-wrap: anywhere;
+}
+.show-grid-aligned .show-tile > form { margin-top: auto; }
 
 .calendar { width: 100%; border-collapse: separate; border-spacing: 6px; table-layout: fixed; }
 .calendar caption { text-align: left; color: var(--muted-fg); font-size: 0.8125rem; padding-bottom: 8px; }
