@@ -3,93 +3,18 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
-## [1.6.13], 2026-10-24
+## [1.7.0], 2026-10-24
 
-- **Changing a setting no longer reloads the page. It saves in the background and only its own card is redrawn, so nothing shakes or jumps when you switch Show every language off.**
+Everything since 1.6.0 in one release. Your data is untouched.
 
-## [1.6.12], 2026-10-24
-
-- **The Settings cards now sit in three fixed columns, so the Languages card stays at the bottom of the left column when you switch Show every language off, instead of jumping to the top of the middle.**
-- **The Maybe lists, TV and Movies, now follow the Order setting like the other lists, by first air date or release date, and use the same aligned poster grid.**
-- **An archived show now has a box, "Unarchive when a new season arrives", ticked by default. While it is ticked, Nextup keeps checking the show and brings it back to your list by itself once a newer season turns up. Untick it and the show stays archived and is no longer checked.**
-
-## [1.6.11], 2026-10-24
-
-- **The language of a show or movie now sits at the right of its card in a small outlined label, instead of next to the date. It looks like a button but cannot be pressed. A new Languages setting lets you keep Discover to English and the languages you add; it starts on every language, so nothing changes until you switch it off.**
-
-## [1.6.10], 2026-10-24
-
-- **The address used for links in the morning email is no longer typed in. Settings shows the address you opened the page at, and the email uses it. The Settings cards are also rebalanced so the three columns end at about the same height instead of leaving a big gap at the bottom.**
-
-## [1.6.9], 2026-10-24
-
-- **Discover movies lists only new films. Old films that were shown on television in the window, such as Green Book or The Hobbit, are gone. A film must have reached the cinema in the last year and have its streaming date inside the days you picked, or inside the last 14 days for the second group. Both groups follow the Order setting.**
-
-## [1.6.8], 2026-10-24
-
-- **Coming soon and Coming to streaming always show the next thing first,** whatever the Order setting says.
-- **Discover shows exactly the days you pick,** from today, and each card carries the date it reaches streaming. Under a line, a second group lists what came out in the last 14 days, on both Discover pages.
-- **Coming to streaming on the Movies page uses the same poster grid as Ready to watch,** with a Check now button where Ready to watch has Mark watched.
-
-## [1.6.7], 2026-10-24
-
-- **One Order setting in Settings decides which way round everything dated is listed,** and it starts as latest first: seasons and episodes, Ready to watch on the front page, the Movies page, Discover movies and TV, and Coming soon. The old Just out and Oldest first buttons on the front page are gone.
-
-## [1.6.6], 2026-10-24
-
-- **On both Discover pages the two cards at the top are the same height and sit in the same place, so switching between Movies and TV only changes the words.**
-- **Shows and movies not originally in English say so: a small label such as Korean or French on the show and movie cards, Discover, search and the detail pages. English ones carry no label. TMDB does not say whether a dubbed version exists, so Nextup does not guess.**
-
-## [1.6.5], 2026-10-24
-
-- **Movie names on the Movies page are cut to two lines,** with three dots if
-  longer, and the year, running time, streaming date and Mark watched button
-  line up across each row.
-- **The menu reads Shows, Movies, Discover, Maybe, Coming soon, Calendar, Settings,** and My shows is now just Shows.
-- **Show names are cut to two lines too,** so the bar, the count and the next date line up across each row.
-- **The Movies page heading no longer repeats Discover movies and Maybe list,**
-  which are already in the menu.
-
-## [1.6.4], 2026-10-24
-
-- **Coming soon includes your movies.** On the front page and on the Coming
-  soon page, a movie sits on the day it reaches streaming, among the episodes,
-  instead of in a panel of its own.
-- **Films are now called movies** everywhere you can see the word: menus,
-  pages, buttons, the morning email and the help pages. Your data is unchanged.
-- **Maybe has a TV | Movies switch,** like Discover, so shows and movies are
-  no longer stacked on one long page.
-- **On Discover, the Movies | TV switch has its own card,** beside the days
-  card, instead of sitting in the page heading.
-
-## [1.6.3], 2026-10-24
-
-- **The button on a Next up card says "Mark watched"** for an episode or a film
-  that is waiting, so it is no longer the same word as the "Watched" that
-  shows something you have already seen. It is a plain button, not yellow.
-
-## [1.6.2], 2026-10-24
-
-Dashboard clean-up.
-
-- **The dashboard numbers carry a plain icon** instead of a ring or small bar
-  chart, and the Next up list no longer shows a progress bar on each show.
-- **The Last refresh panel says what the problems were,** one line each,
-  instead of only the word "problems".
-
-## [1.6.1], 2026-10-24
-
-Small tidy-ups to the show page and the progress bars.
-
-- **Season buttons.** A show with more than one season has a row of buttons
-  under the top panel that jump to each season.
-- **Cast and Details are the same size,** side by side, with a gap under the
-  top panel.
-- **Progress bars show the part still to watch** as a visible grey track, so a
-  bar reads as filling up rather than as an underline.
-- **The watched button is plain grey** rather than the highlight colour.
-- **No ticks and no green anywhere.** Watched is shown by the word alone, and
-  the chosen highlight colour is ringed instead of ticked.
+- **Languages.** Each show and movie shows its original language in a small outlined label at the right of its card. A new Languages setting decides which languages Discover lists: every language to begin with, or English plus the ones you add. Your own lists and search are never filtered.
+- **Discover shows only what is new.** It lists exactly the days you pick, then a line, then what came out in the last 14 days. Movies are new films whose streaming date falls in the window, so old films shown on television no longer appear.
+- **One Order setting.** Newest first or oldest first, for seasons, episodes, Ready to watch, Movies, Maybe and Discover. Coming soon and Coming to streaming always show the next thing first.
+- **Maybe has a TV | Movies switch,** like Discover, and follows the Order setting.
+- **Archived shows can unarchive themselves.** An archived show has a box, ticked by default, that brings it back when a newer season turns up.
+- **Movies.** Film is now Movie everywhere. Coming to streaming is a poster grid with a Check now button, and names are cut to two lines so every card in a row lines up.
+- **Settings save quietly.** Changing a setting no longer reloads the page, and the cards stay in fixed columns. The address used for links in the morning email is taken from the page you are on instead of being typed.
+- **Tidier show page and dashboard.** Season buttons, Cast and Details the same size, plain icons, no ticks or green, and a plain Mark watched button. The menu now runs Shows, Movies, Discover, Maybe, Coming soon, Calendar, Settings.
 
 ## [1.6.0], 2026-10-24
 
