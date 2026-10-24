@@ -3,6 +3,12 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.6.3], 2026-10-24
+
+- **The button on a Next up card says "Mark watched"** for an episode or a film
+  that is waiting, so it is no longer the same word as the "Watched" that
+  shows something you have already seen. It is a plain button, not yellow.
+
 ## [1.6.2], 2026-10-24
 
 Dashboard clean-up.
