@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.7.0-fbc711?style=flat-square&labelColor=282b34" alt="Version 1.6.6" />
+  <img src="https://img.shields.io/badge/version-1.7.0-fbc711?style=flat-square&labelColor=282b34" alt="Version 1.7.0" />
   <img src="https://img.shields.io/badge/licence-GPL%20v3-7fd99a?style=flat-square&labelColor=282b34" alt="GPL v3" />
   <img src="https://img.shields.io/badge/image-ghcr.io-5eb6ff?style=flat-square&labelColor=282b34" alt="Image on ghcr.io" />
   <img src="https://img.shields.io/badge/tracking-none-c2c2cc?style=flat-square&labelColor=282b34" alt="No tracking" />
@@ -19,7 +19,7 @@ third party, and the only thing it ever calls out to is TMDB, to look up the
 shows and movies you asked for.
 
 <p align="center">
-  <img src="docs/images/nextup-dashboard.webp" alt="The Nextup dashboard listing shows with an episode waiting, each with a watched button and a progress bar" width="100%" />
+  <img src="docs/images/nextup-dashboard.webp" alt="The Nextup dashboard listing what is waiting, each with a Mark watched button, and what is coming soon beside it" width="100%" />
 </p>
 
 ## How it works
@@ -86,11 +86,16 @@ Pick the last episode you remember watching and press **Up to here**.
 Everything before it is marked watched in one go, which is how a show you started
 three years ago comes back under control. Episodes that have not aired cannot
 be marked by accident, and the progress bar counts only what has actually been
-broadcast.
+broadcast. Archive a show with **Unarchive when a new season arrives** ticked
+and it returns by itself when a new season appears.
+
+Discover shows only what is new, with each title's original language. The
+**Languages** setting chooses which ones you see, and **Order** sets newest or
+oldest first. Settings save as you change them, with no page reload.
 
 <table>
 <tr>
-<td width="50%"><img src="docs/images/nextup-show.webp" alt="A show page with its seasons, cast photographs and episode list" /></td>
+<td width="50%"><img src="docs/images/nextup-show.webp" alt="A show page with progress, cast, details and the latest season's episodes" /></td>
 <td width="50%"><img src="docs/images/nextup-calendar.webp" alt="The month at a glance, with episodes in yellow and movies in blue" /></td>
 </tr>
 <tr>
