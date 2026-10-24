@@ -3,6 +3,12 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.6.8], 2026-10-24
+
+- **Coming soon and Coming to streaming always show the next thing first,** whatever the Order setting says.
+- **Discover shows exactly the days you pick,** from today, and each card carries the date it reaches streaming. Under a line, a second group lists what came out in the last 14 days, on both Discover pages.
+- **Coming to streaming on the Movies page uses the same poster grid as Ready to watch,** with a Check now button where Ready to watch has Mark watched.
+
 ## [1.6.7], 2026-10-24
 
 - **One Order setting in Settings decides which way round everything dated is listed,** and it starts as latest first: seasons and episodes, Ready to watch on the front page, the Movies page, Discover movies and TV, and Coming soon. The old Just out and Oldest first buttons on the front page are gone.

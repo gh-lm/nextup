@@ -394,7 +394,7 @@ def films_by_state():
         (ready if is_streamable(row, cutoff) else waiting).append(row)
     return {
         "ready": dated(ready, lambda r: r["digital_release"] or r["release_date"]),
-        "waiting": dated(waiting, lambda r: r["digital_release"]),
+        "waiting": sorted(waiting, key=lambda r: r["digital_release"] or "9999-99-99"),
         "seen": dated(movies(watched=True), lambda r: r["watched_at"]),
         "maybe": movies(shortlist=True),
     }
@@ -417,8 +417,7 @@ def coming_soon(days=21, limit=12):
     items = [("episode", row["air_date"], row) for row in upcoming(days=days)]
     items += [("film", row["digital_release"], row) for row in films_arriving(days=days)]
     items.sort(key=lambda item: item[1])
-    items = items[:limit]
-    return items[::-1] if newest_first() else items
+    return items[:limit]
 
 def dashboard_counts():
     row = db.query(
