@@ -3,12 +3,12 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
-## [1.7.0], 2026-10-24
+## [1.7.1], 2026-10-24
 
 Everything since 1.6.0 in one release. Your data is untouched.
 
 - **Languages.** Each show and movie shows its original language in a small outlined label at the right of its card. A new Languages setting decides which languages Discover lists: every language to begin with, or English plus the ones you add. Your own lists and search are never filtered.
-- **Discover shows only what is new.** It lists exactly the days you pick, then a line, then what came out in the last 14 days. Movies are new films whose streaming date falls in the window, so old films shown on television no longer appear.
+- **Discover shows only what is new.** It lists exactly the days you pick, then a line, then what came out in the last 14 days. Movies are new films whose streaming date falls in the window, so old films shown on television no longer appear. Each date is labelled Streaming, because it is the day the movie reaches streaming or television, not its cinema date.
 - **One Order setting.** Newest first or oldest first, for seasons, episodes, Ready to watch, Movies, Maybe and Discover. Coming soon and Coming to streaming always show the next thing first.
 - **Maybe has a TV | Movies switch,** like Discover, and follows the Order setting.
 - **Archived shows can unarchive themselves.** An archived show has a box, ticked by default, that brings it back when a newer season turns up.
