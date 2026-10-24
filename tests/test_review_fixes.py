@@ -149,7 +149,7 @@ def test_a_failed_first_write_does_not_leave_the_refresh_stuck(app, monkeypatch)
         assert sync._sync_lock.acquire(blocking=False)
         sync._sync_lock.release()
 
-def test_a_bad_nextup_address_saves_none_of_the_mail_settings(app, signed_in):
+def test_the_address_is_taken_from_the_page_not_typed(app, signed_in):
     from app import secretstore
 
     signed_in.post("/settings/mail", data={
@@ -158,8 +158,13 @@ def test_a_bad_nextup_address_saves_none_of_the_mail_settings(app, signed_in):
         "site_url": "ftp://nextup.example.com", "smtp_password": "pw",
     })
     with app.app_context():
-        assert secretstore.get("smtp_host") is None
-        assert secretstore.get("smtp_password") is None
+        assert secretstore.get("site_url") != "ftp://nextup.example.com"
+    body = signed_in.get(
+        "/settings", headers={"X-Forwarded-Proto": "https", "X-Forwarded-Host": "nextup.example.ts.net:4090"}
+    ).get_data(as_text=True)
+    assert "https://nextup.example.ts.net:4090" in body
+    with app.app_context():
+        assert secretstore.get("site_url") == "https://nextup.example.ts.net:4090"
 
 class _FakeSMTP:
     instances = []

@@ -782,7 +782,13 @@ input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px;
 }
 
 @media (max-width: 1180px) { .bento { columns: 2; } }
-@media (max-width: 760px)  { .bento { columns: 1; column-gap: 0; } }
+@media (max-width: 760px)  {
+  .bento { columns: auto; display: flex; flex-direction: column; }
+
+  #mail { order: 1; } #tmdb { order: 2; } #sync { order: 3; } #availability { order: 4; }
+  #order { order: 5; } #country { order: 6; } #accent { order: 7; } #transfer { order: 8; }
+  #stored { order: 9; } #account { order: 10; }
+}
 
 #tmdb form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 #tmdb .inline-field { flex: 1 1 min(240px, 100%); margin: 0; }
