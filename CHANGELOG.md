@@ -3,6 +3,10 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.6.13], 2026-10-24
+
+- **Changing a setting no longer reloads the page. It saves in the background and only its own card is redrawn, so nothing shakes or jumps when you switch Show every language off.**
+
 ## [1.6.12], 2026-10-24
 
 - **The Settings cards now sit in three fixed columns, so the Languages card stays at the bottom of the left column when you switch Show every language off, instead of jumping to the top of the middle.**
