@@ -3,6 +3,10 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.6.7], 2026-10-24
+
+- **One Order setting in Settings decides which way round everything dated is listed,** and it starts as latest first: seasons and episodes, Ready to watch on the front page, the Movies page, Discover movies and TV, and Coming soon. The old Just out and Oldest first buttons on the front page are gone.
+
 ## [1.6.6], 2026-10-24
 
 - **On both Discover pages the two cards at the top are the same height and sit in the same place, so switching between Movies and TV only changes the words.**

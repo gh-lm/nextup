@@ -275,6 +275,27 @@
     {{ n.notes_for(notes, "availability") }}
   </section>
 
+  <section class="panel" id="order">
+    <div class="panel-head">
+      <h2>Order</h2>
+    </div>
+    <p class="subtle">
+      Which way round things are listed by date: seasons and episodes, Ready to watch,
+      Movies, Discover and Coming soon.
+    </p>
+    <form data-autosave method="post" action="{{ url_for('settings.save_season_order') }}">
+      <div class="field">
+        <label for="season_order">Listed by date</label>
+        <select id="season_order" name="season_order">
+          <option value="newest" {{ 'selected' if newest_first else '' }}>Latest first, oldest at the bottom</option>
+          <option value="oldest" {{ 'selected' if not newest_first else '' }}>Oldest first, latest at the bottom</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" type="submit">Save</button>
+    </form>
+    {{ n.notes_for(notes, "order") }}
+  </section>
+
   <section class="panel" id="country">
     <div class="panel-head">
       <h2>Your country</h2>

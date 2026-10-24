@@ -54,6 +54,7 @@ def index():
         mail_ready=mailer.is_configured(),
         securities=mailer.SECURITIES,
         available_after=queries.available_after_days(),
+        newest_first=queries.newest_first(),
         country=tmdb.country(),
         countries=_country_choices(),
         accents=ACCENTS,
@@ -145,6 +146,20 @@ def save_availability():
         "availability",
         f"Programmes now count as watchable {days} day"
         f"{'s' if days != 1 else ''} after they air.",
+        "success",
+    )
+
+@bp.route("/settings/season-order", methods=["POST"])
+@login_required
+def save_season_order():
+    choice = request.form.get("season_order")
+    if choice not in ("newest", "oldest"):
+        return notify("order", "Pick one of the two orders.", "error")
+    secretstore.set("season_order", choice)
+    return notify(
+        "order",
+        "Latest first, oldest at the bottom." if choice == "newest"
+        else "Oldest first, latest at the bottom.",
         "success",
     )
 
