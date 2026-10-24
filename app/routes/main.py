@@ -23,7 +23,6 @@ def dashboard():
         upcoming=queries.upcoming(days=21, limit=12),
         recent=queries.recently_watched(6),
         counts=queries.dashboard_counts(),
-        chart=queries.dashboard_charts(),
         has_key=secretstore.has("tmdb_api_key"),
         unreadable=secretstore.unreadable(),
         last_sync=sync.last_run(),
