@@ -3,6 +3,11 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.6.6], 2026-10-24
+
+- **On both Discover pages the two cards at the top are the same height and sit in the same place, so switching between Movies and TV only changes the words.**
+- **Shows and movies not originally in English say so: a small label such as Korean or French on the show and movie cards, Discover, search and the detail pages. English ones carry no label. TMDB does not say whether a dubbed version exists, so Nextup does not guess.**
+
 ## [1.6.5], 2026-10-24
 
 - **Movie names on the Movies page are cut to two lines,** with three dots if

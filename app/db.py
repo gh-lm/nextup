@@ -42,6 +42,8 @@ MIGRATIONS = [
     ("movie", "provider_link", "TEXT"),
     ("movie", "providers_checked_at", "TEXT"),
     ("tracked_movie", "shortlist", "INTEGER NOT NULL DEFAULT 0"),
+    ("show", "original_language", "TEXT"),
+    ("movie", "original_language", "TEXT"),
 ]
 
 def _apply_migrations(conn):

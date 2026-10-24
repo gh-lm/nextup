@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS show (
     network         TEXT,
     episode_runtime INTEGER,
     vote_average    REAL,
+    original_language TEXT,
     synced_at       TEXT
 );
 
@@ -65,6 +66,7 @@ CREATE TABLE IF NOT EXISTS movie (
     release_date         TEXT,   -- first release anywhere, usually the cinema
     runtime              INTEGER,
     vote_average         REAL,
+    original_language    TEXT,
     digital_release      TEXT,   -- the date it lands on streaming or download
     providers            TEXT,   -- streaming services in the chosen country, one per line
     provider_link        TEXT,   -- TMDB's "where to watch" page

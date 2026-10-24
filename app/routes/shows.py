@@ -83,6 +83,10 @@ def detail(show_id):
             tagline=payload.get("tagline") or None,
             homepage=tmdb.safe_url(payload.get("homepage")),
         )
+        if row["original_language"] is None and payload.get("original_language"):
+            db.execute("UPDATE show SET original_language = ? WHERE id = ?",
+                       (payload["original_language"], show_id))
+            row = db.query("SELECT * FROM show WHERE id = ?", (show_id,), one=True)
     except tmdb.TmdbError:
         pass
 

@@ -805,7 +805,12 @@ input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px;
   margin-bottom: 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
 }
 .toolbar-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: stretch; margin-bottom: 20px; }
-.toolbar-row > .toolbar { margin-bottom: 0; }
+.toolbar-row > .panel { margin: 0; }
+.toolbar-row > .toolbar-switch { align-items: center; }
+.toolbar-filters { flex-direction: column; align-items: stretch; gap: 10px; }
+.toolbar-line { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.toolbar-line form { margin-left: auto; }
+.toolbar-line + .toolbar-line { min-height: 2.25rem; }
 .toolbar-row > .toolbar:last-child { flex: 1; min-width: 0; }
 .toolbar-row > .toolbar-switch:last-child { flex: none; }
 .login { max-width: 400px; margin: 8vh auto 0; }

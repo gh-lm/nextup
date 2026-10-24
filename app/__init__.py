@@ -5,7 +5,7 @@ from datetime import datetime
 
 from flask import Flask
 
-from . import clock, config, db
+from . import clock, config, db, languages
 
 def _read_version():
     path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "VERSION")
@@ -115,6 +115,10 @@ def _register_filters(app):
         except ValueError:
             return str(value)
         return parsed.strftime("%-d %b")
+
+    @app.template_filter("language")
+    def language(value):
+        return languages.label(value)
 
     @app.template_filter("year")
     def year(value):

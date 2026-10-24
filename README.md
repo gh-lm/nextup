@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.6.5-fbc711?style=flat-square&labelColor=282b34" alt="Version 1.6.5" />
+  <img src="https://img.shields.io/badge/version-1.6.6-fbc711?style=flat-square&labelColor=282b34" alt="Version 1.6.6" />
   <img src="https://img.shields.io/badge/licence-GPL%20v3-7fd99a?style=flat-square&labelColor=282b34" alt="GPL v3" />
   <img src="https://img.shields.io/badge/image-ghcr.io-5eb6ff?style=flat-square&labelColor=282b34" alt="Image on ghcr.io" />
   <img src="https://img.shields.io/badge/tracking-none-c2c2cc?style=flat-square&labelColor=282b34" alt="No tracking" />
