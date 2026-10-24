@@ -1,5 +1,29 @@
 {% extends 'layout/base.html' %}
 {% import 'partials/_icons.html' as icons %}
+{% macro card(item) %}
+      <article class="discover-card">
+        <a class="poster" href="{{ url_for('shows.detail', show_id=item.id) }}">
+          {% if item.poster_path %}
+            <img src="{{ url_for('images.poster', size='w342', tmdb_path=item.poster_path.lstrip('/')) }}"
+                 alt="{{ item.title }}" loading="lazy">
+          {% else %}<span class="poster-empty">{{ item.title }}</span>{% endif %}
+        </a>
+        <div class="discover-card-body">
+          <a class="discover-card-name" href="{{ url_for('shows.detail', show_id=item.id) }}">{{ item.title }}</a>
+          <div class="discover-card-meta">
+            {{ item.date|short_date }}{% if item.vote_average %} · {{ icons.star() }}{{ '%.1f'|format(item.vote_average) }}{% endif %}{% if item.language|language %} · {{ item.language|language }}{% endif %}
+          </div>
+          {% if item.overview %}<p>{{ item.overview }}</p>{% endif %}
+        </div>
+        {% with title=item.title,
+                yes_url=url_for('discover.decide_show', show_id=item.id, action='yes'),
+                maybe_url=url_for('discover.decide_show', show_id=item.id, action='maybe'),
+                no_url=url_for('discover.decide_show', show_id=item.id, action='no') %}
+          {% include 'partials/_decide.html' %}
+        {% endwith %}
+      </article>
+{% endmacro %}
+
 {% block title %}Discover TV | Nextup{% endblock %}
 {% block body %}
 <div class="page-head">
@@ -62,30 +86,10 @@
 
 {% if items %}
   <div class="discover-grid">
-    {% for item in items %}
-      <article class="discover-card">
-        <a class="poster" href="{{ url_for('shows.detail', show_id=item.id) }}">
-          {% if item.poster_path %}
-            <img src="{{ url_for('images.poster', size='w342', tmdb_path=item.poster_path.lstrip('/')) }}"
-                 alt="{{ item.title }}" loading="lazy">
-          {% else %}<span class="poster-empty">{{ item.title }}</span>{% endif %}
-        </a>
-        <div class="discover-card-body">
-          <a class="discover-card-name" href="{{ url_for('shows.detail', show_id=item.id) }}">{{ item.title }}</a>
-          <div class="discover-card-meta">
-            {{ item.date|short_date }}{% if item.vote_average %} · {{ icons.star() }}{{ '%.1f'|format(item.vote_average) }}{% endif %}{% if item.language|language %} · {{ item.language|language }}{% endif %}
-          </div>
-          {% if item.overview %}<p>{{ item.overview }}</p>{% endif %}
-        </div>
-        {% with title=item.title,
-                yes_url=url_for('discover.decide_show', show_id=item.id, action='yes'),
-                maybe_url=url_for('discover.decide_show', show_id=item.id, action='maybe'),
-                no_url=url_for('discover.decide_show', show_id=item.id, action='no') %}
-          {% include 'partials/_decide.html' %}
-        {% endwith %}
-      </article>
-    {% endfor %}
+    {% for item in items %}{{ card(item) }}{% endfor %}
   </div>
+{% elif recent %}
+  <p class="subtle">Nothing new in the next {{ days }} days.</p>
 {% elif not error %}
   <div class="panel">
     <div class="empty">
@@ -97,6 +101,15 @@
       <p>Try a longer window, or the On air now tab for series already running.</p>
       <a class="btn btn-primary" href="{{ url_for('discover.tv', mode='returning', days=days) }}">See what is on air</a>
     </div>
+  </div>
+{% endif %}
+
+{% if recent %}
+  <div class="discover-divider">
+    <h2>Released in the last {{ recent_days }} days</h2>
+  </div>
+  <div class="discover-grid">
+    {% for item in recent %}{{ card(item) }}{% endfor %}
   </div>
 {% endif %}
 {% endblock %}

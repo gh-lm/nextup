@@ -1,7 +1,9 @@
 """Discover: what is arriving, and a quick yes, no or maybe on each."""
+import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 
 from .. import clock, db, queries, sync, tmdb
 from ..auth import login_required
@@ -13,6 +15,9 @@ bp = Blueprint("discover", __name__, url_prefix="/discover")
 WINDOWS = [7, 14, 30, 60]
 DEFAULT_DAYS = 14
 MAX_PAGES = 3
+RECENT_DAYS = 14
+HOME_DATE_TTL = 12 * 3600
+_HOME_DATES = {}
 
 def _window(default=DEFAULT_DAYS):
     days = whole_number(request.args.get("days"), 1, 180, default)
@@ -37,39 +42,74 @@ def _collect(fetch, start, end, wanted=40):
 def index():
     return redirect(url_for("discover.films"))
 
-@bp.route("/films")
-@login_required
-def films():
-    days, start, end = _window()
-    error, items = None, []
-    try:
-        raw = _collect(tmdb.discover_films_reaching_streaming, start, end)
-    except tmdb.TmdbError as exc:
-        raw, error = [], str(exc)
+def _home_dates(ids):
+    app = current_app._get_current_object()
+    code = tmdb.country()
 
-    _, tracked = queries.known_ids()
-    skip = tracked | queries.dismissed_ids("movie")
-    seen = set()
+    def look(movie_id):
+        hit = _HOME_DATES.get((movie_id, code))
+        if hit and time.time() - hit[1] < HOME_DATE_TTL:
+            return movie_id, hit[0]
+        try:
+            with app.app_context():
+                found = tmdb.digital_release_date(tmdb.movie_release_dates(movie_id))
+        except tmdb.TmdbError:
+            return movie_id, None
+        _HOME_DATES[(movie_id, code)] = (found, time.time())
+        return movie_id, found
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        return dict(pool.map(look, ids))
+
+def _cards(raw, skip, seen, title_key, date_key, home=None):
+    cards = []
     for row in raw:
         if row["id"] in skip or row["id"] in seen:
             continue
         seen.add(row["id"])
-        items.append(
+        date = ((home or {}).get(row["id"]) or row.get(date_key) or "")[:10]
+        cards.append(
             {
                 "id": row["id"],
-                "title": row.get("title") or "Untitled",
-                "date": (row.get("release_date") or "")[:10],
+                "title": row.get(title_key) or "Untitled",
+                "date": date,
                 "overview": row.get("overview") or "",
                 "poster_path": row.get("poster_path"),
                 "vote_average": row.get("vote_average") or 0,
                 "language": row.get("original_language"),
             }
         )
+    return queries.dated(cards, lambda i: i["date"])
+
+def _both_windows(fetch, start, end):
+    today = clock.today_date()
+    recent_start = (today - timedelta(days=RECENT_DAYS)).isoformat()
+    recent_end = (today - timedelta(days=1)).isoformat()
+    error = None
+    try:
+        ahead = _collect(fetch, start, end)
+        recent = _collect(fetch, recent_start, recent_end)
+    except tmdb.TmdbError as exc:
+        ahead, recent, error = [], [], str(exc)
+    return ahead, recent, error
+
+@bp.route("/films")
+@login_required
+def films():
+    days, start, end = _window()
+    ahead, recent, error = _both_windows(tmdb.discover_films_reaching_streaming, start, end)
+
+    _, tracked = queries.known_ids()
+    skip = tracked | queries.dismissed_ids("movie")
+    seen = set()
+    home = _home_dates({row["id"] for row in ahead + recent if row["id"] not in skip}) if (ahead or recent) else {}
 
     return render_template(
         "pages/discover_films.html",
-        items=queries.dated(items, lambda i: i["date"]),
+        items=_cards(ahead, skip, seen, "title", "release_date", home),
+        recent=_cards(recent, skip, seen, "title", "release_date", home),
         days=days,
+        recent_days=RECENT_DAYS,
         windows=WINDOWS,
         error=error,
         dismissed_count=len(queries.dismissed_ids("movie")),
@@ -81,36 +121,18 @@ def tv():
     mode = request.args.get("mode", "new")
     days, start, end = _window(30 if mode == "new" else DEFAULT_DAYS)
     fetch = tmdb.discover_new_series if mode == "new" else tmdb.discover_returning_series
-
-    error, items = None, []
-    try:
-        raw = _collect(fetch, start, end)
-    except tmdb.TmdbError as exc:
-        raw, error = [], str(exc)
+    ahead, recent, error = _both_windows(fetch, start, end)
 
     tracked, _ = queries.known_ids()
     skip = tracked | queries.dismissed_ids("tv")
     seen = set()
-    for row in raw:
-        if row["id"] in skip or row["id"] in seen:
-            continue
-        seen.add(row["id"])
-        items.append(
-            {
-                "id": row["id"],
-                "title": row.get("name") or "Untitled",
-                "date": (row.get("first_air_date") or "")[:10],
-                "overview": row.get("overview") or "",
-                "poster_path": row.get("poster_path"),
-                "vote_average": row.get("vote_average") or 0,
-                "language": row.get("original_language"),
-            }
-        )
 
     return render_template(
         "pages/discover_tv.html",
-        items=queries.dated(items, lambda i: i["date"]),
+        items=_cards(ahead, skip, seen, "name", "first_air_date"),
+        recent=_cards(recent, skip, seen, "name", "first_air_date"),
         days=days,
+        recent_days=RECENT_DAYS,
         mode=mode,
         windows=WINDOWS,
         error=error,

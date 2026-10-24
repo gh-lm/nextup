@@ -804,6 +804,8 @@ input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px;
 .toolbar {
   margin-bottom: 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
 }
+.discover-divider { border-top: 1px solid var(--border); margin: 32px 0 20px; padding-top: 20px; }
+.discover-divider h2 { margin: 0; font-size: 1.25rem; }
 .toolbar-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: stretch; margin-bottom: 20px; }
 .toolbar-row > .panel { margin: 0; }
 .toolbar-row > .toolbar-switch { align-items: center; }

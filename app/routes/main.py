@@ -94,7 +94,7 @@ def upcoming_view():
         grouped.setdefault(film["digital_release"][:10], []).append(("film", film))
     return render_template(
         "pages/upcoming.html",
-        grouped=sorted(grouped.items(), reverse=queries.newest_first()),
+        grouped=sorted(grouped.items()),
         days=days,
     )
 
