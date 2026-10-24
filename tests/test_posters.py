@@ -11,6 +11,15 @@ class _Reply:
         if length is not None:
             self.headers["Content-Length"] = str(length)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        pass
+
+    def iter_content(self, size):
+        yield self.content
+
 def test_a_trailing_newline_is_not_a_good_path():
     assert posters.normalise("/abc.jpg\n") is None
     assert posters.normalise("/abc.jpg") == "/abc.jpg"

@@ -50,10 +50,11 @@ def test_the_starter_password_locks_everything_but_the_account_form(client):
     assert response.status_code == 302
     assert client.get("/").status_code == 200
 
-def test_too_many_wrong_passwords_lock_the_door_for_a_while(client):
+def test_repeated_wrong_passwords_make_that_username_wait(client):
     auth._failures.clear()
-    for _ in range(auth.MAX_FAILURES):
+    for _ in range(auth.FREE_TRIES + 1):
         assert client.post("/login", data={"username": "admin", "password": "nope"}).status_code == 200
     response = client.post("/login", data={"username": "admin", "password": "nextup"})
     assert response.status_code == 429
+    assert client.post("/login", data={"username": "someone", "password": "nope"}).status_code == 200
     auth._failures.clear()

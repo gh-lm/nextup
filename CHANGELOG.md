@@ -3,6 +3,60 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.6.0], 2026-10-24
+
+Nextup no longer assumes you live in the UK. Your data is untouched.
+
+- **A country setting.** Release dates, streaming services and age ratings
+  come from the country chosen on the Settings page. The first time you sign
+  in, Nextup sets it from your computer's time zone, so South Africa and
+  India are told apart even though both may use UK English. Nothing is looked
+  up online to do this, and you can change it at any time.
+- **Upgrading:** until a country is set, films show their first home release
+  anywhere, and no services or age ratings appear. Sign in again, or open
+  Settings and choose your country, to get them back.
+- **Services and age ratings from another country are no longer shown** in
+  place of your own, because you cannot use them where you are.
+
+### Fixes from the code review
+
+- **Changing only the username no longer lifts the starter lock.** While the
+  password is still the public starter one, a new password must be chosen
+  before anything else opens.
+- **Wrong passwords slow you down instead of locking everyone out.** Five
+  wrong tries for one username are free, then each try waits twice as long as
+  the last, up to five minutes. Before, eight wrong tries could lock the owner
+  out for 15 minutes.
+- **Removing the TMDB key or the mail settings now needs a second click,** the
+  same as removing a show or a film. Without scripting, a "Yes, remove it" box
+  must be ticked.
+- **The search shortcut is now Alt and /,** so it can no longer be set off by
+  a single key, which catches out people using speech or screen readers.
+- **Clearer button text** on the delete button and on several accent colours,
+  which were too faint to read easily.
+- **A bad reply from TMDB no longer breaks pages,** and one bad show no longer
+  stops the refresh of all the others.
+- **A mistake in the mail settings now saves none of them,** rather than
+  saving some and reporting the mistake.
+- **Settings opens quickly when TMDB is slow,** because the list of countries
+  is kept for a week.
+- **The install steps on the website now use the same locked-down setup as the
+  README,** which listens only on this computer. The setup also limits memory
+  and processes, and every library in the image is pinned and checked.
+- **Every season is shown open on a show's page,** with no folding.
+- **The dashboard draws a small chart beside each number:** rings for shows
+  waiting and films, and columns for the last 12 weeks of watching.
+- **A sign-in mistake shows as red words under the password box,** in space
+  kept for it, so the form never moves.
+- **Notes are words only,** with no tick, and links change colour on hover
+  instead of being underlined. A link inside grey text is bold as well, so it
+  stands out without colour.
+- **Watched buttons say "Watched" or "Mark watched",** with no tick, and nothing
+  in the app or on the website is green any more. The add button on Discover is a plus, and the chosen highlight colour
+  is ringed rather than ticked.
+- **The image is built on Python 3.14,** and the base image's own installer is
+  removed because nothing uses it.
+
 ## [1.5.5], 2026-10-21
 
 Nothing here changes how you use Nextup, and your data is untouched.

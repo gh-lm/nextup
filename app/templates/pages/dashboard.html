@@ -1,4 +1,5 @@
 {% extends 'layout/base.html' %}
+{% import 'partials/_charts.html' as charts %}
 {% block title %}Next up | Nextup{% endblock %}
 {% block body %}
 
@@ -32,22 +33,38 @@
   </nav>
 </div>
 
-<div class="stats" style="margin-bottom: 24px;">
+<div class="stats">
   <div class="stat">
-    <div class="stat-value">{{ counts.shows }}</div>
-    <div class="stat-label">Shows tracked</div>
+    <div>
+      <div class="stat-value">{{ counts.shows }}</div>
+      <div class="stat-label">Shows tracked</div>
+    </div>
+    {{ charts.ring(chart.shows_waiting, counts.shows,
+                   chart.shows_waiting ~ " of " ~ counts.shows ~ " shows have an episode to watch") }}
   </div>
   <div class="stat">
-    <div class="stat-value">{{ counts.episodes_watched }}</div>
-    <div class="stat-label">Episodes watched</div>
+    <div>
+      <div class="stat-value">{{ counts.episodes_watched }}</div>
+      <div class="stat-label">Episodes watched</div>
+    </div>
+    {{ charts.columns(chart.episodes, "Episodes watched in each of the last 12 weeks, oldest first: "
+                      ~ chart.episodes|join(", ")) }}
   </div>
   <div class="stat">
-    <div class="stat-value">{{ counts.minutes_watched|runtime_hours }}</div>
-    <div class="stat-label">Time watched</div>
+    <div>
+      <div class="stat-value">{{ counts.minutes_watched|runtime_hours }}</div>
+      <div class="stat-label">Time watched</div>
+    </div>
+    {{ charts.columns(chart.minutes, "Time watched in each of the last 12 weeks, oldest first: "
+                      ~ chart.minutes|map("runtime_hours")|join(", ")) }}
   </div>
   <div class="stat">
-    <div class="stat-value">{{ counts.movies_to_watch }}</div>
-    <div class="stat-label">Films to watch</div>
+    <div>
+      <div class="stat-value">{{ counts.movies_to_watch }}</div>
+      <div class="stat-label">Films to watch</div>
+    </div>
+    {{ charts.ring(counts.movies_to_watch, counts.movies_to_watch + chart.films_watched,
+                   counts.movies_to_watch ~ " films to watch and " ~ chart.films_watched ~ " watched") }}
   </div>
 </div>
 
@@ -88,8 +105,6 @@
                 <form method="post" action="{{ url_for('shows.watch_episode', episode_id=ep.id) }}">
                   <input type="hidden" name="next" value="{{ request.full_path }}">
                   <button class="btn btn-primary btn-small" type="submit" name="to" value="1">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
-                         stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg>
                     Watched
                   </button>
                 </form>
@@ -131,8 +146,6 @@
                 <form method="post" action="{{ url_for('movies.watched', movie_id=film.id) }}">
                   <input type="hidden" name="next" value="{{ request.full_path }}">
                   <button class="btn btn-primary btn-small" type="submit" name="to" value="1">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
-                         stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg>
                     Watched
                   </button>
                 </form>
@@ -161,7 +174,7 @@
                stroke-linecap="round" stroke-linejoin="round">
             <rect x="2" y="7" width="20" height="14" rx="2.5"/><path d="m8 3 4 4 4-4"/>
           </svg>
-          <h3>Nothing waiting</h3>
+          <h2>Nothing waiting</h2>
           <p>Either you are fully caught up, or you have not added any shows yet.</p>
           <a class="btn btn-primary" href="{{ url_for('main.search') }}">Find a show</a>
         </div>
@@ -172,7 +185,7 @@
   <aside>
     <section class="panel">
       <div class="panel-head">
-        <h3>Coming soon</h3>
+        <h2>Coming soon</h2>
         <span class="spacer"></span>
         <a class="hint" href="{{ url_for('main.upcoming_view') }}">See all</a>
       </div>
@@ -184,7 +197,7 @@
                 <img src="{{ url_for('images.poster', size='w92', tmdb_path=ep.poster_path.lstrip('/')) }}" alt="" loading="lazy">
               {% else %}<span class="poster-empty"></span>{% endif %}
             </a>
-            <div style="min-width:0">
+            <div class="min-0">
               <a class="show-tile-name" href="{{ url_for('shows.detail', show_id=ep.show_id) }}">{{ ep.show_name }}</a>
               <div class="ep-date">
               <a href="{{ url_for('shows.episode', episode_id=ep.id) }}">{{ ep|episode_code }}</a>
@@ -194,13 +207,13 @@
           </div>
         {% endfor %}
       {% else %}
-        <p class="subtle" style="margin:0">Nothing scheduled in the next three weeks.</p>
+        <p class="subtle m-0">Nothing scheduled in the next three weeks.</p>
       {% endif %}
     </section>
 
     {% if recent %}
     <section class="panel">
-      <div class="panel-head"><h3>Recently watched</h3></div>
+      <div class="panel-head"><h2>Recently watched</h2></div>
       {% for ep in recent %}
         <div class="schedule-row">
           <a class="poster" href="{{ url_for('shows.detail', show_id=ep.show_id) }}" tabindex="-1" aria-hidden="true">
@@ -208,7 +221,7 @@
               <img src="{{ url_for('images.poster', size='w92', tmdb_path=ep.poster_path.lstrip('/')) }}" alt="" loading="lazy">
             {% else %}<span class="poster-empty"></span>{% endif %}
           </a>
-          <div style="min-width:0">
+          <div class="min-0">
             <a class="show-tile-name" href="{{ url_for('shows.detail', show_id=ep.show_id) }}">{{ ep.show_name }}</a>
             <div class="ep-date">
               <a href="{{ url_for('shows.episode', episode_id=ep.id) }}">{{ ep|episode_code }}</a>
@@ -222,11 +235,11 @@
 
     {% if last_sync %}
     <section class="panel">
-      <div class="panel-head"><h3>Last refresh</h3></div>
-      <p class="hint" style="margin:0">
+      <div class="panel-head"><h2>Last refresh</h2></div>
+      <p class="hint m-0">
         {{ last_sync.started_at[:16].replace('T', ' ') }} ·
         {{ last_sync.shows_done }} show{{ '' if last_sync.shows_done == 1 else 's' }} ·
-        {% if last_sync.status == 'ok' %}<span class="badge badge-success">fine</span>
+        {% if last_sync.status == 'ok' %}<span class="badge">fine</span>
         {% elif last_sync.status == 'error' %}<span class="badge badge-danger">problems</span>
         {% else %}<span class="badge">running</span>{% endif %}
       </p>

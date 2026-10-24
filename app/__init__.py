@@ -1,11 +1,11 @@
 """Nextup - a personal TV and film tracker."""
 import os
 import secrets as pysecrets
-from datetime import date, datetime
+from datetime import datetime
 
 from flask import Flask
 
-from . import config, db
+from . import clock, config, db
 
 def _read_version():
     path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "VERSION")
@@ -39,7 +39,6 @@ def create_app(start_sync=True):
         SESSION_COOKIE_SAMESITE="Lax",
         SESSION_COOKIE_SECURE=config.HTTPS_ONLY,
         MAX_CONTENT_LENGTH=64 * 1024 * 1024,
-        JSON_SORT_KEYS=False,
         TEMPLATES_AUTO_RELOAD=False,
     )
 
@@ -129,7 +128,7 @@ def _register_filters(app):
             parsed = datetime.strptime(str(value)[:10], "%Y-%m-%d").date()
         except ValueError:
             return str(value)
-        delta = (parsed - date.today()).days
+        delta = (parsed - clock.today_date()).days
         if delta == 0:
             return "Today"
         if delta == 1:
@@ -158,7 +157,7 @@ def _register_filters(app):
         return f"{days}d {hours}h"
 
 def _register_context(app):
-    from flask import get_flashed_messages, request, session
+    from flask import get_flashed_messages, session
 
     from . import secretstore
     from .auth import current_user
@@ -180,5 +179,5 @@ def _register_context(app):
             "notes": notes,
             "user": current_user() if session.get("logged_in") else None,
             "accent": accent,
-            "today": date.today(),
+            "today": clock.today_date(),
         }

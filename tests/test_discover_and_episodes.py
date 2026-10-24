@@ -20,10 +20,15 @@ def _seed_show_with_episodes(app):
     conn.commit()
     db.execute("INSERT OR REPLACE INTO tracked_show (show_id, added_at) VALUES (600, '2026-01-01')")
 
+def _no_key(*a, **k):
+    from app import tmdb
+
+    raise tmdb.MissingKey("no key")
+
 def test_episode_page_shows_what_is_stored(signed_in, app, monkeypatch):
     from app import tmdb
 
-    monkeypatch.setattr(tmdb, "episode", lambda *a, **k: (_ for _ in ()).throw(tmdb.MissingKey("no key")))
+    monkeypatch.setattr(tmdb, "episode", _no_key)
     with app.app_context():
         _seed_show_with_episodes(app)
 
@@ -37,7 +42,7 @@ def test_episode_page_shows_what_is_stored(signed_in, app, monkeypatch):
 def test_episode_page_links_to_its_neighbours(signed_in, app, monkeypatch):
     from app import queries, tmdb
 
-    monkeypatch.setattr(tmdb, "episode", lambda *a, **k: (_ for _ in ()).throw(tmdb.MissingKey("no key")))
+    monkeypatch.setattr(tmdb, "episode", _no_key)
     with app.app_context():
         _seed_show_with_episodes(app)
         previous, following = queries.episode_neighbours(600, 1, 2)
@@ -68,7 +73,6 @@ def test_saying_no_hides_a_show_from_discover(signed_in, app):
     signed_in.post("/discover/show/1234/no")
     with app.app_context():
         assert 1234 in queries.dismissed_ids("tv")
-        assert 1234 in queries.dismissed_ids("tv")
         assert queries.dismissed_ids("movie") == set()
 
 def test_restore_brings_dismissed_items_back(signed_in, app):
@@ -88,7 +92,7 @@ def test_restore_brings_dismissed_items_back(signed_in, app):
 def _fake_sync_show(monkeypatch):
     from app import db, sync
 
-    def fake(show_id):
+    def fake(show_id, failed=None):
         db.execute(
             "INSERT OR REPLACE INTO show (id, name) VALUES (?, ?)",
             (show_id, f"Show {show_id}"),

@@ -15,11 +15,13 @@ def is_emoji(ch):
     return any(lo <= cp <= hi for lo, hi in RANGES)
 
 def main():
-    files = subprocess.run(["git", "ls-files"], capture_output=True, text=True, check=True).stdout.split()
+    listing = subprocess.run(["git", "ls-files", "-z"], capture_output=True, check=True).stdout
+    files = [name.decode("utf-8") for name in listing.split(b"\0") if name]
     found = 0
     for path in files:
         try:
-            text = open(path, encoding="utf-8").read()
+            with open(path, encoding="utf-8") as handle:
+                text = handle.read()
         except (UnicodeDecodeError, IsADirectoryError, FileNotFoundError):
             continue
         for number, line in enumerate(text.splitlines(), 1):

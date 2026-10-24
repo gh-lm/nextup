@@ -16,13 +16,13 @@ def main():
 
     changed = []
     for page in sorted(DOCS.glob("*.html")):
-        text = page.read_text()
+        text = page.read_text(encoding="utf-8")
         before = text
         for name, digest in ASSETS.items():
             pattern = re.compile(r'((?:/)?%s)(\?v=[^"\']*)?' % re.escape(name))
             text = pattern.sub(lambda m: m.group(1) + "?v=" + digest, text)
         if text != before:
-            page.write_text(text)
+            page.write_text(text, encoding="utf-8")
             changed.append(page.name)
 
     for name, digest in ASSETS.items():

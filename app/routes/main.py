@@ -3,7 +3,7 @@ from datetime import date, timedelta
 
 from flask import Blueprint, render_template, request
 
-from .. import queries, secretstore, sync, tmdb
+from .. import clock, queries, secretstore, sync, tmdb
 from ..auth import login_required
 from ..forms import page_number, whole_number
 
@@ -23,6 +23,7 @@ def dashboard():
         upcoming=queries.upcoming(days=21, limit=12),
         recent=queries.recently_watched(6),
         counts=queries.dashboard_counts(),
+        chart=queries.dashboard_charts(),
         has_key=secretstore.has("tmdb_api_key"),
         unreadable=secretstore.unreadable(),
         last_sync=sync.last_run(),
@@ -32,7 +33,7 @@ def dashboard():
 @bp.route("/calendar")
 @login_required
 def calendar_view():
-    today = date.today()
+    today = clock.today_date()
     year = whole_number(request.args.get("y"), MIN_YEAR, MAX_YEAR, today.year)
     month = whole_number(request.args.get("m"), 1, 12, today.month)
     first = date(year, month, 1)
@@ -110,13 +111,10 @@ def search():
             payload = tmdb.search_multi(term, page=page)
             results = payload["results"]
             total_pages = min(payload["total_pages"], 500)
-        except tmdb.MissingKey as exc:
-            error = str(exc)
         except tmdb.TmdbError as exc:
             error = str(exc)
 
-    tracked_tv = {row["id"] for row in queries.tracked_shows(everything=True)}
-    tracked_film = {row["id"] for row in queries.movies()}
+    tracked_tv, tracked_film = queries.known_ids()
     for item in results:
         item["tracked"] = (
             item["id"] in tracked_tv if item["kind"] == "tv" else item["id"] in tracked_film

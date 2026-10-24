@@ -16,9 +16,9 @@
 </div>
 
 {% if films %}
-<section class="panel" style="margin-bottom:22px">
+<section class="panel mb-22">
   <div class="panel-head">
-    <h2 style="font-size:1.25rem">Films landing on streaming</h2>
+    <h2>Films landing on streaming</h2>
   </div>
   <div class="schedule">
     {% for film in films %}
@@ -28,7 +28,7 @@
             <img src="{{ url_for('images.poster', size='w92', tmdb_path=film.poster_path.lstrip('/')) }}" alt="" loading="lazy">
           {% else %}<span class="poster-empty"></span>{% endif %}
         </a>
-        <div style="min-width:0">
+        <div class="min-0">
           <a class="show-tile-name" href="{{ url_for('movies.detail', movie_id=film.id) }}">{{ film.title }}</a>
           <div class="ep-date">{{ film.digital_release|relative_day }} · {{ film.digital_release|pretty_date }}</div>
         </div>
@@ -51,7 +51,7 @@
                 <img src="{{ url_for('images.poster', size='w92', tmdb_path=ep.poster_path.lstrip('/')) }}" alt="" loading="lazy">
               {% else %}<span class="poster-empty"></span>{% endif %}
             </a>
-            <div style="min-width:0">
+            <div class="min-0">
               <a class="show-tile-name" href="{{ url_for('shows.detail', show_id=ep.show_id) }}">{{ ep.show_name }}</a>
               <div class="ep-date">
                 <a href="{{ url_for('shows.episode', episode_id=ep.id) }}">{{ ep|episode_code }}</a>
@@ -71,7 +71,7 @@
            stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 10h18"/>
       </svg>
-      <h3>Nothing scheduled</h3>
+      <h2>Nothing scheduled</h2>
       <p>None of your shows have a dated episode in this window.</p>
     </div>
   </div>

@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.5.5-fbc711?style=flat-square&labelColor=282b34" alt="Version 1.5.5" />
+  <img src="https://img.shields.io/badge/version-1.6.0-fbc711?style=flat-square&labelColor=282b34" alt="Version 1.6.0" />
   <img src="https://img.shields.io/badge/licence-GPL%20v3-7fd99a?style=flat-square&labelColor=282b34" alt="GPL v3" />
   <img src="https://img.shields.io/badge/image-ghcr.io-5eb6ff?style=flat-square&labelColor=282b34" alt="Image on ghcr.io" />
   <img src="https://img.shields.io/badge/tracking-none-c2c2cc?style=flat-square&labelColor=282b34" alt="No tracking" />
@@ -43,6 +43,8 @@ services:
     cap_drop:
       - ALL
     read_only: true
+    mem_limit: 512m
+    pids_limit: 128
     tmpfs:
       - /tmp
     volumes:
@@ -81,9 +83,9 @@ docker compose up -d
 ## Catching up without forty clicks
 
 Pick the last episode you remember watching and press **Up to here**.
-Everything before it is ticked in one go, which is how a show you started
+Everything before it is marked watched in one go, which is how a show you started
 three years ago comes back under control. Episodes that have not aired cannot
-be ticked by accident, and the progress bar counts only what has actually been
+be marked by accident, and the progress bar counts only what has actually been
 broadcast.
 
 <table>
@@ -117,11 +119,11 @@ travel inside the message, so it reads properly with no signal.
 
 ## What it does
 
-- **Next up**: every show with an aired episode you have not watched, oldest
-  first, with a one-click watched button
+- **Next up**: every aired episode you have not watched, one row each, newest
+  first by default with a switch to oldest first, and a one-click watched button
 - **My shows**: a poster grid with a progress bar per show, and a filter for
   the ones you are behind on
-- **Show pages**: every season and episode, ticked one at a time, a whole
+- **Show pages**: every season and episode, marked watched one at a time, a whole
   season at once, or up to here for catching up
 - **Calendar**: a month at a glance, episodes in yellow and films reaching
   home viewing in blue, each labelled so colour is not the only signal
@@ -129,13 +131,16 @@ travel inside the message, so it reads properly with no signal.
 - **Maybe**: shows you fancy the look of but are not following, kept out of
   Next up, the calendar and the email until you decide
 - **Films**: split into ready to watch, coming to streaming, and seen, with
-  the date each one reaches home viewing and which UK services carry it
-- **Discover**: separate pages for films and television, with a tick, a
+  the date each one reaches home viewing and which services in your country
+  carry it
+- **Discover**: separate pages for films and television, with a plus, a
   question mark and a cross on every card
 - **Episode pages**: the still, synopsis, air date, runtime, guest cast and
   director, with links either side
 - **A morning email** at a time you choose, to the minute, with a 24 hour or
   am and pm clock
+- **A country setting**, taken from your computer's time zone when you first
+  sign in, which decides the release dates, services and age ratings shown
 - **A watchable-after setting**, so something that airs at eleven at night
   does not count until you would really watch it
 - **Backup and restore** from the Settings page, as one JSON file
@@ -150,8 +155,8 @@ service listings come from JustWatch by way of TMDB.
 
 Everything that makes your copy yours is set in the app itself: your username
 and password, the TMDB key, the mail server, the send time, the watchable-after
-delay and the accent colour. Only the things that decide where the app lives
-come from the environment.
+delay, your country and the accent colour. Only the things that decide where
+the app lives come from the environment.
 
 | Variable | Required | Default | What it does |
 |---|---|---|---|
@@ -196,8 +201,9 @@ What follows is what is already built in.
 - No analytics, no telemetry and no third-party script. The only outbound
   calls are to TMDB and to your own mail server.
 
-What it does not do: there is one account and no two-factor, there is no limit
-on how many passwords can be tried, and there is no audit log. Keep it on your
+What it does not do: there is one account and no two-factor, and there is no
+audit log. Repeated wrong passwords slow sign-in down, but that is no
+substitute for keeping it private. Keep it on your
 own network or a tailnet rather than open to the internet.
 
 ## Building it yourself
@@ -215,7 +221,7 @@ The published image is built by
 tag is pushed, and lands at `ghcr.io/gh-lm/nextup`.
 
 ```bash
-pip install -r requirements-dev.txt
+pip install --require-hashes -r requirements-dev.lock
 pytest -q
 ```
 
@@ -228,19 +234,30 @@ nextup/
 │   ├── templates/            # Jinja templates
 │   ├── static/               # Plain CSS and a little JavaScript, no build step
 │   ├── auth.py               # password hashing and the login check
+│   ├── clock.py              # today's date and time, in local time
 │   ├── config.py             # the handful of environment variables
 │   ├── db.py                 # SQLite, schema and migrations
+│   ├── forms.py              # reading numbers from forms safely
 │   ├── mailer.py             # the morning email
 │   ├── posters.py            # fetches and caches artwork
+│   ├── redirects.py          # only follows links that stay on Nextup
 │   ├── secretstore.py        # encrypts the TMDB key and mail password
 │   ├── sync.py               # the background refresh
+│   ├── timezones.py          # which country a time zone belongs to
 │   ├── tmdb.py               # the TMDB client
 │   └── transfer.py           # backup and restore
 ├── docs/                     # The nextup.lightmorphic.com website
 │   └── images/sources/       # The HTML that draws the banner and the diagram
 ├── tests/                    # the test suite
-├── tools/stamp-assets.py     # Stamps the website's stylesheet with its hash
-├── .github/workflows/        # Builds and publishes the image
+├── tools/
+│   ├── check-emoji.py        # Fails the checks if an emoji gets in
+│   └── stamp-assets.py       # Stamps the website's stylesheet with its hash
+├── .github/
+│   ├── dependabot.yml        # Weekly update proposals
+│   └── workflows/            # checks.yml runs the tests; release.yml builds and publishes the image
+├── requirements.txt         # The packages Nextup asks for, by hand
+├── requirements.lock        # Every package, pinned with hashes (pip-compile)
+├── requirements-dev.*       # The same for the tests
 ├── Dockerfile
 ├── docker-compose.yml
 ├── CHANGELOG.md

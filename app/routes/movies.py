@@ -1,8 +1,8 @@
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, url_for
 
 from .. import clock, db, queries, sync, tmdb
 from ..auth import login_required
-from ..forms import wanted_state
+from ..forms import confirmed, wanted_state
 from ..redirects import back_to
 
 bp = Blueprint("movies", __name__)
@@ -76,7 +76,7 @@ def track(movie_id):
         digital, names = sync.sync_movie_availability(movie_id)
     except tmdb.TmdbError:
         digital, names = None, []
-    title = payload.get("title")
+    title = payload.get("title") or "this film"
     if names:
         flash(f"Added {title}. It is on {', '.join(names)} now.", "success")
     elif digital:
@@ -98,6 +98,9 @@ def refresh(movie_id):
 @bp.route("/movie/<int:movie_id>/untrack", methods=["POST"])
 @login_required
 def untrack(movie_id):
+    if not confirmed():
+        flash("Tick \"Yes, remove it\" to remove the film.", "error")
+        return redirect(url_for("movies.detail", movie_id=movie_id))
     db.execute("DELETE FROM tracked_movie WHERE movie_id = ?", (movie_id,))
     return back_to("movies.index")
 

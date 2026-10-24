@@ -18,16 +18,16 @@
         {% if extras.certification %}<span class="badge">{{ extras.certification }}</span>{% endif %}
         {% for genre in extras.genres %}<span class="badge">{{ genre }}</span>{% endfor %}
         {% if movie.vote_average %}<span class="badge">{{ icons.star() }}{{ '%.1f'|format(movie.vote_average) }}</span>{% endif %}
-        {% if tracked and tracked.watched_at %}<span class="badge badge-success">Watched</span>{% endif %}
+        {% if tracked and tracked.watched_at %}<span class="badge">Watched</span>{% endif %}
         {% if shortlisted %}<span class="badge badge-accent">On your maybe list</span>{% endif %}
       </div>
 
       <div class="show-hero-meta">
         {% if providers %}
-          {% for name in providers %}<span class="badge badge-success">On {{ name }}</span>{% endfor %}
+          {% for name in providers %}<span class="badge badge-info">On {{ name }}</span>{% endfor %}
         {% elif movie.digital_release %}
           {% if streamable %}
-            <span class="badge badge-success">Out for home viewing since {{ movie.digital_release|pretty_date }}</span>
+            <span class="badge">Out for home viewing since {{ movie.digital_release|pretty_date }}</span>
           {% else %}
             <span class="badge badge-info">Streaming {{ movie.digital_release|relative_day }}, {{ movie.digital_release|pretty_date }}</span>
           {% endif %}
@@ -43,7 +43,7 @@
           Streaming information supplied by JustWatch through TMDB.
         </p>
       {% endif %}
-      <div class="btn-row" style="margin-top:14px">
+      <div class="btn-row mt-14">
         {% if tracked %}
           <form method="post" action="{{ url_for('movies.watched', movie_id=movie.id) }}">
             <button class="btn btn-primary" type="submit" name="to" value="{{ '0' if tracked.watched_at else '1' }}">
@@ -63,6 +63,12 @@
                     data-confirm-label="Really remove? This forgets whether you watched it."
                     title="Cannot be undone"
                     aria-label="Remove this film from your list and forget whether you watched it. This cannot be undone.">Remove</button>
+            <noscript>
+              <label class="inline-check">
+                <input type="checkbox" name="sure" value="1" required>
+                Yes, remove it
+              </label>
+            </noscript>
           </form>
         {% else %}
           <form method="post" action="{{ url_for('movies.track', movie_id=movie.id) }}">
@@ -78,7 +84,7 @@
 <div class="split">
   {% with cast=extras.cast %}{% include 'partials/_cast.html' %}{% endwith %}
   <section class="panel">
-    <div class="panel-head"><h2 style="font-size:1.25rem">Details</h2></div>
+    <div class="panel-head"><h2>Details</h2></div>
     <dl class="fact-list">
       {% for person in extras.crew %}
         <dt>{{ person.role }}</dt><dd>{{ person.name }}</dd>
@@ -92,7 +98,7 @@
       {% if movie.runtime %}<dt>Runtime</dt><dd>{{ movie.runtime }} minutes</dd>{% endif %}
     </dl>
     {% if extras.trailer or extras.imdb or movie.provider_link %}
-      <div class="btn-row" style="margin-top:16px">
+      <div class="btn-row mt-16">
         {% if extras.trailer %}
           <a class="btn btn-small" href="{{ extras.trailer.url }}" rel="noopener noreferrer">Trailer</a>
         {% endif %}
@@ -103,7 +109,7 @@
           <a class="btn btn-small" href="{{ movie.provider_link }}" rel="noopener noreferrer">Where to watch</a>
         {% endif %}
       </div>
-      <p class="hint" style="margin-top:10px">These open on other people's websites.</p>
+      <p class="hint mt-10">These open on other people's websites.</p>
     {% endif %}
   </section>
 </div>

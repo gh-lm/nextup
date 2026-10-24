@@ -80,6 +80,10 @@
           <li>The shows and films you added, and which episodes you marked as watched.</li>
           <li>Your username and a hashed password. The password itself is never stored.</li>
           <li>Your TMDB API key, encrypted with a key held in the same directory.</li>
+          <li>If you set up the morning email: your mail server's details, its
+          username, the sending and receiving addresses, and the mail password,
+          which is encrypted the same way as the TMDB key.</li>
+          <li>Your settings, such as the country whose release dates and services are shown.</li>
           <li>Artwork downloaded from TMDB, cached so pages do not call out to anyone.</li>
         </ul>
         <p>
@@ -91,13 +95,18 @@
         <section>
         <h2>What Nextup sends out</h2>
         <p>
-          One thing only: requests to TMDB, made by your server, asking about the
-          shows and films you looked up and fetching their artwork. TMDB therefore
+          Two things, both made by your server. First, requests to TMDB asking about
+          the shows and films you looked up and fetching their artwork. TMDB therefore
           sees your server's IP address and what you searched for. Their handling of
           that is covered by the
           <a href="https://www.themoviedb.org/privacy-policy">TMDB privacy policy</a>.
           If you would rather not have that happen, do not add a TMDB key, though
           then the app has nothing to look up.
+        </p>
+        <p>
+          Second, if you turn on the morning email, the message goes to the mail
+          server you entered, which delivers it to the address you gave. Nothing is
+          sent to Lightmorphic or anyone else.
         </p>
         </section>
         <section>
@@ -188,7 +197,7 @@
           &copy; Lightmorphic Ltd. Registered in England and Wales, company number
           17423646.<br>
           Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.<br>
-          Page last updated: <time datetime="2026-10-17">17 October 2026</time>.
+          Page last updated: <time datetime="2026-10-24">24 October 2026</time>.
         </p>
         <nav aria-label="Legal">
           <a href="privacy.html">Privacy</a>

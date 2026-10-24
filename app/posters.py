@@ -10,7 +10,8 @@ from . import config
 from .tmdb import IMAGE_BASE
 
 ALLOWED_SIZES = {"w92", "w154", "w185", "w300", "w342", "w500", "w780", "original"}
-PATH_RE = re.compile(r"/?[A-Za-z0-9_-]+\.(jpg|png|svg|webp)")
+MAX_BYTES = 10 * 1024 * 1024
+PATH_RE = re.compile(r"/?[A-Za-z0-9_-]+\.(jpg|png|webp)")
 
 def cache_name(size, clean_path):
     suffix = os.path.splitext(clean_path)[1]
@@ -35,28 +36,42 @@ def cached_file(size, tmdb_path):
     if os.path.exists(path):
         return path
 
-    try:
-        resp = requests.get(f"{IMAGE_BASE}/{size}{clean}", timeout=20)
-    except requests.RequestException:
-        return None
-    if not resp.ok or not resp.content:
-        return None
-    if not resp.headers.get("Content-Type", "").startswith("image/"):
-        return None
-    expected = resp.headers.get("Content-Length")
-    if expected and expected.isdigit() and int(expected) != len(resp.content):
+    body = _download(f"{IMAGE_BASE}/{size}{clean}")
+    if body is None:
         return None
 
     fd, tmp = tempfile.mkstemp(dir=config.CACHE_DIR, suffix=".part")
     try:
         with os.fdopen(fd, "wb") as fh:
-            fh.write(resp.content)
+            fh.write(body)
         os.replace(tmp, path)
     except OSError:
         if os.path.exists(tmp):
             os.remove(tmp)
         return None
     return path
+
+def _download(url):
+    try:
+        with requests.get(url, timeout=20, stream=True) as resp:
+            if not resp.ok or not resp.headers.get("Content-Type", "").startswith("image/"):
+                return None
+            try:
+                expected = int(resp.headers.get("Content-Length"))
+            except (TypeError, ValueError):
+                expected = None
+            if expected is not None and expected > MAX_BYTES:
+                return None
+            body = bytearray()
+            for chunk in resp.iter_content(64 * 1024):
+                body += chunk
+                if len(body) > MAX_BYTES:
+                    return None
+    except requests.RequestException:
+        return None
+    if not body or (expected is not None and expected != len(body)):
+        return None
+    return bytes(body)
 
 def read_bytes(size, tmdb_path):
     path = cached_file(size, tmdb_path)
@@ -67,5 +82,5 @@ def read_bytes(size, tmdb_path):
             data = fh.read()
     except OSError:
         return None, None
-    subtype = "png" if path.endswith(".png") else "jpeg"
+    subtype = {".png": "png", ".webp": "webp"}.get(os.path.splitext(path)[1], "jpeg")
     return data, subtype

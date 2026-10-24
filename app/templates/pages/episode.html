@@ -5,7 +5,7 @@
 
 <div class="page-head">
   <div>
-    <p class="subtle" style="margin:0">
+    <p class="subtle m-0">
       <a href="{{ url_for('shows.detail', show_id=show.id) }}">{{ show.name }}</a>
       · {{ 'Specials' if episode.season_number == 0 else 'Season ' ~ episode.season_number }}
     </p>
@@ -32,17 +32,17 @@
     {% endif %}
     {% if episode.runtime %}<span class="badge">{{ episode.runtime }} min</span>{% endif %}
     {% if rating %}<span class="badge">{{ icons.star() }}{{ '%.1f'|format(rating) }}</span>{% endif %}
-    {% if episode.watched %}<span class="badge badge-success">Watched</span>{% endif %}
+    {% if episode.watched %}<span class="badge">Watched</span>{% endif %}
   </div>
 
   {% if episode.overview %}
-    <p style="max-width:65ch">{{ episode.overview }}</p>
+    <p class="measure">{{ episode.overview }}</p>
   {% else %}
     <p class="subtle">TMDB has no synopsis for this episode yet.</p>
   {% endif %}
 
   {% if tracked %}
-    <div class="btn-row" style="margin-top:16px">
+    <div class="btn-row mt-16">
       <form method="post" action="{{ url_for('shows.watch_episode', episode_id=episode.id) }}">
         <input type="hidden" name="next" value="{{ request.full_path }}">
         <button class="btn {{ '' if episode.watched else 'btn-primary' }}" type="submit" name="to" value="{{ '0' if episode.watched else '1' }}">
@@ -65,7 +65,7 @@
 <div class="split">
   {% if guests %}
   <section class="panel">
-    <div class="panel-head"><h2 style="font-size:1.25rem">Guest cast</h2></div>
+    <div class="panel-head"><h2>Guest cast</h2></div>
     <ul class="credit-list">
       {% for person in guests %}
         <li><strong>{{ person.name }}</strong>{% if person.role %}<span class="subtle"> as {{ person.role }}</span>{% endif %}</li>
@@ -75,7 +75,7 @@
   {% endif %}
   {% if crew %}
   <section class="panel">
-    <div class="panel-head"><h2 style="font-size:1.25rem">Made by</h2></div>
+    <div class="panel-head"><h2>Made by</h2></div>
     <ul class="credit-list">
       {% for person in crew %}
         <li><strong>{{ person.name }}</strong><span class="subtle"> · {{ person.role }}</span></li>

@@ -7,6 +7,9 @@ def wanted_state(name="to"):
         abort(400)
     return value == "1"
 
+def confirmed():
+    return request.form.get("sure") == "1"
+
 def page_number(high, name="page"):
     return whole_number(request.args.get(name), 1, high, 1)
 

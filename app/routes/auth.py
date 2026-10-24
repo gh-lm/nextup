@@ -1,7 +1,7 @@
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, redirect, render_template, request, session, url_for
 
-from .. import config
-from ..auth import check_login, forget_failures, record_failure, sign_in_blocked, start_session
+from .. import config, secretstore, sync, tmdb
+from ..auth import check_login, forget_failures, record_failure, sign_in_wait, start_session
 from ..redirects import is_local_path
 
 bp = Blueprint("auth", __name__)
@@ -14,18 +14,21 @@ def login():
         username = request.form.get("username", "")
         password = request.form.get("password", "")
         address = request.remote_addr or "unknown"
-        if sign_in_blocked(address):
-            flash("Too many attempts. Wait a few minutes and try again.", "error")
-            return render_template("pages/login.html"), 429
+        wait = sign_in_wait(address, username)
+        if wait:
+            error = f"Too many attempts. Wait {wait} seconds and try again."
+            return render_template("pages/login.html", error=error), 429
         if check_login(username, password):
-            forget_failures(address)
+            forget_failures(address, username)
             start_session(starter=password == config.DEFAULT_PASSWORD)
+            if tmdb.remember_country(request.form.get("timezone")) and secretstore.has("tmdb_api_key"):
+                sync.start_now(current_app._get_current_object())
             target = request.args.get("next") or ""
             if not is_local_path(target):
                 target = url_for("main.dashboard")
             return redirect(target)
-        record_failure(address)
-        flash("Those details did not match.", "error")
+        record_failure(address, username)
+        return render_template("pages/login.html", error="Those details did not match.")
     return render_template("pages/login.html")
 
 @bp.route("/logout", methods=["POST"])

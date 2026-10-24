@@ -4,20 +4,11 @@
 
   var SCROLL_KEY = 'nextup:scroll';
 
-  function openSeasons() {
-    var out = [];
-    document.querySelectorAll('details.season[data-season]').forEach(function (box) {
-      if (box.open) { out.push(box.getAttribute('data-season')); }
-    });
-    return out;
-  }
-
   function rememberPage() {
     try {
       window.sessionStorage.setItem(SCROLL_KEY, JSON.stringify({
         path: window.location.pathname,
-        y: window.scrollY || document.documentElement.scrollTop || 0,
-        seasons: openSeasons()
+        y: window.scrollY || document.documentElement.scrollTop || 0
       }));
     } catch (error) {  }
   }
@@ -39,13 +30,6 @@
 
   var remembered = takeRememberedPage();
 
-  if (remembered && remembered.seasons) {
-    var wanted_seasons = remembered.seasons;
-    document.querySelectorAll('details.season[data-season]').forEach(function (box) {
-      box.open = wanted_seasons.indexOf(box.getAttribute('data-season')) !== -1;
-    });
-  }
-
   var wanted = remembered ? (remembered.y > 0 ? remembered.y : 0) : 0;
   if (wanted) {
     window.scrollTo(0, wanted);
@@ -60,35 +44,60 @@
     });
   }
 
-  document.querySelectorAll('form[data-confirm] button').forEach(function (button) {
-    var original = button.textContent.trim();
-    var armed = false;
-    var timer = null;
+  document.querySelectorAll('form[data-confirm]').forEach(function (form) {
+    var live = document.createElement('span');
+    live.className = 'visually-hidden';
+    live.setAttribute('aria-live', 'polite');
+    form.appendChild(live);
 
-    button.addEventListener('click', function (event) {
-      if (armed) { return; }
-      event.preventDefault();
-      armed = true;
-      button.textContent = button.dataset.confirmLabel || 'Click again to confirm';
-      button.classList.add('btn-danger');
-      button.classList.remove('btn-quiet');
-      timer = window.setTimeout(function () {
+    Array.prototype.filter.call(form.elements, function (el) {
+      return el.tagName === 'BUTTON';
+    }).forEach(function (button) {
+      var original = button.textContent.trim();
+      var originalLabel = button.getAttribute('aria-label');
+      var armed = false;
+      var timer = null;
+
+      function disarm() {
+        window.clearTimeout(timer);
         armed = false;
         button.textContent = original;
+        if (originalLabel) { button.setAttribute('aria-label', originalLabel); }
         button.classList.remove('btn-danger');
         button.classList.add('btn-quiet');
-      }, 5000);
-    });
+        live.textContent = '';
+      }
 
-    button.addEventListener('blur', function () {
-      if (!armed) { return; }
-      window.clearTimeout(timer);
-      armed = false;
-      button.textContent = original;
-      button.classList.remove('btn-danger');
-      button.classList.add('btn-quiet');
+      button.addEventListener('click', function (event) {
+        if (armed) {
+          var sure = document.createElement('input');
+          sure.type = 'hidden';
+          sure.name = 'sure';
+          sure.value = '1';
+          form.appendChild(sure);
+          return;
+        }
+        event.preventDefault();
+        armed = true;
+        var label = button.dataset.confirmLabel || 'Click again to confirm';
+        button.textContent = label;
+        if (originalLabel) { button.setAttribute('aria-label', label); }
+        button.classList.add('btn-danger');
+        button.classList.remove('btn-quiet');
+        live.textContent = label;
+        timer = window.setTimeout(disarm, 5000);
+      });
+
+      button.addEventListener('blur', function () { if (armed) { disarm(); } });
     });
   });
+
+  var zone = '';
+  try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) { zone = ''; }
+  document.querySelectorAll('input[data-timezone]').forEach(function (input) { input.value = zone; });
+  if (zone) {
+    document.querySelectorAll('[data-needs-timezone]').forEach(function (el) { el.hidden = false; });
+  }
 
   document.querySelectorAll('form[data-autosave]').forEach(function (form) {
     var button = form.querySelector('button[type="submit"], button:not([type])');
@@ -114,9 +123,7 @@
   }
 
   document.addEventListener('keydown', function (event) {
-    if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) { return; }
-    var tag = (document.activeElement && document.activeElement.tagName) || '';
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') { return; }
+    if (event.code !== 'Slash' || !event.altKey || event.ctrlKey || event.metaKey) { return; }
     var box = document.getElementById('q');
     if (box) { event.preventDefault(); box.focus(); box.select(); }
   });

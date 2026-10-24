@@ -40,7 +40,7 @@
         {% elif item.next_air %}
           <span class="badge badge-info">Next {{ item.next_air.air_date|short_date }}</span>
         {% elif item.progress.complete %}
-          <span class="badge badge-success">Caught up</span>
+          <span class="badge">Caught up</span>
         {% endif %}
       </div>
     </article>
@@ -53,7 +53,7 @@
          stroke-linecap="round" stroke-linejoin="round">
       <rect x="2" y="7" width="20" height="14" rx="2.5"/><path d="m8 3 4 4 4-4"/>
     </svg>
-    <h3>No shows here yet</h3>
+    <h2>No shows here yet</h2>
     <p>Search for something you watch and it will start tracking the episodes for you.</p>
     <a class="btn btn-primary" href="{{ url_for('main.search') }}">Find a show</a>
   </div>

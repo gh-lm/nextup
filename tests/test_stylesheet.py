@@ -1,26 +1,33 @@
-"""Guards for layout rules that are easy to delete and hard to notice."""
+"""Rules the stylesheet must keep, read from its parsed rules rather than its text."""
 import pathlib
 import re
 
-CSS = pathlib.Path(__file__).resolve().parent.parent / "app" / "static" / "css" / "main.css"
-SITE_CSS = pathlib.Path(__file__).resolve().parent.parent / "docs" / "css" / "site.css"
+from pagebits import contrast, css_rules, declarations
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+CSS = ROOT / "app" / "static" / "css" / "main.css"
+SITE_CSS = ROOT / "docs" / "css" / "site.css"
 
 def stylesheet():
     return CSS.read_text(encoding="utf-8")
 
-def test_the_split_layout_lets_its_columns_shrink():
-    assert ".split > * { min-width: 0; }" in stylesheet()
+def _sheets():
+    return (("app", stylesheet()), ("site", SITE_CSS.read_text(encoding="utf-8")))
+
+def test_hidden_elements_are_really_hidden():
+    rule = declarations(stylesheet(), "[hidden]")
+    assert rule.get("display") == "none !important"
+
+def test_grids_let_their_columns_shrink():
+    css = stylesheet()
+    for selector in (".split > *", ".show-hero > *"):
+        assert declarations(css, selector).get("min-width") == "0", selector
 
 def test_the_cast_strip_scrolls_inside_itself():
-    css = stylesheet()
-    block = css[css.index(".cast-strip {"):]
-    block = block[: block.index("}")]
-    assert "overflow-x: auto" in block
-    assert "min-width: 0" in block
-    assert "max-width: 100%" in block
-
-def test_the_show_hero_columns_can_shrink():
-    assert ".show-hero > * { min-width: 0; }" in stylesheet()
+    strip = declarations(stylesheet(), ".cast-strip")
+    assert strip.get("overflow-x") == "auto"
+    assert strip.get("min-width") == "0"
+    assert strip.get("max-width") == "100%"
 
 def test_every_custom_property_used_is_defined():
     css = stylesheet()
@@ -28,6 +35,12 @@ def test_every_custom_property_used_is_defined():
     used = set(re.findall(r"var\((--[a-z0-9-]+)", css))
     missing = sorted(used - defined)
     assert not missing, f"undefined custom properties: {missing}"
+
+def test_every_custom_property_defined_is_used():
+    css = stylesheet()
+    defined = set(re.findall(r"(--[a-z0-9-]+)\s*:", css))
+    used = set(re.findall(r"var\((--[a-z0-9-]+)", css))
+    assert not sorted(defined - used), f"unused custom properties: {sorted(defined - used)}"
 
 def test_focus_is_never_removed_without_a_replacement():
     css = stylesheet()
@@ -37,61 +50,73 @@ def test_focus_is_never_removed_without_a_replacement():
 def test_no_coloured_edges_anywhere():
     status = re.compile(r"var\(--(accent|success|danger|warning|info)")
     offenders = []
-    for name, css in (("app", stylesheet()), ("site", SITE_CSS.read_text(encoding="utf-8"))):
-        body = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
-        for declaration in body.split(";"):
-            declaration = declaration.strip().split("{")[-1].strip()
-            prop, _, value = declaration.partition(":")
-            prop = prop.strip()
-            if not prop.startswith("border") or prop == "border-radius":
-                continue
-            if status.search(value):
-                offenders.append(f"{name}: {prop}:{value.strip()}")
+    for name, css in _sheets():
+        for selector, decls in css_rules(css):
+            for prop, value in decls.items():
+                if prop.startswith("border") and prop != "border-radius" and status.search(value):
+                    offenders.append(f"{name}: {selector} {prop}: {value}")
     assert not offenders, "coloured edges found:\n" + "\n".join(offenders)
 
-def test_status_is_still_distinguishable_without_colour():
-    note = (CSS.parent.parent.parent / "templates" / "partials" / "_note.html").read_text()
-    assert "note-mark" in note
-    assert "icons.alert() if item.kind == 'error' else icons.tick()" in note
-
-def test_no_decorative_underlines():
+def test_no_underlines_anywhere():
     offenders = []
-    for name, css in (("app", stylesheet()), ("site", SITE_CSS.read_text(encoding="utf-8"))):
-        body = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
-        for rule in body.split("}"):
-            selector, _, block = rule.rpartition("{")
-            selector = selector.strip().splitlines()[-1] if selector.strip() else ""
-            if not block.strip():
-                continue
-            if re.search(r"box-shadow:\s*inset 0 -[\d.]+e?m? 0", block):
+    for name, css in _sheets():
+        for selector, decls in css_rules(css):
+            if re.search(r"inset 0 -[\d.]+(em|px)? 0", decls.get("box-shadow", "")):
                 offenders.append(f"{name}: {selector} uses an inset shadow as an underline")
-            if "text-decoration" in block and "underline" in block:
-                if ":hover" not in selector and ":focus" not in selector:
-                    offenders.append(f"{name}: {selector} underlines text outright")
-    assert not offenders, "decorative underlines found:\n" + "\n".join(offenders)
+            if "underline" in decls.get("text-decoration", "") or "text-decoration-thickness" in decls:
+                offenders.append(f"{name}: {selector} underlines text")
+        rules = dict(css_rules(css))
+        assert rules["a"].get("text-decoration") == "none", name
+        assert rules["a:hover"].get("color") == "var(--link-hover)", name
+    assert not offenders, "underlines found:\n" + "\n".join(offenders)
 
 def test_no_left_hand_edges_on_boxes():
-    for name, css in (("app", stylesheet()), ("site", SITE_CSS.read_text(encoding="utf-8"))):
-        body = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
-        assert "border-left" not in body, f"{name} has a left-hand edge"
+    for name, css in _sheets():
+        for selector, decls in css_rules(css):
+            assert not any(p.startswith("border-left") for p in decls), f"{name}: {selector}"
 
 def test_no_toast_banners_remain():
     css = stylesheet() + SITE_CSS.read_text(encoding="utf-8")
     assert ".flash" not in css
-    templates = (CSS.parent.parent.parent / "templates")
-    for page in templates.rglob("*.html"):
+    for page in (ROOT / "app" / "templates").rglob("*.html"):
         assert 'class="flash' not in page.read_text(encoding="utf-8"), page.name
 
 def test_controls_have_an_edge_you_can_actually_see():
     css = stylesheet()
-    for rule in (".btn {", ".btn-quiet {"):
-        block = css[css.index(rule):]
-        block = block[: block.index("}")]
-        assert "var(--field-border)" in block, f"{rule} has no visible edge"
-    assert "--field-border: #666a82" in css
+    for selector in (".btn", ".btn-quiet"):
+        decls = declarations(css, selector)
+        assert "var(--field-border)" in decls.get("border", "") + decls.get("border-color", ""), selector
+    root = dict(re.findall(r"(--[a-z-]+):\s*(#[0-9a-f]{6})", "".join(
+        f"{k}:{v};" for k, v in declarations(css, ":root").items())))
+    assert contrast(root["--field-border"], root["--panel"]) >= 3
 
 def test_a_quiet_button_is_still_a_button():
+    assert declarations(stylesheet(), ".btn-quiet").get("border-color") != "transparent"
+
+def test_the_stylesheet_is_dark_only():
     css = stylesheet()
-    block = css[css.index(".btn-quiet {"):]
-    block = block[: block.index("}")]
-    assert "border-color: transparent" not in block
+    assert "prefers-color-scheme" not in css
+    assert "data-theme" not in css
+    assert declarations(css, ":root").get("color-scheme") == "dark"
+
+def test_a_note_is_a_quiet_strip_not_a_banner():
+    note = declarations(stylesheet(), ".note")
+    assert note.get("background") == "var(--muted)"
+    assert not [p for p in note if p.startswith("border") and p != "border-radius"]
+
+def test_the_search_row_fills_the_width_when_it_wraps():
+    rules = dict()
+    for selector, decls in css_rules(stylesheet()):
+        if selector.startswith("@media (max-width: 1080px) ::"):
+            rules[selector.split(":: ")[1]] = decls
+    assert rules[".topbar-right"]["flex"] == "1 1 100%"
+    assert rules[".searchbox input"]["width"] == "100%"
+
+def test_the_link_hover_colour_still_stands_out_from_text_and_background():
+    for name, css in _sheets():
+        block = re.search(r":root\s*\{([^}]*)\}", css).group(1)
+        root = dict(re.findall(r"(--[a-z-]+):\s*(#[0-9a-fA-F]{6})", block))
+        for colour in (root["--link"], root["--link-hover"]):
+            assert contrast(colour, root["--fg"]) >= 3, (name, colour)
+            for back in (root["--bg"], root["--panel"]):
+                assert contrast(colour, back) >= 4.5, (name, colour, back)

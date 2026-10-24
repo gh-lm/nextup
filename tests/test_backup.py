@@ -109,7 +109,7 @@ def test_a_file_that_is_not_a_backup_is_refused(app):
         for junk in [{"hello": "world"}, [], "text", {"format": "something-else"}]:
             try:
                 transfer.import_data(junk)
-            except transfer.ImportError_:
+            except transfer.BackupError:
                 pass
             else:
                 raise AssertionError(f"should have refused {junk!r}")
@@ -120,7 +120,7 @@ def test_a_newer_backup_is_refused_rather_than_half_read(app):
     with app.app_context():
         try:
             transfer.import_data({"format": "nextup-backup", "version": 99, "data": {}})
-        except transfer.ImportError_ as exc:
+        except transfer.BackupError as exc:
             assert "newer version" in str(exc)
         else:
             raise AssertionError("should have refused")
@@ -138,7 +138,7 @@ def test_a_broken_backup_changes_nothing(app):
         }
         try:
             transfer.import_data(bad)
-        except transfer.ImportError_ as exc:
+        except transfer.BackupError as exc:
             assert "Nothing was changed" in str(exc)
         else:
             raise AssertionError("should have refused")

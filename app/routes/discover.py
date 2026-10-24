@@ -1,5 +1,5 @@
 """Discover: what is arriving, and a quick yes, no or maybe on each."""
-from datetime import date, timedelta
+from datetime import timedelta
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
@@ -16,7 +16,7 @@ MAX_PAGES = 3
 
 def _window(default=DEFAULT_DAYS):
     days = whole_number(request.args.get("days"), 1, 180, default)
-    today = date.today()
+    today = clock.today_date()
     return days, today.isoformat(), (today + timedelta(days=days)).isoformat()
 
 def _collect(fetch, start, end, wanted=40):
@@ -132,8 +132,9 @@ def decide_show(show_id, action):
         )
         return back_to("discover.tv")
 
+    failed = []
     try:
-        name = sync.sync_show(show_id)
+        name = sync.sync_show(show_id, failed)
     except tmdb.TmdbError as exc:
         flash(str(exc), "error")
         return back_to("discover.tv")
@@ -144,6 +145,8 @@ def decide_show(show_id, action):
         (show_id, clock.now_iso(), 1 if action == "maybe" else 0),
     )
     _undismiss("tv", show_id)
+    if failed:
+        flash(f"TMDB would not serve season {', '.join(str(n) for n in failed)}. It will be tried again.", "error")
     flash(
         f"{name} added to your {'maybe list' if action == 'maybe' else 'shows'}.",
         "success",
@@ -182,7 +185,7 @@ def decide_film(movie_id, action):
     except tmdb.TmdbError:
         pass
     flash(
-        f"{payload.get('title')} added to your "
+        f"{payload.get('title') or 'The film'} added to your "
         f"{'maybe list' if action == 'maybe' else 'films'}.",
         "success",
     )

@@ -1,9 +1,11 @@
 """The read-side of the app: what to watch, what is coming, how far in."""
-from datetime import date, timedelta
+from datetime import timedelta
 
 from . import clock, db, secretstore
 
 DEFAULT_AVAILABLE_AFTER = 1
+
+FALLBACK_RUNTIME = 45
 
 def available_after_days():
     raw = secretstore.get("available_after_days", str(DEFAULT_AVAILABLE_AFTER))
@@ -13,7 +15,7 @@ def available_after_days():
         return DEFAULT_AVAILABLE_AFTER
 
 def available_cutoff():
-    return date.today() - timedelta(days=available_after_days())
+    return clock.today_date() - timedelta(days=available_after_days())
 
 def available_cutoff_iso():
     return available_cutoff().isoformat()
@@ -155,7 +157,7 @@ def ready_to_watch(order="newest", page=1, per_page=60):
         for row in episodes
     ]
     for film in movies(watched=False, shortlist=False):
-        if is_streamable(film):
+        if is_streamable(film, cutoff):
             items.append({"kind": "film", "date": film["digital_release"], "film": film})
 
     missing = "0000-00-00" if order == "newest" else "9999-99-99"
@@ -215,7 +217,7 @@ def available_today():
     return {"date": cutoff, "episodes": episodes, "films": films}
 
 def upcoming(days=30, limit=None):
-    end = (date.today() + timedelta(days=days)).isoformat()
+    end = (clock.today_date() + timedelta(days=days)).isoformat()
     sql = """
         SELECT e.*, s.name AS show_name, s.poster_path, s.network
         FROM episode e
@@ -363,16 +365,17 @@ def provider_names(row):
     value = row["providers"] if "providers" in row.keys() else None
     return [line for line in (value or "").split("\n") if line]
 
-def is_streamable(row):
+def is_streamable(row, cutoff=None):
     if provider_names(row):
         return True
     digital = row["digital_release"] if "digital_release" in row.keys() else None
-    return bool(digital and digital <= available_cutoff_iso())
+    return bool(digital and digital <= (cutoff or available_cutoff_iso()))
 
 def films_by_state():
     ready, waiting = [], []
+    cutoff = available_cutoff_iso()
     for row in movies(watched=False, shortlist=False):
-        (ready if is_streamable(row) else waiting).append(row)
+        (ready if is_streamable(row, cutoff) else waiting).append(row)
     waiting.sort(key=lambda r: (r["digital_release"] or "9999-99-99"))
     return {
         "ready": ready,
@@ -382,7 +385,7 @@ def films_by_state():
     }
 
 def films_arriving(days=60):
-    end = (date.today() + timedelta(days=days)).isoformat()
+    end = (clock.today_date() + timedelta(days=days)).isoformat()
     return db.query(
         """
         SELECT m.*, t.added_at FROM movie m
@@ -403,11 +406,50 @@ def dashboard_counts():
             (SELECT COUNT(*) FROM tracked_show WHERE shortlist = 1) AS maybe_shows,
             (SELECT COUNT(*) FROM watched_episode) AS episodes_watched,
             (SELECT COUNT(*) FROM tracked_movie WHERE watched_at IS NULL AND shortlist = 0) AS movies_to_watch,
-            (SELECT COALESCE(SUM(COALESCE(e.runtime, s.episode_runtime, 45)), 0)
+            (SELECT COALESCE(SUM(COALESCE(e.runtime, s.episode_runtime, ?)), 0)
                FROM watched_episode w
                JOIN episode e ON e.id = w.episode_id
                JOIN show s ON s.id = e.show_id) AS minutes_watched
         """,
+        (FALLBACK_RUNTIME,),
         one=True,
     )
     return dict(row)
+
+CHART_WEEKS = 12
+
+def dashboard_charts():
+    today = clock.today()
+    weeks = db.query(
+        """
+        SELECT CAST((julianday(?) - julianday(date(w.watched_at))) / 7 AS INTEGER) AS ago,
+               COUNT(*) AS episodes,
+               SUM(COALESCE(e.runtime, s.episode_runtime, ?)) AS minutes
+        FROM watched_episode w
+        JOIN episode e ON e.id = w.episode_id
+        JOIN show s ON s.id = e.show_id
+        WHERE date(w.watched_at) > date(?, ?)
+        GROUP BY ago
+        """,
+        (today, FALLBACK_RUNTIME, today, f"-{CHART_WEEKS * 7} days"),
+    )
+    episodes, minutes = [0] * CHART_WEEKS, [0] * CHART_WEEKS
+    for row in weeks:
+        if 0 <= row["ago"] < CHART_WEEKS:
+            episodes[CHART_WEEKS - 1 - row["ago"]] = row["episodes"]
+            minutes[CHART_WEEKS - 1 - row["ago"]] = row["minutes"]
+    row = db.query(
+        """
+        SELECT
+            (SELECT COUNT(DISTINCT e.show_id)
+               FROM episode e
+               JOIN tracked_show t ON t.show_id = e.show_id AND t.archived = 0 AND t.shortlist = 0
+               LEFT JOIN watched_episode w ON w.episode_id = e.id
+               WHERE w.episode_id IS NULL AND e.season_number > 0
+                 AND e.air_date IS NOT NULL AND e.air_date <= ?) AS shows_waiting,
+            (SELECT COUNT(*) FROM tracked_movie WHERE watched_at IS NOT NULL AND shortlist = 0) AS films_watched
+        """,
+        (today,),
+        one=True,
+    )
+    return {"episodes": episodes, "minutes": minutes, **dict(row)}

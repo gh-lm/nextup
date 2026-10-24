@@ -96,6 +96,8 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
     cap_drop:
       - ALL
     read_only: true
+    mem_limit: 512m
+    pids_limit: 128
     tmpfs:
       - /tmp
     volumes:
@@ -129,6 +131,11 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
               until you would really watch it. It governs the dashboard, the films list
               and the email alike.
             </li>
+            <li>
+              <strong>Your country.</strong> Decides which release dates, streaming
+              services and age ratings are shown. It is first set from your browser's
+              time zone when you sign in, and can be changed or set to no country.
+            </li>
             <li><strong>The accent colour</strong>, from a fixed set.</li>
             <li><strong>Backups</strong>, covered below.</li>
           </ul>
@@ -142,6 +149,8 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
           <ul>
             <li><code>NEXTUP_DATA_DIR</code>, default <code>/data</code>. Where the
             database, the keys and the poster cache live.</li>
+            <li><code>NEXTUP_HOST</code>, default <code>0.0.0.0</code>. The address the
+            app listens on inside the container.</li>
             <li><code>NEXTUP_PORT</code>, default <code>8080</code>. The port inside the
             container.</li>
             <li><code>NEXTUP_HTTPS_ONLY</code>, default <code>0</code>. Set it to
@@ -280,7 +289,7 @@ docker compose up -d</code></pre>
           &copy; Lightmorphic Ltd. Registered in England and Wales, company number
           17423646.<br>
           Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.<br>
-          Page last updated: <time datetime="2026-10-17">17 October 2026</time>.
+          Page last updated: <time datetime="2026-10-24">24 October 2026</time>.
         </p>
         <nav aria-label="Legal">
           <a href="privacy.html">Privacy</a>

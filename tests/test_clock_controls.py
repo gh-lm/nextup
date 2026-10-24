@@ -51,10 +51,15 @@ def test_the_meridiem_only_appears_on_the_twelve_hour_clock(signed_in, app):
     assert 'id="send_meridiem"' not in _settings(signed_in)
 
 def test_the_switch_sits_with_the_time_and_offers_both_clocks(signed_in):
-    body = _settings(signed_in)
-    row = body.split('class="timerow"')[1].split("</div>\n          <p class=\"hint\"")[0]
-    assert "12 hours" in row and "24 hours" in row
-    assert 'name="clock_format"' in row
+    from pagebits import parse
+
+    page = parse(_settings(signed_in))
+    row = [n for n in page.find_all("div") if n.has_class("timerow")][0]
+    assert row.find_all("select", id="send_hour")
+    radios = row.find_all("input", type="radio", name="clock_format")
+    assert sorted(r.attrs["value"] for r in radios) == ["12", "24"]
+    assert {r.attrs["form"] for r in radios} == {"clock-form"}
+    assert {"12 hours", "24 hours"} <= {n.text for n in row.find_all("span")}
 
 def test_the_switch_works_without_scripting(signed_in):
     body = _settings(signed_in)

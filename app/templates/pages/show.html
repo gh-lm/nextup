@@ -25,7 +25,7 @@
           {% if progress.remaining %}
             <span class="badge badge-warning">{{ progress.remaining }} to watch</span>
           {% elif progress.complete %}
-            <span class="badge badge-success">Caught up</span>
+            <span class="badge">Caught up</span>
           {% endif %}
         {% endif %}
       </div>
@@ -34,31 +34,31 @@
       {% if show.overview %}<p>{{ show.overview }}</p>{% endif %}
 
       {% if extras.providers %}
-        <p class="subtle" style="margin-bottom:6px">
+        <p class="subtle mb-6">
           <strong>Watch it on:</strong>
-          {% for name in extras.providers %}<span class="badge badge-success">{{ name }}</span> {% endfor %}
+          {% for name in extras.providers %}<span class="badge badge-info">{{ name }}</span> {% endfor %}
         </p>
       {% endif %}
 
       {% if tracked and not shortlisted %}
-        <div class="progress" style="max-width: 420px;" role="img"
+        <div class="progress" role="img"
              aria-label="{{ progress.watched }} of {{ progress.aired }} aired episodes watched">
           <span style="width: {{ progress.percent }}%"></span>
         </div>
-        <p class="hint" style="margin-top:6px">
+        <p class="hint mt-6">
           {{ progress.watched }} of {{ progress.aired }} aired episodes watched, {{ progress.total }} in total.
         </p>
       {% endif %}
 
       {% if next_up %}
-        <p class="subtle" style="margin-bottom:6px"><strong>Next up:</strong>
+        <p class="subtle mb-6"><strong>Next up:</strong>
           {{ next_up|episode_code }}: {{ next_up.name or 'Episode' }}</p>
       {% elif next_air %}
-        <p class="subtle" style="margin-bottom:6px"><strong>Next episode:</strong>
+        <p class="subtle mb-6"><strong>Next episode:</strong>
           {{ next_air|episode_code }} on {{ next_air.air_date|pretty_date }}</p>
       {% endif %}
 
-      <div class="btn-row" style="margin-top: 14px;">
+      <div class="btn-row mt-14">
         {% if tracked %}
           {% if next_up %}
             <form method="post" action="{{ url_for('shows.watch_through', show_id=show.id, episode_id=next_up.id) }}">
@@ -84,9 +84,15 @@
             <button class="btn btn-quiet" type="submit"
                     data-confirm-label="Really remove? This deletes your watched history for this show."
                     title="Cannot be undone"
-                    aria-label="Remove this show and delete every episode you have ticked off. This cannot be undone.">
+                    aria-label="Remove this show and delete every episode you have marked watched. This cannot be undone.">
               Remove
             </button>
+            <noscript>
+              <label class="inline-check">
+                <input type="checkbox" name="sure" value="1" required>
+                Yes, remove it
+              </label>
+            </noscript>
           </form>
         {% else %}
           <form method="post" action="{{ url_for('shows.track', show_id=show.id) }}">
@@ -107,7 +113,7 @@
 <div class="split">
   {% with cast=extras.cast %}{% include 'partials/_cast.html' %}{% endwith %}
   <section class="panel">
-    <div class="panel-head"><h2 style="font-size:1.25rem">Details</h2></div>
+    <div class="panel-head"><h2>Details</h2></div>
     <dl class="fact-list">
       {% if extras.creators %}
         <dt>Created by</dt><dd>{{ extras.creators|join(', ') }}</dd>
@@ -126,7 +132,7 @@
       <dt>Episodes</dt><dd>{{ progress.total }} across {{ seasons|length }} season{{ '' if seasons|length == 1 else 's' }}</dd>
     </dl>
     {% if extras.trailer or extras.imdb or extras.provider_link or extras.homepage %}
-      <div class="btn-row" style="margin-top:16px">
+      <div class="btn-row mt-16">
         {% if extras.trailer %}
           <a class="btn btn-small" href="{{ extras.trailer.url }}" rel="noopener noreferrer">Trailer</a>
         {% endif %}
@@ -140,33 +146,27 @@
           <a class="btn btn-small" href="{{ extras.homepage }}" rel="noopener noreferrer">Official site</a>
         {% endif %}
       </div>
-      <p class="hint" style="margin-top:10px">These open on other people's websites.</p>
+      <p class="hint mt-10">These open on other people's websites.</p>
     {% endif %}
   </section>
 </div>
 {% endif %}
 
 {% for season in seasons %}
-  <details class="season panel" data-season="{{ season.number }}"
-           {% if season.number == (next_up.season_number if next_up else 1) %}open{% endif %}>
-    <summary>
-      <svg class="season-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-           stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
-      {{ 'Specials' if season.number == 0 else 'Season ' ~ season.number }}
+  <section class="season panel" data-season="{{ season.number }}">
+    <div class="season-head">
+      <h2>{{ 'Specials' if season.number == 0 else 'Season ' ~ season.number }}</h2>
       <span class="badge">{{ season.watched_count }} / {{ season.aired_count }} aired</span>
-      {% if season.complete %}<span class="badge badge-success">Done</span>{% endif %}
-      <span class="spacer"></span>
-      {% if tracked %}
-        <span class="btn-row">
-          <button form="season-watch-{{ season.number }}" class="btn btn-small" type="submit"
-                  name="mode" value="watch">Mark season watched</button>
-          <button form="season-watch-{{ season.number }}" class="btn btn-small btn-quiet" type="submit"
-                  name="mode" value="unwatch">Clear season</button>
-        </span>
-      {% endif %}
-    </summary>
+      {% if season.complete %}<span class="badge">Done</span>{% endif %}
+    </div>
 
     {% if tracked %}
+      <div class="btn-row season-actions">
+        <button form="season-watch-{{ season.number }}" class="btn btn-small" type="submit"
+                name="mode" value="watch">Mark season watched</button>
+        <button form="season-watch-{{ season.number }}" class="btn btn-small btn-quiet" type="submit"
+                name="mode" value="unwatch">Clear season</button>
+      </div>
       <form id="season-watch-{{ season.number }}" method="post"
             action="{{ url_for('shows.watch_season', show_id=show.id, season_number=season.number) }}"></form>
     {% endif %}
@@ -176,7 +176,7 @@
         {% set aired = ep.air_date and ep.air_date <= today.isoformat() %}
         <li class="ep {{ 'watched' if ep.watched else '' }}">
           <span class="ep-code">{{ ep|episode_code }}</span>
-          <div style="min-width:0">
+          <div class="min-0">
             <div class="ep-name">
               <a href="{{ url_for('shows.episode', episode_id=ep.id) }}">{{ ep.name or 'Episode ' ~ ep.episode_number }}</a>
             </div>
@@ -184,7 +184,7 @@
               {% if aired %}{{ ep.air_date|pretty_date }}
               {% elif ep.air_date %}Airs {{ ep.air_date|relative_day }}
               {% else %}Date to be announced{% endif %}
-              {% if ep.watched %} · <span class="badge badge-success">Watched</span>{% endif %}
+              {% if ep.watched and not (tracked and aired) %} · <span class="badge">Watched</span>{% endif %}
             </div>
           </div>
           <div class="ep-actions">
@@ -195,11 +195,9 @@
                         aria-label="Mark {{ ep|episode_code }} and everything before it as watched">Up to here</button>
               </form>
               <form method="post" action="{{ url_for('shows.watch_episode', episode_id=ep.id) }}">
-                <button class="tick {{ 'on' if ep.watched else '' }}" type="submit" name="to" value="{{ '0' if ep.watched else '1' }}"
-                        aria-label="{{ 'Mark ' ~ (ep|episode_code) ~ ' as not watched' if ep.watched else 'Mark ' ~ (ep|episode_code) ~ ' as watched' }}"
-                        aria-pressed="{{ 'true' if ep.watched else 'false' }}">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
-                       stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg>
+                <button class="btn btn-small watch-toggle {{ 'on' if ep.watched else '' }}" type="submit" name="to" value="{{ '0' if ep.watched else '1' }}"
+                        aria-label="{{ 'Watched ' ~ (ep|episode_code) ~ ', press to mark it as not watched' if ep.watched else 'Mark watched ' ~ (ep|episode_code) }}">
+                  {{ 'Watched' if ep.watched else 'Mark watched' }}
                 </button>
               </form>
             {% endif %}
@@ -207,6 +205,6 @@
         </li>
       {% endfor %}
     </ul>
-  </details>
+  </section>
 {% endfor %}
 {% endblock %}

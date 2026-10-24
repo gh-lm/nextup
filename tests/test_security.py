@@ -44,10 +44,13 @@ def test_every_page_carries_the_security_headers(signed_in):
 def test_the_login_page_carries_them_too(client):
     assert "Content-Security-Policy" in client.get("/login").headers
 
-def test_the_session_cookie_is_locked_down(app):
-    assert app.config["SESSION_COOKIE_HTTPONLY"] is True
-    assert app.config["SESSION_COOKIE_SAMESITE"] == "Lax"
-    assert app.config["SESSION_COOKIE_SECURE"] is False
+def test_the_session_cookie_is_locked_down(client):
+    response = client.post("/login", data={"username": "admin", "password": "nextup"})
+    cookie = [h for h in response.headers.getlist("Set-Cookie") if h.startswith("session=")][0]
+    flags = {part.strip().lower() for part in cookie.split(";")[1:]}
+    assert "httponly" in flags
+    assert "samesite=lax" in flags
+    assert "secure" not in flags
 
 def test_the_poster_proxy_only_fetches_tmdb_shaped_paths(app):
     from app import posters
@@ -82,7 +85,7 @@ def test_a_restore_that_fails_part_way_changes_nothing(app):
         }
         try:
             transfer.import_data(payload)
-        except transfer.ImportError_:
+        except transfer.BackupError:
             pass
         else:
             raise AssertionError("that restore should not have been accepted")
@@ -114,7 +117,7 @@ def test_a_file_that_is_not_a_backup_is_turned_away(app):
         for rubbish in ({}, {"format": "something-else"}, [1, 2, 3], {"format": "nextup-backup", "version": 99}):
             try:
                 transfer.import_data(rubbish)
-            except transfer.ImportError_:
+            except transfer.BackupError:
                 continue
             raise AssertionError(f"accepted {rubbish!r}")
 
