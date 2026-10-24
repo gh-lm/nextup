@@ -81,6 +81,15 @@
           <form method="post" action="{{ url_for('shows.archive', show_id=show.id) }}">
             <button class="btn" type="submit" name="to" value="{{ '0' if archived else '1' }}">{{ 'Unarchive' if archived else 'Archive' }}</button>
           </form>
+          {% if archived %}
+          <form class="archive-auto" data-autosave method="post" action="{{ url_for('shows.auto_unarchive', show_id=show.id) }}">
+            <label class="inline-check">
+              <input type="checkbox" name="on" value="1" {{ 'checked' if auto_unarchive else '' }}>
+              Unarchive when a new season arrives
+            </label>
+            <button class="btn" type="submit">Save</button>
+          </form>
+          {% endif %}
           <form method="post" action="{{ url_for('shows.untrack', show_id=show.id) }}" data-confirm>
             <button class="btn btn-quiet" type="submit"
                     data-confirm-label="Really remove? This deletes your watched history for this show."

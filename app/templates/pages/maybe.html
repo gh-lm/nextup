@@ -25,7 +25,7 @@
   to watch one, press Start watching and it joins your {{ 'shows' if kind == 'tv' else 'movies' }}.
 </p>
 {% if kind == 'tv' %}
-<div class="show-grid">
+<div class="show-grid show-grid-aligned">
   {% for item in shows %}
     {% set show = item.show %}
     <article class="show-tile">
@@ -55,7 +55,7 @@
 </div>
 
 {% else %}
-<div class="show-grid">
+<div class="show-grid show-grid-aligned">
   {% for film in films %}
     <article class="show-tile">
       <a class="poster" href="{{ url_for('movies.detail', movie_id=film.id) }}">

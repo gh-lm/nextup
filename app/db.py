@@ -44,6 +44,8 @@ MIGRATIONS = [
     ("tracked_movie", "shortlist", "INTEGER NOT NULL DEFAULT 0"),
     ("show", "original_language", "TEXT"),
     ("movie", "original_language", "TEXT"),
+    ("tracked_show", "auto_unarchive", "INTEGER NOT NULL DEFAULT 1"),
+    ("tracked_show", "archived_season", "INTEGER"),
 ]
 
 def _apply_migrations(conn):

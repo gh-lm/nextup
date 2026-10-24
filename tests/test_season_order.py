@@ -62,3 +62,26 @@ def test_discover_languages_default_to_english_and_can_be_added(signed_in, app):
     signed_in.post("/settings/languages", data={"remove": "nl"})
     with app.app_context():
         assert languages.watched() == ["en"]
+
+def test_maybe_lists_follow_the_order_setting(signed_in, app):
+    from app import db
+
+    with app.app_context():
+        for row in ((801, "Older Show", "2020-01-01"), (802, "Newer Show", "2024-01-01")):
+            db.execute("INSERT INTO show (id, name, first_air_date) VALUES (?, ?, ?)", row)
+            db.execute(
+                "INSERT INTO tracked_show (show_id, added_at, shortlist) VALUES (?, '2026-01-01', 1)", (row[0],)
+            )
+        for row in ((811, "Older Movie", "2020-01-01"), (812, "Newer Movie", "2024-01-01")):
+            db.execute("INSERT INTO movie (id, title, release_date) VALUES (?, ?, ?)", row)
+            db.execute(
+                "INSERT INTO tracked_movie (movie_id, added_at, shortlist) VALUES (?, '2026-01-01', 1)", (row[0],)
+            )
+
+    def newer_first(kind):
+        body = signed_in.get(f"/maybe?kind={kind}").get_data(as_text=True)
+        return body.index("Newer") < body.index("Older")
+
+    assert newer_first("tv") and newer_first("movies")
+    signed_in.post("/settings/season-order", data={"season_order": "oldest"})
+    assert not newer_first("tv") and not newer_first("movies")

@@ -48,7 +48,9 @@ CREATE TABLE IF NOT EXISTS tracked_show (
     added_at    TEXT NOT NULL,
     archived    INTEGER NOT NULL DEFAULT 0,
     favourite   INTEGER NOT NULL DEFAULT 0,
-    shortlist   INTEGER NOT NULL DEFAULT 0
+    shortlist   INTEGER NOT NULL DEFAULT 0,
+    auto_unarchive INTEGER NOT NULL DEFAULT 1,
+    archived_season INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS watched_episode (
