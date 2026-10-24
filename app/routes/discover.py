@@ -68,7 +68,7 @@ def films():
 
     return render_template(
         "pages/discover_films.html",
-        items=items,
+        items=queries.dated(items, lambda i: i["date"]),
         days=days,
         windows=WINDOWS,
         error=error,
@@ -109,7 +109,7 @@ def tv():
 
     return render_template(
         "pages/discover_tv.html",
-        items=items,
+        items=queries.dated(items, lambda i: i["date"]),
         days=days,
         mode=mode,
         windows=WINDOWS,

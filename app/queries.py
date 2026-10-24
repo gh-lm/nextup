@@ -7,6 +7,17 @@ DEFAULT_AVAILABLE_AFTER = 1
 
 FALLBACK_RUNTIME = 45
 
+def newest_first():
+    return secretstore.get("season_order", "newest") != "oldest"
+
+def date_order():
+    return "newest" if newest_first() else "oldest"
+
+def dated(rows, key):
+    have = [r for r in rows if key(r)]
+    have.sort(key=key, reverse=newest_first())
+    return have + [r for r in rows if not key(r)]
+
 def available_after_days():
     raw = secretstore.get("available_after_days", str(DEFAULT_AVAILABLE_AFTER))
     try:
@@ -128,7 +139,7 @@ def next_airing(show_id):
         one=True,
     )
 
-def ready_to_watch(order="newest", page=1, per_page=60):
+def ready_to_watch(order=None, page=1, per_page=60):
     cutoff = available_cutoff_iso()
     episodes = db.query(
         """
@@ -160,6 +171,7 @@ def ready_to_watch(order="newest", page=1, per_page=60):
         if is_streamable(film, cutoff):
             items.append({"kind": "film", "date": film["digital_release"], "film": film})
 
+    order = order or date_order()
     missing = "0000-00-00" if order == "newest" else "9999-99-99"
     items.sort(key=lambda item: (item["date"] or missing), reverse=(order == "newest"))
 
@@ -288,6 +300,10 @@ def show_seasons(show_id):
                 "complete": bool(aired) and len(watched) >= len(aired),
             }
         )
+    if newest_first():
+        ordered.reverse()
+        for season in ordered:
+            season["episodes"] = list(reversed(season["episodes"]))
     return ordered
 
 def episode_neighbours(show_id, season_number, episode_number):
@@ -376,11 +392,10 @@ def films_by_state():
     cutoff = available_cutoff_iso()
     for row in movies(watched=False, shortlist=False):
         (ready if is_streamable(row, cutoff) else waiting).append(row)
-    waiting.sort(key=lambda r: (r["digital_release"] or "9999-99-99"))
     return {
-        "ready": ready,
-        "waiting": waiting,
-        "seen": movies(watched=True),
+        "ready": dated(ready, lambda r: r["digital_release"] or r["release_date"]),
+        "waiting": dated(waiting, lambda r: r["digital_release"]),
+        "seen": dated(movies(watched=True), lambda r: r["watched_at"]),
         "maybe": movies(shortlist=True),
     }
 
@@ -402,7 +417,8 @@ def coming_soon(days=21, limit=12):
     items = [("episode", row["air_date"], row) for row in upcoming(days=days)]
     items += [("film", row["digital_release"], row) for row in films_arriving(days=days)]
     items.sort(key=lambda item: item[1])
-    return items[:limit]
+    items = items[:limit]
+    return items[::-1] if newest_first() else items
 
 def dashboard_counts():
     row = db.query(

@@ -26,11 +26,6 @@
       showing {{ ready.first }}–{{ ready.last }}{% endif %}.
     </p>
   </div>
-  <span class="spacer"></span>
-  <nav class="tabs" aria-label="Order">
-    <a class="{{ 'current' if order == 'newest' }}" href="{{ url_for('main.dashboard') }}">Just out</a>
-    <a class="{{ 'current' if order == 'oldest' }}" href="{{ url_for('main.dashboard', order='oldest') }}">Oldest first</a>
-  </nav>
 </div>
 
 <div class="stats">
@@ -149,11 +144,11 @@
       {% if ready.pages > 1 %}
         <nav class="pager" aria-label="More">
           {% if ready.page > 1 %}
-            <a class="btn btn-small" href="{{ url_for('main.dashboard', order=order, page=ready.page - 1) }}">Newer</a>
+            <a class="btn btn-small" href="{{ url_for('main.dashboard', page=ready.page - 1) }}">{{ 'Newer' if order == 'newest' else 'Older' }}</a>
           {% endif %}
           <span class="hint">Page {{ ready.page }} of {{ ready.pages }}</span>
           {% if ready.page < ready.pages %}
-            <a class="btn btn-small" href="{{ url_for('main.dashboard', order=order, page=ready.page + 1) }}">Older</a>
+            <a class="btn btn-small" href="{{ url_for('main.dashboard', page=ready.page + 1) }}">{{ 'Older' if order == 'newest' else 'Newer' }}</a>
           {% endif %}
         </nav>
       {% endif %}

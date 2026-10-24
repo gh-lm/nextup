@@ -65,7 +65,7 @@ def test_every_season_is_shown_open_with_no_folding(seeded):
     page = _page(seeded, "/show/900")
     assert not page.find_all("details") and not page.find_all("summary")
     seasons = [n for n in page.find_all("section") if n.has_class("season")]
-    assert [s.find_all("h2")[0].text.strip() for s in seasons] == ["Season 1", "Season 2"]
+    assert [s.find_all("h2")[0].text.strip() for s in seasons] == ["Season 2", "Season 1"]
 
 def test_the_season_buttons_are_in_the_opened_body_and_reach_their_form(seeded):
     page = _page(seeded, "/show/900")

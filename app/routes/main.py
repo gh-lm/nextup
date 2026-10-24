@@ -14,7 +14,7 @@ MIN_YEAR, MAX_YEAR = 1970, 2100
 @bp.route("/")
 @login_required
 def dashboard():
-    order = "oldest" if request.args.get("order") == "oldest" else "newest"
+    order = queries.date_order()
     page = page_number(10000)
     return render_template(
         "pages/dashboard.html",
@@ -94,7 +94,7 @@ def upcoming_view():
         grouped.setdefault(film["digital_release"][:10], []).append(("film", film))
     return render_template(
         "pages/upcoming.html",
-        grouped=sorted(grouped.items()),
+        grouped=sorted(grouped.items(), reverse=queries.newest_first()),
         days=days,
     )
 
