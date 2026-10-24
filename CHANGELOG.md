@@ -3,6 +3,10 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.6.10], 2026-10-24
+
+- **The address used for links in the morning email is no longer typed in. Settings shows the address you opened the page at, and the email uses it. The Settings cards are also rebalanced so the three columns end at about the same height instead of leaving a big gap at the bottom.**
+
 ## [1.6.9], 2026-10-24
 
 - **Discover movies lists only new films. Old films that were shown on television in the window, such as Green Book or The Hobbit, are gone. A film must have reached the cinema in the last year and have its streaming date inside the days you picked, or inside the last 14 days for the second group. Both groups follow the Order setting.**

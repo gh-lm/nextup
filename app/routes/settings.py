@@ -36,9 +36,18 @@ def _country_choices():
     except tmdb.TmdbError:
         return []
 
+def _remember_address():
+    scheme = request.headers.get("X-Forwarded-Proto", request.scheme).split(",")[0].strip()
+    host = request.headers.get("X-Forwarded-Host", request.host).split(",")[0].strip()
+    if scheme in ("http", "https") and host:
+        address = f"{scheme}://{host}"
+        if secretstore.get("site_url") != address:
+            secretstore.set("site_url", address)
+
 @bp.route("/settings")
 @login_required
 def index():
+    _remember_address()
     stats = db.query(
         "SELECT (SELECT COUNT(*) FROM show) AS shows,"
         " (SELECT COUNT(*) FROM episode) AS episodes,"
@@ -203,9 +212,6 @@ def save_mail():
     for label, value in (("from", from_address), ("to", to_address)):
         if value and "@" not in value:
             return notify("mail", f"That {label} address does not look like an email address.", "error")
-    site = (request.form.get("site_url") or "").strip().rstrip("/")
-    if site and not site.startswith(("http://", "https://")):
-        return notify("mail", "The Nextup address needs to start with http or https.", "error")
 
     secretstore.set("smtp_host", host)
     secretstore.set("smtp_port", port or str(mailer.DEFAULT_PORT))
@@ -215,7 +221,6 @@ def save_mail():
     secretstore.set("mail_from_name", from_name or "Nextup")
     secretstore.set("mail_to", to_address)
 
-    secretstore.set("site_url", site)
     if password:
         secretstore.set("smtp_password", password, encrypted=True)
     return notify("mail", "Mail settings saved. The password is stored encrypted.", "success")
