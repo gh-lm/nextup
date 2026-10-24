@@ -1,4 +1,5 @@
 import json
+import re
 
 from flask import (Blueprint, Response, current_app, flash, redirect, render_template,
                    request, session, url_for)
@@ -37,12 +38,12 @@ def _country_choices():
         return []
 
 def _remember_address():
+    if secretstore.get("site_url"):
+        return
     scheme = request.headers.get("X-Forwarded-Proto", request.scheme).split(",")[0].strip()
     host = request.headers.get("X-Forwarded-Host", request.host).split(",")[0].strip()
-    if scheme in ("http", "https") and host:
-        address = f"{scheme}://{host}"
-        if secretstore.get("site_url") != address:
-            secretstore.set("site_url", address)
+    if scheme in ("http", "https") and re.fullmatch(r"[A-Za-z0-9.:\[\]-]+", host):
+        secretstore.set("site_url", f"{scheme}://{host}")
 
 @bp.route("/settings")
 @login_required
@@ -66,7 +67,7 @@ def index():
         newest_first=queries.newest_first(),
         all_languages=languages.show_all(),
         watched_languages=[(c, languages.NAMES[c]) for c in languages.watched() if c != "en"],
-        language_choices=sorted(((c, n) for c, n in languages.NAMES.items() if c not in languages.watched() and c != "nb"), key=lambda x: x[1]),
+        language_choices=languages.choices(),
         country=tmdb.country(),
         countries=_country_choices(),
         accents=ACCENTS,

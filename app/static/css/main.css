@@ -390,6 +390,8 @@ textarea { min-height: 120px; resize: vertical; }
 .watch-toggle { min-width: 8.5rem; justify-content: center; flex: none; }
 .watch-toggle.on { background: transparent; color: var(--muted-fg); font-weight: 500; }
 .watch-toggle.on:hover { background: var(--muted); color: var(--fg); }
+.ep.watched .ep-actions .btn-quiet { color: var(--muted-fg); font-weight: 500; }
+.ep.watched .ep-actions .btn-quiet:hover { color: var(--fg); }
 
 .result-grid { display: grid; gap: 18px; }
 .result {

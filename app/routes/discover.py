@@ -17,6 +17,8 @@ DEFAULT_DAYS = 14
 MAX_PAGES = 3
 RECENT_DAYS = 14
 HOME_DATE_TTL = 12 * 3600
+HOME_DATE_LIMIT = 2000
+MAX_WORKERS = 8
 _HOME_DATES = {}
 
 def _window(default=DEFAULT_DAYS):
@@ -25,15 +27,17 @@ def _window(default=DEFAULT_DAYS):
     return days, today.isoformat(), (today + timedelta(days=days)).isoformat()
 
 def _collect(fetch, start, end, wanted=40):
-    items = []
-    for code in ([None] if languages.show_all() else languages.watched()):
-        items.extend(_collect_language(fetch, start, end, code, wanted))
-    return items
+    app = current_app._get_current_object()
+    codes = [None] if languages.show_all() else languages.watched()
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
+        lists = pool.map(lambda code: _collect_language(app, fetch, start, end, code, wanted), codes)
+        return [row for items in lists for row in items]
 
-def _collect_language(fetch, start, end, code, wanted):
+def _collect_language(app, fetch, start, end, code, wanted):
     items, page = [], 1
     while len(items) < wanted and page <= MAX_PAGES:
-        payload = fetch(start, end, page=page, language=code)
+        with app.app_context():
+            payload = fetch(start, end, page=page, language=code)
         results = payload.get("results", [])
         if not results:
             break
@@ -51,6 +55,12 @@ def index():
 def _release_payloads(ids):
     app = current_app._get_current_object()
     code = tmdb.country()
+    if len(_HOME_DATES) > HOME_DATE_LIMIT:
+        now = time.time()
+        for key in [k for k, (_, at) in _HOME_DATES.items() if now - at >= HOME_DATE_TTL]:
+            _HOME_DATES.pop(key, None)
+        if len(_HOME_DATES) > HOME_DATE_LIMIT:
+            _HOME_DATES.clear()
 
     def look(movie_id):
         hit = _HOME_DATES.get((movie_id, code))
@@ -64,7 +74,7 @@ def _release_payloads(ids):
         _HOME_DATES[(movie_id, code)] = (payload, time.time())
         return movie_id, payload
 
-    with ThreadPoolExecutor(max_workers=8) as pool:
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
         return dict(pool.map(look, ids))
 
 def _cards(raw, skip, seen, title_key, date_key, home=None):
@@ -72,9 +82,9 @@ def _cards(raw, skip, seen, title_key, date_key, home=None):
     for row in raw:
         if row["id"] in skip or row["id"] in seen:
             continue
-        seen.add(row["id"])
         if home is not None and row["id"] not in home:
             continue
+        seen.add(row["id"])
         date = ((home or {}).get(row["id"]) or row.get(date_key) or "")[:10]
         cards.append(
             {
@@ -115,6 +125,9 @@ def films():
     recent_start, recent_end = _recent_window()
     wanted = {row["id"] for row in ahead + recent if row["id"] not in skip}
     payloads = _release_payloads(wanted) if wanted else {}
+    missed = sum(1 for payload in payloads.values() if payload is None)
+    if missed and not error:
+        error = f"TMDB would not give the release dates for {missed} movies, so some may be missing. Try again shortly."
 
     def home_in(rows, first, last):
         found = {}

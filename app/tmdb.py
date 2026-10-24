@@ -181,6 +181,9 @@ def movie(movie_id):
 def movie_release_dates(movie_id):
     return _get(f"/movie/{movie_id}/release_dates")
 
+def show_providers(show_id):
+    return _get(f"/tv/{show_id}/watch/providers")
+
 def movie_providers(movie_id):
     return _get(f"/movie/{movie_id}/watch/providers")
 

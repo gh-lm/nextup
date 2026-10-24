@@ -3,6 +3,16 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.7.2], 2026-10-24
+
+Fixes and tidying. Your data is untouched.
+
+- **A show no longer fails to sync when TMDB moves an episode.** If TMDB gave an episode a new season or number under the same id, the show stopped updating with a "unique constraint failed" error. The episode now moves and keeps its watched mark.
+- **Where to watch.** The button that sent you to TMDB is gone. The services are named on the page, and the episode page names them too.
+- **Trailers open in a new tab.**
+- **Up to here goes grey** on an episode you have already marked watched.
+- **Smaller fixes.** The Mail Remove button keeps its two-click confirm after a setting saves. Discover asks for several languages at once and says so if TMDB cannot give release dates, instead of showing "Nothing new". The email address is filled in once from the page and is no longer changed by opening Settings from another address.
+
 ## [1.7.1], 2026-10-24
 
 Everything since 1.6.0 in one release. Your data is untouched.

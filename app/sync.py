@@ -84,20 +84,35 @@ def upsert_episodes(show_id, season_payload):
         )
     if not rows:
         return 0
-    conn.executemany(
-        """
-        INSERT INTO episode (id, show_id, season_number, episode_number,
-                             name, overview, air_date, runtime, still_path)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(show_id, season_number, episode_number) DO UPDATE SET
-            name = excluded.name,
-            overview = excluded.overview,
-            air_date = excluded.air_date,
-            runtime = excluded.runtime,
-            still_path = excluded.still_path
-        """,
-        rows,
-    )
+    for row in rows:
+        conn.execute(
+            "UPDATE episode SET episode_number = -id WHERE id = ?"
+            " AND NOT (show_id = ? AND season_number = ? AND episode_number = ?)",
+            (row[0], *row[1:4]),
+        )
+    for row in rows:
+        slot = row[1:4]
+        conn.execute(
+            "DELETE FROM episode WHERE show_id = ? AND season_number = ? AND episode_number = ? AND id != ?",
+            (*slot, row[0]),
+        )
+        conn.execute(
+            """
+            INSERT INTO episode (id, show_id, season_number, episode_number,
+                                 name, overview, air_date, runtime, still_path)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                show_id = excluded.show_id,
+                season_number = excluded.season_number,
+                episode_number = excluded.episode_number,
+                name = excluded.name,
+                overview = excluded.overview,
+                air_date = excluded.air_date,
+                runtime = excluded.runtime,
+                still_path = excluded.still_path
+            """,
+            row,
+        )
     conn.commit()
     return len(rows)
 

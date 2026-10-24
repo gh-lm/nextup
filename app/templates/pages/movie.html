@@ -38,11 +38,8 @@
       </div>
       {% if extras.tagline %}<p class="tagline">{{ extras.tagline }}</p>{% endif %}
       {% if movie.overview %}<p>{{ movie.overview }}</p>{% endif %}
-      {% if tracked and movie.provider_link %}
-        <p class="hint">
-          <a href="{{ movie.provider_link }}" rel="noopener noreferrer">Where to watch it, on TMDB</a>.
-          Streaming information supplied by JustWatch through TMDB.
-        </p>
+      {% if tracked and providers %}
+        <p class="hint">Streaming information supplied by JustWatch through TMDB.</p>
       {% endif %}
       <div class="btn-row mt-14">
         {% if tracked %}
@@ -98,16 +95,13 @@
       {% endif %}
       {% if movie.runtime %}<dt>Runtime</dt><dd>{{ movie.runtime }} minutes</dd>{% endif %}
     </dl>
-    {% if extras.trailer or extras.imdb or movie.provider_link %}
+    {% if extras.trailer or extras.imdb %}
       <div class="btn-row mt-16">
         {% if extras.trailer %}
-          <a class="btn btn-small" href="{{ extras.trailer.url }}" rel="noopener noreferrer">Trailer</a>
+          <a class="btn btn-small" href="{{ extras.trailer.url }}" target="_blank" rel="noopener noreferrer">Trailer</a>
         {% endif %}
         {% if extras.imdb %}
           <a class="btn btn-small" href="{{ extras.imdb }}" rel="noopener noreferrer">IMDb</a>
-        {% endif %}
-        {% if movie.provider_link %}
-          <a class="btn btn-small" href="{{ movie.provider_link }}" rel="noopener noreferrer">Where to watch</a>
         {% endif %}
       </div>
       <p class="hint mt-10">These open on other people's websites.</p>

@@ -141,16 +141,13 @@
       {% endif %}
       <dt>Episodes</dt><dd>{{ progress.total }} across {{ seasons|length }} season{{ '' if seasons|length == 1 else 's' }}</dd>
     </dl>
-    {% if extras.trailer or extras.imdb or extras.provider_link or extras.homepage %}
+    {% if extras.trailer or extras.imdb or extras.homepage %}
       <div class="btn-row mt-16">
         {% if extras.trailer %}
-          <a class="btn btn-small" href="{{ extras.trailer.url }}" rel="noopener noreferrer">Trailer</a>
+          <a class="btn btn-small" href="{{ extras.trailer.url }}" target="_blank" rel="noopener noreferrer">Trailer</a>
         {% endif %}
         {% if extras.imdb %}
           <a class="btn btn-small" href="{{ extras.imdb }}" rel="noopener noreferrer">IMDb</a>
-        {% endif %}
-        {% if extras.provider_link %}
-          <a class="btn btn-small" href="{{ extras.provider_link }}" rel="noopener noreferrer">Where to watch</a>
         {% endif %}
         {% if extras.homepage %}
           <a class="btn btn-small" href="{{ extras.homepage }}" rel="noopener noreferrer">Official site</a>
