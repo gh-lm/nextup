@@ -56,7 +56,7 @@ def test_the_delete_button_reaches_4_5_to_1_at_rest_and_on_hover():
     assert contrast("#ffffff", root["--danger-solid-hover"]) >= 4.5
 
 def test_the_primary_button_and_the_marks_use_the_pair_that_was_checked():
-    for selector in (".btn-primary", ".brand-mark", ".calendar td.today .cal-daynum", ".watch-toggle.on"):
+    for selector in (".btn-primary", ".brand-mark", ".calendar td.today .cal-daynum"):
         d = declarations(CSS, selector)
         assert d.get("color") == "var(--on-accent)", selector
         assert d.get("background") == "var(--accent)", selector
@@ -72,7 +72,23 @@ def test_the_ring_on_the_chosen_swatch_stands_out_by_3_to_1():
     assert ring == "0 0 0 3px var(--panel), 0 0 0 6px var(--fg)"
     assert contrast(root["--fg"], root["--panel"]) >= 3
 
+def test_the_watched_button_is_grey_and_readable():
+    root = dict(COLOUR.findall(declarations_text(":root")))
+    on = declarations(CSS, ".watch-toggle.on")
+    assert on["color"] == "var(--muted-fg)" and on["background"] == "transparent"
+    assert contrast(root["--muted-fg"], root["--panel"]) >= 4.5
+
 def test_red_words_reach_4_5_to_1_on_every_surface_they_sit_on():
     root = dict(COLOUR.findall(declarations_text(":root")))
     for back in ("--panel", "--muted", "--danger-bg", "--bg"):
         assert contrast(root["--danger"], root[back]) >= 4.5, back
+
+def test_the_empty_part_of_a_progress_bar_stands_out_by_3_to_1():
+    root = dict(COLOUR.findall(declarations_text(":root")))
+    assert declarations(CSS, ".progress")["background"] == "var(--field-border)"
+    assert contrast(root["--field-border"], root["--panel"]) >= 3
+
+def test_cast_and_details_are_the_same_size_with_tops_level():
+    even = declarations(CSS, ".split-even")
+    assert even["grid-template-columns"] == "1fr 1fr" and even["align-items"] == "stretch"
+    assert declarations(CSS, ".split > .panel")["margin-top"] == "0"

@@ -292,7 +292,7 @@ textarea { min-height: 120px; resize: vertical; }
 .watch-card-actions { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
 
 .progress {
-  height: 6px; border-radius: 999px; background: var(--muted);
+  height: 8px; border-radius: 999px; background: var(--field-border);
   overflow: hidden; margin-top: 10px;
 }
 .progress span { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
@@ -389,8 +389,8 @@ textarea { min-height: 120px; resize: vertical; }
 .ep-actions { display: flex; gap: 8px; align-items: center; }
 
 .watch-toggle { min-width: 8.5rem; justify-content: center; flex: none; }
-.watch-toggle.on { background: var(--accent); border-color: transparent; color: var(--on-accent); }
-.watch-toggle.on:hover { background: var(--accent-hover); }
+.watch-toggle.on { background: transparent; color: var(--muted-fg); font-weight: 500; }
+.watch-toggle.on:hover { background: var(--muted); color: var(--fg); }
 
 .result-grid { display: grid; gap: 18px; }
 .result {
@@ -418,6 +418,11 @@ textarea { min-height: 120px; resize: vertical; }
 .split { display: grid; gap: 20px; grid-template-columns: 2fr 1fr; align-items: start; }
 
 .split > * { min-width: 0; }
+.split > .panel { margin-top: 0; }
+.split-even { grid-template-columns: 1fr 1fr; align-items: stretch; }
+.panel + .split { margin-top: 20px; }
+.season-jump { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+.season { scroll-margin-top: 16px; }
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
 .tabs a {
   padding: 7px 14px; border-radius: var(--radius); font-size: 0.9375rem;
@@ -467,7 +472,7 @@ textarea { min-height: 120px; resize: vertical; }
 }
 
 @media (max-width: 860px) {
-  .split { grid-template-columns: 1fr; }
+  .split, .split-even { grid-template-columns: 1fr; }
   .show-hero { grid-template-columns: 132px 1fr; gap: 18px; }
   .show-hero .poster { width: 132px; }
 }
