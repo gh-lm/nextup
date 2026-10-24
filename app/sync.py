@@ -32,8 +32,8 @@ def upsert_show(payload, stamp=True):
         """
         INSERT INTO show (id, name, overview, poster_path, backdrop_path,
                           first_air_date, last_air_date, status, network,
-                          episode_runtime, vote_average, synced_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                          episode_runtime, vote_average, original_language, synced_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
             name = excluded.name,
             overview = excluded.overview,
@@ -45,6 +45,7 @@ def upsert_show(payload, stamp=True):
             network = excluded.network,
             episode_runtime = excluded.episode_runtime,
             vote_average = excluded.vote_average,
+            original_language = excluded.original_language,
             synced_at = excluded.synced_at
         """,
         (
@@ -59,6 +60,7 @@ def upsert_show(payload, stamp=True):
             _network_name(payload),
             _runtime(payload),
             payload.get("vote_average"),
+            payload.get("original_language"),
             clock.now_iso() if stamp else None,
         ),
     )
@@ -122,8 +124,8 @@ def upsert_movie(payload):
     db.execute(
         """
         INSERT INTO movie (id, title, overview, poster_path, release_date,
-                           runtime, vote_average, synced_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                           runtime, vote_average, original_language, synced_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
             title = excluded.title,
             overview = excluded.overview,
@@ -131,6 +133,7 @@ def upsert_movie(payload):
             release_date = excluded.release_date,
             runtime = excluded.runtime,
             vote_average = excluded.vote_average,
+            original_language = excluded.original_language,
             synced_at = excluded.synced_at
         """,
         (
@@ -141,6 +144,7 @@ def upsert_movie(payload):
             payload.get("release_date") or None,
             payload.get("runtime"),
             payload.get("vote_average"),
+            payload.get("original_language"),
             clock.now_iso(),
         ),
     )

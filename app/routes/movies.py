@@ -45,6 +45,10 @@ def detail(movie_id):
             certification=tmdb.certification_from(payload),
             tagline=payload.get("tagline") or None,
         )
+        if row["original_language"] is None and payload.get("original_language"):
+            db.execute("UPDATE movie SET original_language = ? WHERE id = ?",
+                       (payload["original_language"], movie_id))
+            row = db.query("SELECT * FROM movie WHERE id = ?", (movie_id,), one=True)
     except tmdb.TmdbError:
         pass
 

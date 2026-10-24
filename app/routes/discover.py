@@ -62,6 +62,7 @@ def films():
                 "overview": row.get("overview") or "",
                 "poster_path": row.get("poster_path"),
                 "vote_average": row.get("vote_average") or 0,
+                "language": row.get("original_language"),
             }
         )
 
@@ -102,6 +103,7 @@ def tv():
                 "overview": row.get("overview") or "",
                 "poster_path": row.get("poster_path"),
                 "vote_average": row.get("vote_average") or 0,
+                "language": row.get("original_language"),
             }
         )
 

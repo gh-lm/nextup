@@ -22,7 +22,8 @@
     <a href="{{ url_for('discover.tv') }}" class="current" aria-current="page">TV</a>
   </nav>
 </div>
-<div class="panel toolbar">
+<div class="panel toolbar toolbar-filters">
+  <div class="toolbar-line">
   <nav class="tabs" aria-label="Which series">
     <a href="{{ url_for('discover.tv', mode='new', days=days) }}"
        {% if mode == 'new' %}class="current" aria-current="page"{% endif %}>Brand new</a>
@@ -35,7 +36,8 @@
          {% if days == option %}class="current" aria-current="page"{% endif %}>{{ option }} days</a>
     {% endfor %}
   </nav>
-  <span class="spacer"></span>
+  </div>
+  <div class="toolbar-line">
   <span class="hint">
     <strong>Yes</strong> adds it &nbsp; <strong>Maybe</strong> saves it for later &nbsp; <strong>No</strong> hides it here
   </span>
@@ -50,6 +52,7 @@
       </button>
     </form>
   {% endif %}
+  </div>
 </div>
 </div>
 
@@ -70,7 +73,7 @@
         <div class="discover-card-body">
           <a class="discover-card-name" href="{{ url_for('shows.detail', show_id=item.id) }}">{{ item.title }}</a>
           <div class="discover-card-meta">
-            {{ item.date|short_date }}{% if item.vote_average %} · {{ icons.star() }}{{ '%.1f'|format(item.vote_average) }}{% endif %}
+            {{ item.date|short_date }}{% if item.vote_average %} · {{ icons.star() }}{{ '%.1f'|format(item.vote_average) }}{% endif %}{% if item.language|language %} · {{ item.language|language }}{% endif %}
           </div>
           {% if item.overview %}<p>{{ item.overview }}</p>{% endif %}
         </div>

@@ -136,6 +136,7 @@ def search_multi(query, page=1):
                     "overview": item.get("overview") or "",
                     "poster_path": item.get("poster_path"),
                     "vote_average": item.get("vote_average") or 0,
+                    "language": item.get("original_language"),
                 }
             )
         elif kind == "movie":
@@ -148,6 +149,7 @@ def search_multi(query, page=1):
                     "overview": item.get("overview") or "",
                     "poster_path": item.get("poster_path"),
                     "vote_average": item.get("vote_average") or 0,
+                    "language": item.get("original_language"),
                 }
             )
     return {"results": results, "total_pages": data.get("total_pages", 1), "page": data.get("page", 1)}

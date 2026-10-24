@@ -37,7 +37,7 @@
       </a>
       <a class="show-tile-name" href="{{ url_for('shows.detail', show_id=show.id) }}">{{ show.name }}</a>
       <div class="show-tile-meta">
-        {{ show.first_air_date|year }}{% if show.network %} · {{ show.network }}{% endif %}
+        {{ show.first_air_date|year }}{% if show.network %} · {{ show.network }}{% endif %}{% if show.original_language|language %} · {{ show.original_language|language }}{% endif %}
       </div>
       <div class="show-tile-badges">
         {% if show.status %}<span class="badge">{{ show.status }}</span>{% endif %}
@@ -64,7 +64,7 @@
         {% else %}<span class="poster-empty">{{ film.title }}</span>{% endif %}
       </a>
       <a class="show-tile-name" href="{{ url_for('movies.detail', movie_id=film.id) }}">{{ film.title }}</a>
-      <div class="show-tile-meta">{{ film.release_date|year }}</div>
+      <div class="show-tile-meta">{{ film.release_date|year }}{% if film.original_language|language %} · {{ film.original_language|language }}{% endif %}</div>
       <form method="post" action="{{ url_for('movies.toggle_maybe', movie_id=film.id) }}">
         <input type="hidden" name="next" value="{{ request.full_path }}">
         <button class="btn btn-small btn-primary btn-block" type="submit" name="maybe" value="0">Move to my movies</button>
