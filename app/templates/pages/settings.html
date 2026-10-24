@@ -300,7 +300,7 @@
       {% for code, name in watched_languages %}
         <li>
           <span class="lang-tag">{{ name }}</span>
-          <form method="post" action="{{ url_for('settings.save_languages') }}">
+          <form data-inplace method="post" action="{{ url_for('settings.save_languages') }}">
             <button class="btn btn-small btn-quiet" type="submit" name="remove" value="{{ code }}"
                     aria-label="Stop listing {{ name }}">Remove</button>
           </form>
