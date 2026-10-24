@@ -31,9 +31,8 @@
            aria-label="{{ item.progress.watched }} of {{ item.progress.aired }} aired episodes watched">
         <span style="width: {{ item.progress.percent }}%"></span>
       </div>
-      <div class="show-tile-meta">{{ item.progress.watched }} of {{ item.progress.aired }} aired</div>
+      <div class="show-tile-meta meta-row"><span>{{ item.progress.watched }} of {{ item.progress.aired }} aired</span>{% if show.original_language|language %}<span class="lang-tag">{{ show.original_language|language }}</span>{% endif %}</div>
       <div class="show-tile-badges">
-        {% if show.original_language|language %}<span class="badge">{{ show.original_language|language }}</span>{% endif %}
         {% if show.favourite %}<span class="badge badge-accent">Favourite</span>{% endif %}
         {% if item.progress.remaining %}
           <span class="badge badge-warning">{{ item.progress.remaining }} to watch</span>

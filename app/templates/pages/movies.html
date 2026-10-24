@@ -10,8 +10,9 @@
       {% else %}<span class="poster-empty">{{ film.title }}</span>{% endif %}
     </a>
     <a class="show-tile-name" href="{{ url_for('movies.detail', movie_id=film.id) }}">{{ film.title }}</a>
-    <div class="show-tile-meta">
-      {{ film.release_date|year }}{% if film.runtime %} · {{ film.runtime }} min{% endif %}{% if film.original_language|language %} · {{ film.original_language|language }}{% endif %}
+    <div class="show-tile-meta meta-row">
+      <span>{{ film.release_date|year }}{% if film.runtime %} · {{ film.runtime }} min{% endif %}</span>
+      {% if film.original_language|language %}<span class="lang-tag">{{ film.original_language|language }}</span>{% endif %}
     </div>
     {% if show_state %}
       {% set names = provider_names(film) %}

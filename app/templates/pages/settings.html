@@ -275,6 +275,50 @@
     {{ n.notes_for(notes, "country") }}
   </section>
 
+  <section class="panel" id="languages">
+    <div class="panel-head">
+      <h2>Languages</h2>
+    </div>
+    <p class="subtle">
+      Choose which original languages Discover lists. Anything already on your
+      lists stays.
+    </p>
+    <form data-autosave method="post" action="{{ url_for('settings.save_languages') }}">
+      <input type="hidden" name="toggle" value="1">
+      <label class="inline-check">
+        <input type="checkbox" name="all" value="1" {{ 'checked' if all_languages else '' }}>
+        Show every language
+      </label>
+      <button class="btn btn-primary" type="submit">Save</button>
+    </form>
+    {% if not all_languages %}
+    <p class="hint">English is always included.</p>
+    <ul class="language-list">
+      <li><span class="lang-tag">English</span></li>
+      {% for code, name in watched_languages %}
+        <li>
+          <span class="lang-tag">{{ name }}</span>
+          <form method="post" action="{{ url_for('settings.save_languages') }}">
+            <button class="btn btn-small btn-quiet" type="submit" name="remove" value="{{ code }}"
+                    aria-label="Stop listing {{ name }}">Remove</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+    <form data-autosave method="post" action="{{ url_for('settings.save_languages') }}">
+      <div class="field">
+        <label for="add_language">Add a language</label>
+        <select id="add_language" name="add">
+          <option value="">Choose one</option>
+          {% for code, name in language_choices %}<option value="{{ code }}">{{ name }}</option>{% endfor %}
+        </select>
+      </div>
+      <button class="btn btn-primary" type="submit">Add</button>
+    </form>
+    {% endif %}
+    {{ n.notes_for(notes, "languages") }}
+  </section>
+
   <section class="panel" id="account">
     <div class="panel-head">
       <h2>Sign in</h2>

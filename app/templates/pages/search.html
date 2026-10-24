@@ -39,7 +39,7 @@
             <div class="watch-card-meta">
               <span class="badge {{ 'badge-accent' if item.kind == 'tv' else '' }}">{{ 'TV show' if item.kind == 'tv' else 'Movie' }}</span>
               {% if item.date %}<span class="badge">{{ item.date|year }}</span>{% endif %}
-              {% if item.language|language %}<span class="badge">{{ item.language|language }}</span>{% endif %}
+              {% if item.language|language %}<span class="lang-tag">{{ item.language|language }}</span>{% endif %}
               {% if item.vote_average %}<span class="badge">{{ icons.star() }}{{ '%.1f'|format(item.vote_average) }}</span>{% endif %}
               {% if item.tracked %}<span class="badge">On your list</span>{% endif %}
             </div>

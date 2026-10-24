@@ -10,8 +10,9 @@
         </a>
         <div class="discover-card-body">
           <a class="discover-card-name" href="{{ url_for('movies.detail', movie_id=item.id) }}">{{ item.title }}</a>
-          <div class="discover-card-meta">
-            {{ item.date|short_date }}{% if item.vote_average %} · {{ icons.star() }}{{ '%.1f'|format(item.vote_average) }}{% endif %}{% if item.language|language %} · {{ item.language|language }}{% endif %}
+          <div class="discover-card-meta meta-row">
+            <span>{{ item.date|short_date }}{% if item.vote_average %} · {{ icons.star() }}{{ '%.1f'|format(item.vote_average) }}{% endif %}</span>
+            {% if item.language|language %}<span class="lang-tag">{{ item.language|language }}</span>{% endif %}
           </div>
           {% if item.overview %}<p>{{ item.overview }}</p>{% endif %}
         </div>

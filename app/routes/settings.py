@@ -3,7 +3,7 @@ import json
 from flask import (Blueprint, Response, current_app, flash, redirect, render_template,
                    request, session, url_for)
 
-from .. import clock, db, mailer, queries, secretstore, sync, timezones, tmdb, transfer
+from .. import clock, db, languages, mailer, queries, secretstore, sync, timezones, tmdb, transfer
 from ..auth import (change_account, check_current_password, keep_this_browser_signed_in,
                     login_required, uses_default_password)
 from ..forms import confirmed, whole_number
@@ -64,6 +64,9 @@ def index():
         securities=mailer.SECURITIES,
         available_after=queries.available_after_days(),
         newest_first=queries.newest_first(),
+        all_languages=languages.show_all(),
+        watched_languages=[(c, languages.NAMES[c]) for c in languages.watched() if c != "en"],
+        language_choices=sorted(((c, n) for c, n in languages.NAMES.items() if c not in languages.watched() and c != "nb"), key=lambda x: x[1]),
         country=tmdb.country(),
         countries=_country_choices(),
         accents=ACCENTS,
@@ -171,6 +174,24 @@ def save_season_order():
         else "Oldest first, latest at the bottom.",
         "success",
     )
+
+@bp.route("/settings/languages", methods=["POST"])
+@login_required
+def save_languages():
+    if request.form.get("toggle"):
+        every = bool(request.form.get("all"))
+        secretstore.set("watch_all_languages", "1" if every else "0")
+        return notify("languages", "Discover lists every language." if every
+                      else "Discover lists English and the languages you add.", "success")
+    chosen = [c for c in languages.watched() if c != "en"]
+    add, remove = request.form.get("add"), request.form.get("remove")
+    if add in languages.NAMES and add != "en" and add not in chosen:
+        chosen.append(add)
+    if remove in chosen:
+        chosen.remove(remove)
+    secretstore.set("watch_languages", ",".join(chosen))
+    return notify("languages", "Discover now lists " + ", ".join(
+        ["English"] + [languages.NAMES[c] for c in chosen]) + ".", "success")
 
 @bp.route("/settings/country", methods=["POST"])
 @login_required

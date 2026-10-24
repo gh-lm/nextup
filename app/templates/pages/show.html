@@ -18,7 +18,7 @@
         {% if extras.certification %}<span class="badge">{{ extras.certification }}</span>{% endif %}
         {% for genre in extras.genres %}<span class="badge">{{ genre }}</span>{% endfor %}
         {% if show.network %}<span class="badge">{{ show.network }}</span>{% endif %}
-        {% if show.original_language|language %}<span class="badge">{{ show.original_language|language }}</span>{% endif %}
+        {% if show.original_language|language %}<span class="lang-tag">{{ show.original_language|language }}</span>{% endif %}
         {% if show.status %}<span class="badge">{{ show.status }}</span>{% endif %}
         {% if show.vote_average %}<span class="badge">{{ icons.star() }}{{ '%.1f'|format(show.vote_average) }}</span>{% endif %}
         {% if shortlisted %}<span class="badge badge-accent">On your maybe list</span>{% endif %}
