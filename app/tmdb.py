@@ -7,7 +7,7 @@ from urllib.parse import urlsplit
 
 import requests
 
-from . import secretstore, timezones
+from . import clock, secretstore, timezones
 
 BASE = "https://api.themoviedb.org/3"
 IMAGE_BASE = "https://image.tmdb.org/t/p"
@@ -18,6 +18,8 @@ NO_COUNTRY = "-"
 RELEASE_DIGITAL = 4
 RELEASE_PHYSICAL = 5
 RELEASE_TV = 6
+
+NEW_FILM_DAYS = 365
 
 COUNTRIES_MAX_AGE = timedelta(days=7)
 COUNTRIES_TIMEOUT = 5
@@ -200,6 +202,19 @@ def digital_release_date(payload):
         return by_country[code]
     return min(by_country.values()) if by_country else None
 
+def home_release_in(payload, start, end):
+    wanted = country()
+    found = []
+    for entry in payload.get("results", []):
+        if wanted and entry.get("iso_3166_1") != wanted:
+            continue
+        for release in entry.get("release_dates", []):
+            if release.get("type") in (RELEASE_DIGITAL, RELEASE_PHYSICAL, RELEASE_TV):
+                value = (release.get("release_date") or "")[:10]
+                if start <= value <= end:
+                    found.append(value)
+    return min(found) if found else None
+
 def safe_url(value):
     try:
         parts = urlsplit(value or "")
@@ -225,6 +240,7 @@ def discover_films_reaching_streaming(start, end, page=1):
         "with_release_type": "4|6",
         "release_date.gte": start,
         "release_date.lte": end,
+        "primary_release_date.gte": (clock.today_date() - timedelta(days=NEW_FILM_DAYS)).isoformat(),
         "sort_by": "popularity.desc",
         "vote_count.gte": 0,
         "include_adult": "false",

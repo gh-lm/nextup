@@ -42,7 +42,7 @@ def _collect(fetch, start, end, wanted=40):
 def index():
     return redirect(url_for("discover.films"))
 
-def _home_dates(ids):
+def _release_payloads(ids):
     app = current_app._get_current_object()
     code = tmdb.country()
 
@@ -52,11 +52,11 @@ def _home_dates(ids):
             return movie_id, hit[0]
         try:
             with app.app_context():
-                found = tmdb.digital_release_date(tmdb.movie_release_dates(movie_id))
+                payload = tmdb.movie_release_dates(movie_id)
         except tmdb.TmdbError:
             return movie_id, None
-        _HOME_DATES[(movie_id, code)] = (found, time.time())
-        return movie_id, found
+        _HOME_DATES[(movie_id, code)] = (payload, time.time())
+        return movie_id, payload
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         return dict(pool.map(look, ids))
@@ -67,6 +67,8 @@ def _cards(raw, skip, seen, title_key, date_key, home=None):
         if row["id"] in skip or row["id"] in seen:
             continue
         seen.add(row["id"])
+        if home is not None and row["id"] not in home:
+            continue
         date = ((home or {}).get(row["id"]) or row.get(date_key) or "")[:10]
         cards.append(
             {
@@ -81,10 +83,12 @@ def _cards(raw, skip, seen, title_key, date_key, home=None):
         )
     return queries.dated(cards, lambda i: i["date"])
 
-def _both_windows(fetch, start, end):
+def _recent_window():
     today = clock.today_date()
-    recent_start = (today - timedelta(days=RECENT_DAYS)).isoformat()
-    recent_end = (today - timedelta(days=1)).isoformat()
+    return (today - timedelta(days=RECENT_DAYS)).isoformat(), (today - timedelta(days=1)).isoformat()
+
+def _both_windows(fetch, start, end):
+    recent_start, recent_end = _recent_window()
     error = None
     try:
         ahead = _collect(fetch, start, end)
@@ -102,12 +106,23 @@ def films():
     _, tracked = queries.known_ids()
     skip = tracked | queries.dismissed_ids("movie")
     seen = set()
-    home = _home_dates({row["id"] for row in ahead + recent if row["id"] not in skip}) if (ahead or recent) else {}
+    recent_start, recent_end = _recent_window()
+    wanted = {row["id"] for row in ahead + recent if row["id"] not in skip}
+    payloads = _release_payloads(wanted) if wanted else {}
+
+    def home_in(rows, first, last):
+        found = {}
+        for row in rows:
+            payload = payloads.get(row["id"])
+            date = tmdb.home_release_in(payload, first, last) if payload else None
+            if date:
+                found[row["id"]] = date
+        return found
 
     return render_template(
         "pages/discover_films.html",
-        items=_cards(ahead, skip, seen, "title", "release_date", home),
-        recent=_cards(recent, skip, seen, "title", "release_date", home),
+        items=_cards(ahead, skip, seen, "title", "release_date", home_in(ahead, start, end)),
+        recent=_cards(recent, skip, seen, "title", "release_date", home_in(recent, recent_start, recent_end)),
         days=days,
         recent_days=RECENT_DAYS,
         windows=WINDOWS,
