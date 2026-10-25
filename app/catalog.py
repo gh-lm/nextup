@@ -1,5 +1,5 @@
 """Picks between TMDB and TheTVDB for every lookup, and lets the second fill what the first left empty."""
-from . import secretstore, tmdb, tvdb
+from . import db, secretstore, tmdb, tvdb
 from .tmdb import TmdbError
 
 SOURCES = {"tmdb": tmdb, "tvdb": tvdb}
@@ -11,7 +11,7 @@ EPISODE_GAPS = ("name", "overview", "air_date", "runtime", "still_path")
 _counterparts = {}
 
 def configured(name):
-    return secretstore.has(KEY_NAMES[name])
+    return tvdb.has_key() if name == "tvdb" else secretstore.has(KEY_NAMES[name])
 
 def any_key():
     return configured("tmdb") or configured("tvdb")
@@ -54,6 +54,20 @@ def _counterpart(record_id, kind):
     _counterparts[key] = found
     return found
 
+def _stand_in(record_id, kind):
+    if tvdb.is_tvdb(record_id) or configured("tmdb") or not configured("tvdb"):
+        return None
+    return _counterpart(record_id, kind)
+
+def _keep_ids(show_id, payload):
+    known = {
+        (row["season_number"], row["episode_number"]): row["id"]
+        for row in db.query("SELECT id, season_number, episode_number FROM episode WHERE show_id = ?", (show_id,))
+    }
+    for ep in payload.get("episodes") or []:
+        ep["id"] = known.get((ep.get("season_number"), ep.get("episode_number")), ep["id"])
+    return payload
+
 def _needs(payload, fields):
     return any(not payload.get(field) for field in fields)
 
@@ -77,13 +91,26 @@ def _record(record_id, call, kind, fields):
                 pass
     return payload
 
+def _as(record_id, payload):
+    payload["id"] = record_id
+    return payload
+
 def show(show_id):
+    twin = _stand_in(show_id, "tv")
+    if twin:
+        return _as(show_id, tvdb.show(twin))
     return _record(show_id, "show", "tv", SHOW_GAPS)
 
 def movie(movie_id):
+    twin = _stand_in(movie_id, "movie")
+    if twin:
+        return _as(movie_id, tvdb.movie(twin))
     return _record(movie_id, "movie", "movie", MOVIE_GAPS)
 
 def show_detail(show_id):
+    twin = _stand_in(show_id, "tv")
+    if twin:
+        return _as(show_id, tvdb.show_detail(twin))
     if tvdb.is_tvdb(show_id) and configured("tmdb"):
         twin = _counterpart(show_id, "tv")
         if twin:
@@ -94,6 +121,9 @@ def show_detail(show_id):
     return (tvdb if tvdb.is_tvdb(show_id) else tmdb).show_detail(show_id)
 
 def movie_detail(movie_id):
+    twin = _stand_in(movie_id, "movie")
+    if twin:
+        return _as(movie_id, tvdb.movie_detail(twin))
     if tvdb.is_tvdb(movie_id) and configured("tmdb"):
         twin = _counterpart(movie_id, "movie")
         if twin:
@@ -104,6 +134,9 @@ def movie_detail(movie_id):
     return (tvdb if tvdb.is_tvdb(movie_id) else tmdb).movie_detail(movie_id)
 
 def season(show_id, season_number):
+    twin = _stand_in(show_id, "tv")
+    if twin:
+        return _keep_ids(show_id, tvdb.season(twin, season_number))
     home = _home(show_id)
     payload = SOURCES[home].season(show_id, season_number)
     other = _other(home)
@@ -123,6 +156,9 @@ def season(show_id, season_number):
     return payload
 
 def episode(show_id, season_number, episode_number):
+    twin = _stand_in(show_id, "tv")
+    if twin:
+        return tvdb.episode(twin, season_number, episode_number)
     if tvdb.is_tvdb(show_id):
         twin = _counterpart(show_id, "tv") if configured("tmdb") else None
         if twin:

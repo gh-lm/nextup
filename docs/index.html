@@ -72,7 +72,7 @@
         {
           "@type": "Question",
           "name": "Do I need an API key?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes, one is enough, and it is free. Use a TheTVDB key (thetvdb.com/api-information/signup, plan for projects earning under 50,000 dollars a year) or a TMDB key (themoviedb.org/settings/api, API Key for v3 auth). You paste it into Nextup, where it is stored encrypted. With both, you choose which is asked first. Discover, where to watch, trailers and the cast need the TMDB key." }
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Nextup finds shows and movies on TheTVDB through a service run by Lightmorphic, which holds the key. A free TMDB key is optional and adds Discover, where to watch, trailers and the cast. You can also paste a TheTVDB key of your own. Keys go into the Settings page inside Nextup, where they are stored encrypted." }
         },
         {
           "@type": "Question",
@@ -347,7 +347,7 @@
   <div class="wrap">
     <div class="section-head">
       <h2>Running in about five minutes</h2>
-      <p>You need Docker and a free key from TheTVDB or TMDB.</p>
+      <p>You need Docker. There is no sign-up.</p>
     </div>
     <ol class="steps">
       <li>
@@ -405,16 +405,12 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
       </li>
       <li>
         <div>
-          <h3>Add your key</h3>
+          <h3>Start tracking</h3>
           <p>
-            Ask for a free key at
-            <a href="https://thetvdb.com/api-information/signup">thetvdb.com/api-information/signup</a>
-            (choose the plan for projects earning under 50,000 dollars a year), or make a
-            TMDB account and copy the API Key for v3 auth from
-            <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a>.
-            Paste it into the welcome page or the Settings page in Nextup. It is checked
-            before it is saved, and encrypted once it is. Add both if you like, and choose
-            which is asked first.
+            Nextup looks shows and movies up on TheTVDB through a small service run by
+            Lightmorphic, so there is nothing to sign up for. If you like, add a free TMDB
+            key under Settings for Discover, where to watch, trailers and the cast, or a
+            TheTVDB key of your own to go straight to them.
           </p>
         </div>
       </li>
@@ -459,7 +455,7 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
       </div>
       <div>
         <dt>Do I need an API key?</dt>
-        <dd>Yes, one is enough, and it is free. Use a TheTVDB key (<a href="https://thetvdb.com/api-information/signup">thetvdb.com/api-information/signup</a>, plan for projects earning under 50,000 dollars a year) or a TMDB key (<a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a>, API Key for v3 auth). You paste it into Nextup, where it is stored encrypted. With both, you choose which is asked first. Discover, where to watch, trailers and the cast need the TMDB key.</dd>
+        <dd>No. Nextup finds shows and movies on TheTVDB through a service run by Lightmorphic, which holds the key. A free TMDB key is optional and adds Discover, where to watch, trailers and the cast. You can also paste a TheTVDB key of your own. Keys go into the Settings page inside Nextup, where they are stored encrypted.</dd>
       </div>
       <div>
         <dt>How does it know when a movie reaches streaming?</dt>

@@ -43,14 +43,27 @@ def raw(record_id):
 def internal(tvdb_id):
     return OFFSET + int(tvdb_id)
 
+RELAY_URL = "https://tvdb-relay.lightmorphic.com"
+
+def own_key():
+    return secretstore.get("tvdb_api_key")
+
+def using_relay():
+    return not own_key() and RELAY_URL is not None
+
 def api_key():
-    key = secretstore.get("tvdb_api_key")
+    key = own_key()
     if not key:
         raise MissingKey("No TheTVDB API key saved. Add one on the Settings page.")
     return key
 
 def has_key():
-    return secretstore.has("tvdb_api_key")
+    return bool(own_key()) or RELAY_URL is not None
+
+def _target():
+    if using_relay():
+        return f"{RELAY_URL}/v4", {"User-Agent": "Nextup"}
+    return BASE, {"Authorization": f"Bearer {_bearer()}"}
 
 def _unreachable(exc):
     return TvdbError(f"Could not reach TheTVDB ({type(exc).__name__}).")
@@ -81,16 +94,14 @@ def _get(path, params=None, tries=3):
     for attempt in range(tries):
         last = attempt == tries - 1
         try:
-            resp = requests.get(
-                f"{BASE}{path}", params=params, timeout=TIMEOUT,
-                headers={"Authorization": f"Bearer {_bearer()}"},
-            )
+            base, headers = _target()
+            resp = requests.get(f"{base}{path}", params=params, timeout=TIMEOUT, headers=headers)
         except requests.RequestException as exc:
             if last:
                 raise _unreachable(exc) from None
             time.sleep(1 + attempt)
             continue
-        if resp.status_code == 401 and not refreshed:
+        if resp.status_code == 401 and not refreshed and not using_relay():
             refreshed = True
             _bearer(fresh=True)
             continue

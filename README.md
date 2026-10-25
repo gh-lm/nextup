@@ -15,8 +15,8 @@ your own server, has one account and no signup, and never contacts us.
 
 What you get for running it yourself: your watch history stays on your disk,
 artwork is cached by your own server so no page ever points a browser at a
-third party, and the only things it ever calls out to are TheTVDB and TMDB, to look up the
-shows and movies you asked for.
+third party, and the only things it ever calls out to are Nextup's TheTVDB lookup service and,
+if you add a key, TMDB, to look up the shows and movies you asked for.
 
 <p align="center">
   <img src="docs/images/nextup-dashboard.webp" alt="The Nextup dashboard listing what is waiting, each with a Mark watched button, and what is coming soon beside it" width="100%" />
@@ -65,15 +65,22 @@ The container runs as user 1000, not root, so the `chown` above matters.
 Without it Nextup cannot write to the directory you mounted, and it fails to
 start with a permission error on `/data/session.key`.
 
-Nextup needs a free API key before it can look anything up, from TheTVDB,
-TMDB or both. For TheTVDB, ask for a key at
-<https://thetvdb.com/api-information/signup> and choose the plan for projects
-earning under 50,000 dollars a year. For TMDB, make an account, go to
-<https://www.themoviedb.org/settings/api>, and copy the **API Key (v3 auth)**.
-Keys go into the Settings page inside the app, never into this compose file:
-each is checked against its service and then stored encrypted. With both
-saved, you choose which is asked first and the other fills any gaps. Discover,
-where to watch, trailers and the cast need the TMDB key.
+Nextup needs no sign-up to start. It looks shows and movies up on TheTVDB
+through a small service run by Lightmorphic, which holds the TheTVDB key so
+that you do not need one. The service keeps no record of who looks up what;
+Cloudflare, which runs it, sees ordinary request logs. If you would rather go
+straight to TheTVDB, ask for your own key at
+<https://thetvdb.com/api-information/signup> (choose the plan for projects
+earning under 50,000 dollars a year) and paste it into Settings.
+
+A TMDB key is optional and adds Discover, where to watch, trailers and the
+cast. Make an account, go to <https://www.themoviedb.org/settings/api>, and
+copy the **API Key (v3 auth)**. Keys go into the Settings page inside the
+app, never into this compose file: each is checked against its service and
+then stored encrypted. With both, you choose which is asked first and the
+other fills any gaps.
+
+The service's code is in [relay](./relay).
 
 To update:
 
@@ -209,7 +216,7 @@ What follows is what is already built in.
   drops every Linux capability, forbids gaining new privileges, and runs with
   a read-only filesystem and a small writable `/tmp`.
 - No analytics, no telemetry and no third-party script. The only outbound
-  calls are to TheTVDB, TMDB and to your own mail server.
+  calls are to the TheTVDB lookup service, TMDB if you add a key, and to your own mail server.
 
 What it does not do: there is one account and no two-factor, and there is no
 audit log. Repeated wrong passwords slow sign-in down, but that is no

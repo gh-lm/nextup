@@ -7,11 +7,11 @@ made close together are described as one.
 
 TheTVDB joins TMDB. Your data is untouched, and nothing changes until you add a TheTVDB key.
 
-- **TheTVDB as a source.** Add a free TheTVDB key (for projects earning under 50,000 dollars a year) and Nextup can find shows and movies, and fetch their episodes, dates and covers, from TheTVDB instead of TMDB. Either key alone is enough.
-- **Choose which is asked first.** With both keys saved, Settings has a "Which source first" choice. The first is used for searches and new shows. The other fills anything left empty, such as a missing summary, cover or episode date. TheTVDB is the default first source.
+- **TheTVDB as a source, with nothing to sign up for.** Nextup finds shows and movies, and fetches their episodes, dates and covers, from TheTVDB through its own small lookup service, which holds the key so you do not need one. A TMDB key is now optional. Paste a key of your own under Settings to go straight to TheTVDB instead.
+- **Choose which is asked first.** With a TMDB key saved as well, Settings has a "Which source first" choice. The first is used for searches and new shows. The other fills anything left empty, such as a missing summary, cover or episode date. TheTVDB is the default first source.
 - **TMDB still adds the extras.** Discover, where to watch, trailers and the cast need a TMDB key. A show found through TheTVDB gets them too when a TMDB key is saved.
-- **A welcome page for the key.** Signing in without a key opens a page that explains both keys, with the steps to get one. A wrong key is explained under the box. "Do this later" keeps the old reminder.
-- **Credit.** With a TheTVDB key saved, the footer carries TheTVDB's credit and a link, as their terms ask.
+- **Your shows carry over.** Shows saved under TMDB numbers keep their watched marks and refresh from TheTVDB when there is no TMDB key.
+- **Credit.** The footer carries TheTVDB's credit and a link, as their terms ask.
 
 ## [1.7.2], 2026-10-24
 

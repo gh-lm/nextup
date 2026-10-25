@@ -123,3 +123,75 @@ def test_the_welcome_page_takes_a_tvdb_key(signed_in, app, monkeypatch):
 
 def test_the_footer_credits_thetvdb_once_a_key_is_saved(signed_in, keyed):
     assert "Metadata provided by" in signed_in.get("/settings").get_data(as_text=True)
+
+RELAY = "https://relay.example"
+
+class Reply:
+    ok = True
+    status_code = 200
+
+    def json(self):
+        return {"data": {"ok": True}}
+
+def test_without_a_key_of_their_own_lookups_go_through_the_relay(app, monkeypatch):
+    monkeypatch.setattr(tvdb, "RELAY_URL", RELAY)
+    seen = {}
+
+    def fake(url, params=None, timeout=None, headers=None):
+        seen.update(url=url, headers=headers)
+        return Reply()
+
+    monkeypatch.setattr(tvdb.requests, "get", fake)
+    with app.app_context():
+        assert tvdb.has_key() and catalog.configured("tvdb") and tvdb.using_relay()
+        assert tvdb._get("/series/1/extended") == {"ok": True}
+    assert seen["url"] == f"{RELAY}/v4/series/1/extended"
+    assert "Authorization" not in seen["headers"]
+
+def test_a_saved_key_of_their_own_goes_straight_to_thetvdb(app, monkeypatch):
+    monkeypatch.setattr(tvdb, "RELAY_URL", RELAY)
+    monkeypatch.setattr(tvdb, "_bearer", lambda fresh=False: "tok")
+    seen = {}
+
+    def fake(url, params=None, timeout=None, headers=None):
+        seen.update(url=url, headers=headers)
+        return Reply()
+
+    monkeypatch.setattr(tvdb.requests, "get", fake)
+    with app.app_context():
+        secretstore.set("tvdb_api_key", "mine", encrypted=True)
+        assert not tvdb.using_relay()
+        tvdb._get("/series/1/extended")
+    assert seen["url"].startswith(tvdb.BASE) and seen["headers"]["Authorization"] == "Bearer tok"
+
+def test_with_the_relay_the_welcome_page_is_skipped_and_settings_says_so(signed_in, monkeypatch):
+    monkeypatch.setattr(tvdb, "RELAY_URL", RELAY)
+    with signed_in.session_transaction() as sess:
+        sess.pop("skip_welcome")
+    assert "One step to start" not in signed_in.get("/").get_data(as_text=True)
+    assert "through its own service" in signed_in.get("/settings").get_data(as_text=True)
+
+def test_a_tmdb_show_keeps_refreshing_from_tvdb_when_the_tmdb_key_is_gone(keyed, monkeypatch):
+    sid = 41956
+    db.execute("INSERT INTO show (id, name) VALUES (?, 'Old')", (sid,))
+    db.execute("INSERT INTO episode (id, show_id, season_number, episode_number, name) VALUES (500, ?, 1, 1, 'Old one')", (sid,))
+    db.execute("INSERT INTO watched_episode (episode_id, show_id, watched_at) VALUES (500, ?, '2026-01-01')", (sid,))
+    monkeypatch.setattr(tvdb, "find_by_tmdb", lambda i, kind: tvdb.internal(252800))
+    monkeypatch.setattr(tvdb, "_get", fake_get({
+        "/series/252800/extended": SERIES,
+        "/series/252800/episodes": {"episodes": EPISODES, "links": {"next": None}},
+    }))
+    tvdb._episodes.clear()
+    catalog._counterparts.clear()
+    assert sync.sync_show(sid) == "Death in Paradise"
+    one = db.query("SELECT id, name FROM episode WHERE show_id = ? AND season_number = 1", (sid,), one=True)
+    assert one["id"] == 500 and one["name"] == "One"
+    assert db.query("SELECT 1 FROM watched_episode WHERE episode_id = 500", one=True)
+
+def test_a_watched_mark_follows_an_episode_whose_id_changes_source(app):
+    with app.app_context():
+        db.execute("INSERT INTO show (id, name) VALUES (7, 'S')")
+        db.execute("INSERT INTO episode (id, show_id, season_number, episode_number) VALUES (1, 7, 1, 1)")
+        db.execute("INSERT INTO watched_episode (episode_id, show_id, watched_at) VALUES (1, 7, '2026-01-01')")
+        sync.upsert_episodes(7, {"season_number": 1, "episodes": [{"id": 99, "season_number": 1, "episode_number": 1, "name": "x"}]})
+        assert db.query("SELECT 1 FROM watched_episode WHERE episode_id = 99", one=True)

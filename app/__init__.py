@@ -5,7 +5,7 @@ from datetime import datetime
 
 from flask import Flask
 
-from . import clock, config, db, languages
+from . import clock, config, db, languages, tvdb
 
 def _read_version():
     path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "VERSION")
@@ -181,8 +181,8 @@ def _register_context(app):
         return {
             "app_version": __version__,
             "has_tmdb": secretstore.has("tmdb_api_key"),
-            "credit_tvdb": secretstore.has("tvdb_api_key"),
-            "credit_tmdb": secretstore.has("tmdb_api_key") or not secretstore.has("tvdb_api_key"),
+            "credit_tvdb": tvdb.has_key(),
+            "credit_tmdb": secretstore.has("tmdb_api_key") or not tvdb.has_key(),
             "notes": notes,
             "user": current_user() if session.get("logged_in") else None,
             "accent": accent,

@@ -412,10 +412,11 @@
       <h2>TheTVDB key</h2>
       <span class="spacer"></span>
       {% if has_tvdb %}<span class="badge">Saved and encrypted</span>
+      {% elif relay_tvdb %}<span class="badge">Provided by Nextup</span>
       {% else %}<span class="badge badge-warning">Not set</span>{% endif %}
     </div>
     <p class="subtle">
-      Shows, episodes and covers. Get a free API key (for projects earning under 50,000 dollars a year)
+      {% if relay_tvdb %}Nextup looks things up on TheTVDB through its own service, so there is nothing to do here. To use a key of your own instead, paste it below. {% endif %}Shows, episodes and covers. Get a free API key (for projects earning under 50,000 dollars a year)
       at <a href="https://thetvdb.com/api-information" rel="noopener noreferrer">thetvdb.com/api-information</a>,
       which opens on their site. It is checked before it is saved, then encrypted.
     </p>
@@ -485,27 +486,26 @@
       <form id="clear-tmdb-form" method="post" action="{{ url_for('settings.clear_tmdb') }}" data-confirm></form>
     {% endif %}
     {{ n.notes_for(notes, "tmdb") }}
-  </section>
-
-  <section class="panel" id="source">
-    <div class="panel-head">
-      <h2>Which source first</h2>
+    {% if has_key %}
+    <div id="source">
+      <h3>Which source first</h3>
+      <p class="subtle">
+        Searches and new shows use this one. The other fills in anything it leaves empty,
+        such as a missing summary or cover.
+      </p>
+      <form data-autosave method="post" action="{{ url_for('settings.save_source') }}">
+        <div class="field">
+          <label for="source_first">Ask first</label>
+          <select id="source_first" name="source_first">
+            <option value="tvdb" {{ 'selected' if source_first == 'tvdb' else '' }}>TheTVDB first, TMDB fills the gaps</option>
+            <option value="tmdb" {{ 'selected' if source_first == 'tmdb' else '' }}>TMDB first, TheTVDB fills the gaps</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" type="submit">Save</button>
+      </form>
+      {{ n.notes_for(notes, "source") }}
     </div>
-    <p class="subtle">
-      Searches and new shows use this one. The other fills in anything it leaves empty,
-      such as a missing summary or cover. Add both keys above to use both.
-    </p>
-    <form data-autosave method="post" action="{{ url_for('settings.save_source') }}">
-      <div class="field">
-        <label for="source_first">Ask first</label>
-        <select id="source_first" name="source_first">
-          <option value="tvdb" {{ 'selected' if source_first == 'tvdb' else '' }}>TheTVDB first, TMDB fills the gaps</option>
-          <option value="tmdb" {{ 'selected' if source_first == 'tmdb' else '' }}>TMDB first, TheTVDB fills the gaps</option>
-        </select>
-      </div>
-      <button class="btn btn-primary" type="submit">Save</button>
-    </form>
-    {{ n.notes_for(notes, "source") }}
+    {% endif %}
   </section>
 
   <section class="panel" id="order">

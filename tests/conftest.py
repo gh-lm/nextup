@@ -8,6 +8,12 @@ sys.path.insert(0, ROOT)
 
 os.environ.setdefault("NEXTUP_DATA_DIR", "/tmp/nextup-test-placeholder")
 
+@pytest.fixture(autouse=True)
+def no_relay(monkeypatch):
+    from app import tvdb
+
+    monkeypatch.setattr(tvdb, "RELAY_URL", None)
+
 @pytest.fixture()
 def data_dir(tmp_path):
     from app import config, secretstore

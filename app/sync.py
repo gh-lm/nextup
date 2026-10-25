@@ -92,6 +92,11 @@ def upsert_episodes(show_id, season_payload):
         )
     for row in rows:
         slot = row[1:4]
+        carried = conn.execute(
+            "SELECT w.watched_at FROM watched_episode w JOIN episode e ON e.id = w.episode_id"
+            " WHERE e.show_id = ? AND e.season_number = ? AND e.episode_number = ? AND e.id != ?",
+            (*slot, row[0]),
+        ).fetchone()
         conn.execute(
             "DELETE FROM episode WHERE show_id = ? AND season_number = ? AND episode_number = ? AND id != ?",
             (*slot, row[0]),
@@ -113,6 +118,11 @@ def upsert_episodes(show_id, season_payload):
             """,
             row,
         )
+        if carried:
+            conn.execute(
+                "INSERT OR IGNORE INTO watched_episode (episode_id, show_id, watched_at) VALUES (?, ?, ?)",
+                (row[0], show_id, carried["watched_at"]),
+            )
     conn.commit()
     return len(rows)
 

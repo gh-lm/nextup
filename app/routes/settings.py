@@ -58,7 +58,8 @@ def index():
     return render_template(
         "pages/settings.html",
         has_key=secretstore.has("tmdb_api_key"),
-        has_tvdb=catalog.configured("tvdb"),
+        has_tvdb=secretstore.has("tvdb_api_key"),
+        relay_tvdb=catalog.tvdb.using_relay(),
         source_first=catalog.first_name(),
         unreadable=secretstore.unreadable(),
         backup=transfer.counts(),

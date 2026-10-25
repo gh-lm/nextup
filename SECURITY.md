@@ -54,7 +54,7 @@ bounty programme.
   drops every Linux capability, forbids gaining new privileges, and uses a
   read-only filesystem with a small writable `/tmp`.
 - No analytics, no telemetry, no third-party script. The only outbound calls
-  are to TheTVDB, TMDB and to your own mail server.
+  are to the TheTVDB lookup service, TMDB if you add a key, and to your own mail server.
 
 ## What is not in place
 
