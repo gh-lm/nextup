@@ -1,9 +1,9 @@
 import calendar as pycalendar
 from datetime import date, timedelta
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, current_app, redirect, render_template, request, session, url_for
 
-from .. import clock, queries, secretstore, sync, tmdb
+from .. import catalog, clock, queries, secretstore, sync
 from ..auth import login_required
 from ..forms import page_number, whole_number
 
@@ -14,6 +14,8 @@ MIN_YEAR, MAX_YEAR = 1970, 2100
 @bp.route("/")
 @login_required
 def dashboard():
+    if not catalog.any_key() and not secretstore.unreadable() and not session.get("skip_welcome"):
+        return render_template("pages/welcome.html", error=None, error_for=None)
     order = queries.date_order()
     page = page_number(10000)
     return render_template(
@@ -23,11 +25,33 @@ def dashboard():
         soon=queries.coming_soon(days=21, limit=12),
         recent=queries.recently_watched(6),
         counts=queries.dashboard_counts(),
-        has_key=secretstore.has("tmdb_api_key"),
+        has_key=catalog.any_key(),
         unreadable=secretstore.unreadable(),
         last_sync=sync.last_run(),
         provider_names=queries.provider_names,
     )
+
+@bp.route("/welcome", methods=["POST"])
+@login_required
+def welcome_key():
+    source = "tvdb" if "tvdb_api_key" in request.form else "tmdb"
+    key = (request.form.get(f"{source}_api_key") or "").strip()
+    if not key:
+        return render_template("pages/welcome.html", error="Paste your key first.", error_for=source)
+    try:
+        catalog.SOURCES[source].verify_key(key)
+    except catalog.TmdbError as exc:
+        return render_template("pages/welcome.html", error=str(exc), error_for=source)
+    secretstore.set(f"{source}_api_key", key, encrypted=True)
+    secretstore.set("source_first", source)
+    sync.start_now(current_app._get_current_object())
+    return redirect(url_for("main.dashboard"))
+
+@bp.route("/welcome/later", methods=["POST"])
+@login_required
+def welcome_later():
+    session["skip_welcome"] = True
+    return redirect(url_for("main.dashboard"))
 
 @bp.route("/calendar")
 @login_required
@@ -107,10 +131,10 @@ def search():
     results, error, total_pages = [], None, 1
     if term:
         try:
-            payload = tmdb.search_multi(term, page=page)
+            payload = catalog.search_multi(term, page=page)
             results = payload["results"]
             total_pages = min(payload["total_pages"], 500)
-        except tmdb.TmdbError as exc:
+        except catalog.TmdbError as exc:
             error = str(exc)
 
     tracked_tv, tracked_film = queries.known_ids()

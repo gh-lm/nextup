@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 
-from .. import clock, db, languages, queries, sync, tmdb
+from .. import catalog, clock, db, languages, queries, sync
 from ..auth import login_required
 from ..forms import whole_number
 from ..redirects import back_to
@@ -54,7 +54,7 @@ def index():
 
 def _release_payloads(ids):
     app = current_app._get_current_object()
-    code = tmdb.country()
+    code = catalog.country()
     if len(_HOME_DATES) > HOME_DATE_LIMIT:
         now = time.time()
         for key in [k for k, (_, at) in _HOME_DATES.items() if now - at >= HOME_DATE_TTL]:
@@ -68,8 +68,8 @@ def _release_payloads(ids):
             return movie_id, hit[0]
         try:
             with app.app_context():
-                payload = tmdb.movie_release_dates(movie_id)
-        except tmdb.TmdbError:
+                payload = catalog.movie_release_dates(movie_id)
+        except catalog.TmdbError:
             return movie_id, None
         _HOME_DATES[(movie_id, code)] = (payload, time.time())
         return movie_id, payload
@@ -109,7 +109,7 @@ def _both_windows(fetch, start, end):
     try:
         ahead = _collect(fetch, start, end)
         recent = _collect(fetch, recent_start, recent_end)
-    except tmdb.TmdbError as exc:
+    except catalog.TmdbError as exc:
         ahead, recent, error = [], [], str(exc)
     return ahead, recent, error
 
@@ -117,7 +117,7 @@ def _both_windows(fetch, start, end):
 @login_required
 def films():
     days, start, end = _window()
-    ahead, recent, error = _both_windows(tmdb.discover_films_reaching_streaming, start, end)
+    ahead, recent, error = _both_windows(catalog.discover_films_reaching_streaming, start, end)
 
     _, tracked = queries.known_ids()
     skip = tracked | queries.dismissed_ids("movie")
@@ -133,7 +133,7 @@ def films():
         found = {}
         for row in rows:
             payload = payloads.get(row["id"])
-            date = tmdb.home_release_in(payload, first, last) if payload else None
+            date = catalog.home_release_in(payload, first, last) if payload else None
             if date:
                 found[row["id"]] = date
         return found
@@ -154,7 +154,7 @@ def films():
 def tv():
     mode = request.args.get("mode", "new")
     days, start, end = _window(30 if mode == "new" else DEFAULT_DAYS)
-    fetch = tmdb.discover_new_series if mode == "new" else tmdb.discover_returning_series
+    fetch = catalog.discover_new_series if mode == "new" else catalog.discover_returning_series
     ahead, recent, error = _both_windows(fetch, start, end)
 
     tracked, _ = queries.known_ids()
@@ -193,7 +193,7 @@ def decide_show(show_id, action):
     failed = []
     try:
         name = sync.sync_show(show_id, failed)
-    except tmdb.TmdbError as exc:
+    except catalog.TmdbError as exc:
         flash(str(exc), "error")
         return back_to("discover.tv")
 
@@ -226,9 +226,9 @@ def decide_film(movie_id, action):
         return back_to("discover.films")
 
     try:
-        payload = tmdb.movie(movie_id)
+        payload = catalog.movie(movie_id)
         sync.upsert_movie(payload)
-    except tmdb.TmdbError as exc:
+    except catalog.TmdbError as exc:
         flash(str(exc), "error")
         return back_to("discover.films")
 
@@ -240,7 +240,7 @@ def decide_film(movie_id, action):
     _undismiss("movie", movie_id)
     try:
         sync.sync_movie_availability(movie_id)
-    except tmdb.TmdbError:
+    except catalog.TmdbError:
         pass
     flash(
         f"{payload.get('title') or 'The movie'} added to your "

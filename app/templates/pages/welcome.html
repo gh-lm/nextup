@@ -1,0 +1,44 @@
+{% extends 'layout/base.html' %}
+{% block title %}Welcome | Nextup{% endblock %}
+{% block body %}
+<div class="login">
+  <div class="login-head">
+    <h1>One step to start</h1>
+    <p class="subtle">
+      Nextup gets every show, movie and cover from TheTVDB or TMDB. Both give out a key for free for small projects and personal use. One key is enough, and you can add the other later.
+    </p>
+  </div>
+  <form class="panel" method="post" action="{{ url_for('main.welcome_key') }}">
+    <h2>TheTVDB</h2>
+    <ol class="steps">
+      <li>Open <a href="https://thetvdb.com/api-information/signup" rel="noopener noreferrer" target="_blank">thetvdb.com/api-information/signup</a> and ask for a key. Choose the plan for projects earning under 50,000 dollars a year.</li>
+      <li>Paste it here. It is checked before it is saved, then encrypted.</li>
+    </ol>
+    <div class="field">
+      <label for="tvdb_api_key">TheTVDB API key</label>
+      <input id="tvdb_api_key" name="tvdb_api_key" type="password" autocomplete="off" required
+             aria-describedby="tvdb-error"{% if error and error_for == 'tvdb' %} aria-invalid="true" autofocus{% endif %}>
+      <p class="sign-in-error" id="tvdb-error">{{ error if error_for == 'tvdb' else "" }}</p>
+    </div>
+    <button class="btn btn-primary btn-block" type="submit">Check and save</button>
+  </form>
+  <form class="panel mt-16" method="post" action="{{ url_for('main.welcome_key') }}">
+    <h2>TMDB</h2>
+    <ol class="steps">
+      <li>Make a free account at <a href="https://www.themoviedb.org/signup" rel="noopener noreferrer" target="_blank">themoviedb.org/signup</a>.</li>
+      <li>Open <a href="https://www.themoviedb.org/settings/api" rel="noopener noreferrer" target="_blank">themoviedb.org/settings/api</a>, ask for a personal key, and copy the API Key (v3 auth).</li>
+      <li>Paste it here. It is checked before it is saved, then encrypted.</li>
+    </ol>
+    <div class="field">
+      <label for="tmdb_api_key">TMDB API key</label>
+      <input id="tmdb_api_key" name="tmdb_api_key" type="password" autocomplete="off" required
+             aria-describedby="tmdb-error"{% if error and error_for == 'tmdb' %} aria-invalid="true" autofocus{% endif %}>
+      <p class="sign-in-error" id="tmdb-error">{{ error if error_for == 'tmdb' else "" }}</p>
+    </div>
+    <button class="btn btn-primary btn-block" type="submit">Check and save</button>
+  </form>
+  <form method="post" action="{{ url_for('main.welcome_later') }}" class="mt-16">
+    <button class="btn btn-quiet btn-block" type="submit">Do this later</button>
+  </form>
+</div>
+{% endblock %}

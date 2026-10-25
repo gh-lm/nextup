@@ -16,7 +16,7 @@ def test_dashboard_after_login(signed_in):
     resp = signed_in.get("/")
     assert resp.status_code == 200
     assert b"Next up" in resp.data
-    assert b"No TMDB key yet" in resp.data
+    assert b"No TheTVDB or TMDB key yet" in resp.data
 
 def test_every_page_loads(signed_in):
     for path in ["/", "/shows", "/calendar", "/upcoming", "/movies", "/settings", "/search"]:

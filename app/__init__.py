@@ -180,6 +180,9 @@ def _register_context(app):
 
         return {
             "app_version": __version__,
+            "has_tmdb": secretstore.has("tmdb_api_key"),
+            "credit_tvdb": secretstore.has("tvdb_api_key"),
+            "credit_tmdb": secretstore.has("tmdb_api_key") or not secretstore.has("tvdb_api_key"),
             "notes": notes,
             "user": current_user() if session.get("logged_in") else None,
             "accent": accent,

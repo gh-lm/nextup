@@ -41,4 +41,5 @@ def signed_in(client):
     client.post("/login", data={"username": "admin", "password": "nextup"})
     with client.session_transaction() as sess:
         sess["starter"] = False
+        sess["skip_welcome"] = True
     return client

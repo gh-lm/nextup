@@ -61,8 +61,8 @@
           </p>
           <p>
             Everything it knows about shows and movies comes from
-            <a href="https://www.themoviedb.org/">TMDB</a>, fetched by your server with
-            your own free key.
+            <a href="https://thetvdb.com/">TheTVDB</a>, <a href="https://www.themoviedb.org/">TMDB</a>
+            or both, fetched by your server with your own free keys.
           </p>
         </section>
         <section>
@@ -71,10 +71,13 @@
           <ul>
             <li>Docker, with the compose plugin.</li>
             <li>
-              A free TMDB account and its API key. Make the account, then go to
+              A free API key from TheTVDB, TMDB or both. For TheTVDB, ask at
+              <a href="https://thetvdb.com/api-information/signup">thetvdb.com/api-information/signup</a>
+              and choose the plan for projects earning under 50,000 dollars a year. For TMDB,
+              make an account, then go to
               <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a>
               and copy the API Key for v3 auth. You paste it into Nextup later, not into a
-              file.
+              file. Discover, where to watch, trailers and the cast need the TMDB key.
             </li>
           </ul>
         </section>
@@ -116,8 +119,8 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
           <ul>
             <li><strong>Your username and password.</strong></li>
             <li>
-              <strong>The TMDB key.</strong> Checked against TMDB before it is saved, then
-              stored encrypted.
+              <strong>The API keys.</strong> Each is checked against its service before it is
+              saved, then stored encrypted. With both saved you choose which is asked first.
             </li>
             <li>
               <strong>The morning email.</strong> Your mail server, the port, whether it
@@ -166,7 +169,7 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
           <ul>
             <li><code>nextup.db</code>, the shows, the episodes and what you have
             watched.</li>
-            <li><code>secret.key</code>, which encrypts the TMDB key and the mail
+            <li><code>secret.key</code>, which encrypts the API keys and the mail
             password.</li>
             <li><code>session.key</code>, which signs the login cookie.</li>
             <li><code>images/</code>, the cached posters and stills.</li>
@@ -183,7 +186,7 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
             so keep the file private.
           </p>
           <p>
-            Your TMDB key and mail password are left out by default, because they are
+            Your API keys and mail password are left out by default, because they are
             encrypted with a key that stays on that server. A second button includes them
             as plain text, so keep that file somewhere safe.
           </p>
@@ -212,6 +215,7 @@ docker compose up -d</code></pre>
           </p>
           <p>
             This product uses the TMDB API but is not endorsed or certified by TMDB.
+            Metadata provided by <a href="https://thetvdb.com/">TheTVDB</a>. Please consider adding missing information or <a href="https://thetvdb.com/subscribe">subscribing</a>.
             Streaming service listings come from JustWatch by way of TMDB.
           </p>
         </section>

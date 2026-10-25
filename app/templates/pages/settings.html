@@ -69,7 +69,7 @@
           <label for="smtp_password">Password</label>
           <input id="smtp_password" name="smtp_password" type="password" autocomplete="off"
                  placeholder="{{ 'Saved. Type a new one to replace it' if mail.has_password else 'App password' }}">
-          <p class="hint">Stored encrypted, the same as the TMDB key.</p>
+          <p class="hint">Stored encrypted, the same as the API keys.</p>
         </div>
       </div>
       <div class="field-row">
@@ -196,7 +196,7 @@
       One file holds every show and movie you have added, everything you have
       marked as watched, the things you said no to, and how you like Nextup set
       up. Put it on another machine and you carry on where you left off, before
-      it has even spoken to TMDB.
+      it has even spoken to TheTVDB or TMDB.
     </p>
     <p class="hint">
       Right now that is {{ backup.tracked_show }} show{{ '' if backup.tracked_show == 1 else 's' }},
@@ -213,7 +213,7 @@
       </a>
     </div>
     <p class="hint">
-      The plain download leaves your TMDB key and mail password out, because
+      The plain download leaves your API keys and mail password out, because
       they are encrypted with a key that stays on this server and cannot travel.
       You would type those two back in. The second button puts them in the file
       readable by anyone who opens it, so keep that one somewhere safe. Either file
@@ -407,6 +407,46 @@
     {{ n.notes_for(notes, "accent") }}
   </section>
 
+  <section class="panel" id="tvdb">
+    <div class="panel-head">
+      <h2>TheTVDB key</h2>
+      <span class="spacer"></span>
+      {% if has_tvdb %}<span class="badge">Saved and encrypted</span>
+      {% else %}<span class="badge badge-warning">Not set</span>{% endif %}
+    </div>
+    <p class="subtle">
+      Shows, episodes and covers. Get a free API key (for projects earning under 50,000 dollars a year)
+      at <a href="https://thetvdb.com/api-information" rel="noopener noreferrer">thetvdb.com/api-information</a>,
+      which opens on their site. It is checked before it is saved, then encrypted.
+    </p>
+    <form method="post" action="{{ url_for('settings.save_tvdb') }}">
+      <div class="field inline-field">
+        <label class="visually-hidden" for="tvdb_api_key">API key</label>
+        <input id="tvdb_api_key" name="tvdb_api_key" type="password" autocomplete="off"
+               placeholder="{{ 'Saved. Paste a new one to replace it' if has_tvdb else 'Paste your key' }}">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" type="submit">Check and save</button>
+        {% if has_tvdb %}
+          <button class="btn btn-quiet" type="submit" form="clear-tvdb-form"
+                  data-confirm-label="Really remove? This deletes the saved key."
+                  title="Delete the saved key"
+                  aria-label="Delete the saved TheTVDB key">Remove key</button>
+          <noscript>
+            <label class="inline-check">
+              <input type="checkbox" name="sure" value="1" form="clear-tvdb-form" required>
+              Yes, remove it
+            </label>
+          </noscript>
+        {% endif %}
+      </div>
+    </form>
+    {% if has_tvdb %}
+      <form id="clear-tvdb-form" method="post" action="{{ url_for('settings.clear_tvdb') }}" data-confirm></form>
+    {% endif %}
+    {{ n.notes_for(notes, "tvdb") }}
+  </section>
+
   <section class="panel" id="tmdb">
     <div class="panel-head">
       <h2>TMDB key</h2>
@@ -415,7 +455,7 @@
       {% else %}<span class="badge badge-warning">Not set</span>{% endif %}
     </div>
     <p class="subtle">
-      Every show, episode and cover comes from TMDB. Copy your API Key (v3 auth)
+      Adds Discover, where to watch, trailers and the cast. It can also be the main source. Copy your API Key (v3 auth)
       from <a href="https://www.themoviedb.org/settings/api" rel="noopener noreferrer">themoviedb.org/settings/api</a>,
       which opens on their site. It is checked before it is saved, then encrypted.
     </p>
@@ -447,6 +487,27 @@
     {{ n.notes_for(notes, "tmdb") }}
   </section>
 
+  <section class="panel" id="source">
+    <div class="panel-head">
+      <h2>Which source first</h2>
+    </div>
+    <p class="subtle">
+      Searches and new shows use this one. The other fills in anything it leaves empty,
+      such as a missing summary or cover. Add both keys above to use both.
+    </p>
+    <form data-autosave method="post" action="{{ url_for('settings.save_source') }}">
+      <div class="field">
+        <label for="source_first">Ask first</label>
+        <select id="source_first" name="source_first">
+          <option value="tvdb" {{ 'selected' if source_first == 'tvdb' else '' }}>TheTVDB first, TMDB fills the gaps</option>
+          <option value="tmdb" {{ 'selected' if source_first == 'tmdb' else '' }}>TMDB first, TheTVDB fills the gaps</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" type="submit">Save</button>
+    </form>
+    {{ n.notes_for(notes, "source") }}
+  </section>
+
   <section class="panel" id="order">
     <div class="panel-head">
       <h2>Order</h2>
@@ -469,7 +530,7 @@
   </section>
 
   <section class="panel" id="sync">
-    <div class="panel-head"><h2>Refresh from TMDB</h2></div>
+    <div class="panel-head"><h2>Refresh now</h2></div>
     <p class="hint mt-0">
       Runs on its own every 12 hours. Shows that have ended are checked far less often.
     </p>

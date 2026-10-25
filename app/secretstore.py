@@ -46,7 +46,7 @@ def get(key, default=None):
     except (InvalidToken, ValueError):
         return default
 
-LABELS = {"tmdb_api_key": "TMDB key", "smtp_password": "mail password"}
+LABELS = {"tmdb_api_key": "TMDB key", "tvdb_api_key": "TheTVDB key", "smtp_password": "mail password"}
 
 def unreadable():
     broken = []

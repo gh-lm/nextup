@@ -3,7 +3,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 
-from . import clock, config, db, queries, secretstore, tmdb
+from . import catalog, clock, config, db, queries, secretstore
 
 _sync_lock = threading.Lock()
 _running = False
@@ -132,7 +132,7 @@ def _unarchive_if_new_season(show_id):
 
 def sync_show(show_id, failed=None):
     _note_archived_season(show_id)
-    payload = tmdb.show(show_id)
+    payload = catalog.show(show_id)
     upsert_show(payload, stamp=False)
     missed = []
     for season in payload.get("seasons", []):
@@ -140,8 +140,8 @@ def sync_show(show_id, failed=None):
         if number is None:
             continue
         try:
-            upsert_episodes(show_id, tmdb.season(show_id, number))
-        except tmdb.TmdbError:
+            upsert_episodes(show_id, catalog.season(show_id, number))
+        except catalog.TmdbError:
             missed.append(number)
     if missed:
         if failed is not None:
@@ -181,8 +181,8 @@ def upsert_movie(payload):
     )
 
 def sync_movie_availability(movie_id):
-    digital = tmdb.digital_release_date(tmdb.movie_release_dates(movie_id))
-    names, link = tmdb.watch_providers(tmdb.movie_providers(movie_id))
+    digital = catalog.digital_release_date(catalog.movie_release_dates(movie_id))
+    names, link = catalog.watch_providers(catalog.movie_providers(movie_id))
 
     db.execute(
         "UPDATE movie SET digital_release = COALESCE(?, digital_release),"
@@ -206,7 +206,7 @@ def sync_all_movies(force=False):
         try:
             sync_movie_availability(row["id"])
             done += 1
-        except tmdb.TmdbError:
+        except catalog.TmdbError:
             continue
     return done
 
@@ -297,7 +297,7 @@ def start_background(app):
         while True:
             with app.app_context():
                 try:
-                    if secretstore.has("tmdb_api_key"):
+                    if catalog.any_key():
                         sync_all(force=False)
                 except Exception:
                     app.logger.exception("Background sync failed")

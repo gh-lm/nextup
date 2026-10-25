@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.7.2-fbc711?style=flat-square&labelColor=282b34" alt="Version 1.7.2" />
+  <img src="https://img.shields.io/badge/version-2.0.0-fbc711?style=flat-square&labelColor=282b34" alt="Version 2.0.0" />
   <img src="https://img.shields.io/badge/licence-GPL%20v3-7fd99a?style=flat-square&labelColor=282b34" alt="GPL v3" />
   <img src="https://img.shields.io/badge/image-ghcr.io-5eb6ff?style=flat-square&labelColor=282b34" alt="Image on ghcr.io" />
   <img src="https://img.shields.io/badge/tracking-none-c2c2cc?style=flat-square&labelColor=282b34" alt="No tracking" />
@@ -15,7 +15,7 @@ your own server, has one account and no signup, and never contacts us.
 
 What you get for running it yourself: your watch history stays on your disk,
 artwork is cached by your own server so no page ever points a browser at a
-third party, and the only thing it ever calls out to is TMDB, to look up the
+third party, and the only things it ever calls out to are TheTVDB and TMDB, to look up the
 shows and movies you asked for.
 
 <p align="center">
@@ -65,10 +65,15 @@ The container runs as user 1000, not root, so the `chown` above matters.
 Without it Nextup cannot write to the directory you mounted, and it fails to
 start with a permission error on `/data/session.key`.
 
-Nextup needs a free TMDB API key before it can look anything up. Make an
-account, go to <https://www.themoviedb.org/settings/api>, and copy the **API
-Key (v3 auth)**. It goes into the Settings page inside the app, never into
-this compose file: it is checked against TMDB and then stored encrypted.
+Nextup needs a free API key before it can look anything up, from TheTVDB,
+TMDB or both. For TheTVDB, ask for a key at
+<https://thetvdb.com/api-information/signup> and choose the plan for projects
+earning under 50,000 dollars a year. For TMDB, make an account, go to
+<https://www.themoviedb.org/settings/api>, and copy the **API Key (v3 auth)**.
+Keys go into the Settings page inside the app, never into this compose file:
+each is checked against its service and then stored encrypted. With both
+saved, you choose which is asked first and the other fills any gaps. Discover,
+where to watch, trailers and the cast need the TMDB key.
 
 To update:
 
@@ -159,7 +164,7 @@ service listings come from JustWatch by way of TMDB.
 ## Settings
 
 Everything that makes your copy yours is set in the app itself: your username
-and password, the TMDB key, the mail server, the send time, the watchable-after
+and password, the TheTVDB and TMDB keys, the mail server, the send time, the watchable-after
 delay, your country and the accent colour. Only the things that decide where
 the app lives come from the environment.
 
@@ -176,14 +181,14 @@ the app lives come from the environment.
 One directory, the one you mounted:
 
 - `nextup.db`, the shows, the episodes and what you have watched
-- `secret.key`, which encrypts the TMDB key and the mail password (0600)
+- `secret.key`, which encrypts the API keys and the mail password (0600)
 - `session.key`, which signs the login cookie (0600)
 - `images/`, the cached posters and stills
 
 Backing up that directory backs up everything. The Settings page also has a
 **Download a backup** button that writes one JSON file holding every show and
 movie you added, what you marked watched, what you dismissed and your settings.
-Your TMDB key and mail password are left out by default, because they are
+Your API keys and mail password are left out by default, because they are
 encrypted with a key that stays on that server; a second button includes them
 as plain text, so keep that file somewhere safe. Every backup, with or
 without those two, also holds your username and a hash of your password, so
@@ -195,7 +200,7 @@ Found a vulnerability? [SECURITY.md](./SECURITY.md) says how to report it.
 What follows is what is already built in.
 
 - Your password is never stored, only a hash of it.
-- The TMDB key and the mail password are encrypted before they reach the
+- The API keys and the mail password are encrypted before they reach the
   database, with a key held beside it at 0600 and readable only by the user
   the app runs as.
 - The login cookie is signed, HttpOnly and SameSite Lax, and marked Secure
@@ -204,7 +209,7 @@ What follows is what is already built in.
   drops every Linux capability, forbids gaining new privileges, and runs with
   a read-only filesystem and a small writable `/tmp`.
 - No analytics, no telemetry and no third-party script. The only outbound
-  calls are to TMDB and to your own mail server.
+  calls are to TheTVDB, TMDB and to your own mail server.
 
 What it does not do: there is one account and no two-factor, and there is no
 audit log. Repeated wrong passwords slow sign-in down, but that is no
@@ -246,10 +251,12 @@ nextup/
 │   ├── mailer.py             # the morning email
 │   ├── posters.py            # fetches and caches artwork
 │   ├── redirects.py          # only follows links that stay on Nextup
-│   ├── secretstore.py        # encrypts the TMDB key and mail password
+│   ├── secretstore.py        # encrypts the API keys and mail password
 │   ├── sync.py               # the background refresh
 │   ├── timezones.py          # which country a time zone belongs to
 │   ├── tmdb.py               # the TMDB client
+│   ├── tvdb.py               # the TheTVDB client
+│   ├── catalog.py            # picks the source, fills gaps from the other
 │   └── transfer.py           # backup and restore
 ├── docs/                     # The nextup.lightmorphic.com website
 │   └── images/sources/       # The HTML that draws the banner and the diagram
@@ -288,6 +295,7 @@ Every released version of Nextup has been under GPL v3.
 [CHANGELOG.md](./CHANGELOG.md) has the version history.
 
 This product uses the TMDB API but is not endorsed or certified by TMDB.
+Metadata provided by [TheTVDB](https://thetvdb.com). Please consider adding missing information or [subscribing](https://thetvdb.com/subscribe).
 
 ## Disclaimer
 

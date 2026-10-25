@@ -7,6 +7,7 @@ import tempfile
 import requests
 
 from . import config
+from . import tvdb
 from .tmdb import IMAGE_BASE
 
 ALLOWED_SIZES = {"w92", "w154", "w185", "w300", "w342", "w500", "w780", "original"}
@@ -36,7 +37,7 @@ def cached_file(size, tmdb_path):
     if os.path.exists(path):
         return path
 
-    body = _download(f"{IMAGE_BASE}/{size}{clean}")
+    body = _download(tvdb.image_url(clean) or f"{IMAGE_BASE}/{size}{clean}")
     if body is None:
         return None
 

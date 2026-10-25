@@ -14,4 +14,4 @@ def test_a_restore_without_keys_says_so_and_keeps_you_signed_in(signed_in):
     assert response.status_code == 302
     page = signed_in.get("/settings")
     assert page.status_code == 200
-    assert b"type your TMDB key and mail password in again" in page.data
+    assert b"type your API keys and mail password in again" in page.data

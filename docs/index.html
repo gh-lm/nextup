@@ -36,7 +36,7 @@
       "operatingSystem": "Linux, via Docker",
       "description": "A self-hosted tracker for TV shows and movies. It records which episodes you have watched, shows the next one to watch, lists when new episodes air, tells you when a movie reaches streaming in your country, and emails you each morning.",
       "license": "https://www.gnu.org/licenses/gpl-3.0.html",
-      "softwareVersion": "1.7.2",
+      "softwareVersion": "2.0.0",
       "programmingLanguage": "Python",
       "isAccessibleForFree": true,
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
@@ -71,8 +71,8 @@
         },
         {
           "@type": "Question",
-          "name": "Do I need a TMDB API key?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes, and it is free. Make an account, then go straight to themoviedb.org/settings/api and copy the API Key for v3 auth. You paste it into the Settings page inside Nextup, where it is stored encrypted." }
+          "name": "Do I need an API key?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, one is enough, and it is free. Use a TheTVDB key (thetvdb.com/api-information/signup, plan for projects earning under 50,000 dollars a year) or a TMDB key (themoviedb.org/settings/api, API Key for v3 auth). You paste it into Nextup, where it is stored encrypted. With both, you choose which is asked first. Discover, where to watch, trailers and the cast need the TMDB key." }
         },
         {
           "@type": "Question",
@@ -347,7 +347,7 @@
   <div class="wrap">
     <div class="section-head">
       <h2>Running in about five minutes</h2>
-      <p>You need Docker and a free TMDB account.</p>
+      <p>You need Docker and a free key from TheTVDB or TMDB.</p>
     </div>
     <ol class="steps">
       <li>
@@ -405,13 +405,16 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
       </li>
       <li>
         <div>
-          <h3>Add your TMDB key</h3>
+          <h3>Add your key</h3>
           <p>
-            Make a free account, then go straight to
-            <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a>
-            and copy the API Key for v3 auth. Paste it into the Settings page in
-            Nextup. It is checked against TMDB before it is saved, and encrypted
-            once it is.
+            Ask for a free key at
+            <a href="https://thetvdb.com/api-information/signup">thetvdb.com/api-information/signup</a>
+            (choose the plan for projects earning under 50,000 dollars a year), or make a
+            TMDB account and copy the API Key for v3 auth from
+            <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a>.
+            Paste it into the welcome page or the Settings page in Nextup. It is checked
+            before it is saved, and encrypted once it is. Add both if you like, and choose
+            which is asked first.
           </p>
         </div>
       </li>
@@ -455,8 +458,8 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
         <dd>No. Nextup is a notebook, not a player. It records what you have watched and tells you what is next. It holds no video, links to no streams and downloads nothing except artwork from TMDB.</dd>
       </div>
       <div>
-        <dt>Do I need a TMDB API key?</dt>
-        <dd>Yes, and it is free. Make an account, then go straight to <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a> and copy the API Key for v3 auth. You paste it into the Settings page inside Nextup, where it is stored encrypted.</dd>
+        <dt>Do I need an API key?</dt>
+        <dd>Yes, one is enough, and it is free. Use a TheTVDB key (<a href="https://thetvdb.com/api-information/signup">thetvdb.com/api-information/signup</a>, plan for projects earning under 50,000 dollars a year) or a TMDB key (<a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a>, API Key for v3 auth). You paste it into Nextup, where it is stored encrypted. With both, you choose which is asked first. Discover, where to watch, trailers and the cast need the TMDB key.</dd>
       </div>
       <div>
         <dt>How does it know when a movie reaches streaming?</dt>
@@ -558,6 +561,7 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
     <div class="wrap">
       <p class="sub-footer-note">
         This product uses the TMDB API but is not endorsed or certified by TMDB.
+        Metadata provided by <a href="https://thetvdb.com/">TheTVDB</a>. Please consider adding missing information or <a href="https://thetvdb.com/subscribe">subscribing</a>.
         Streaming availability is supplied by JustWatch through TMDB. Show and
         movie artwork in the screenshots comes from TMDB and belongs to its
         respective owners.

@@ -4,7 +4,7 @@ import re
 from flask import (Blueprint, Response, current_app, flash, redirect, render_template,
                    request, session, url_for)
 
-from .. import clock, db, languages, mailer, queries, secretstore, sync, timezones, tmdb, transfer
+from .. import catalog, clock, db, languages, mailer, queries, secretstore, sync, timezones, transfer
 from ..auth import (change_account, check_current_password, keep_this_browser_signed_in,
                     login_required, uses_default_password)
 from ..forms import confirmed, whole_number
@@ -33,8 +33,8 @@ def _country_choices():
     if not secretstore.has("tmdb_api_key"):
         return []
     try:
-        return tmdb.countries()
-    except tmdb.TmdbError:
+        return catalog.countries()
+    except catalog.TmdbError:
         return []
 
 def _remember_address():
@@ -58,6 +58,8 @@ def index():
     return render_template(
         "pages/settings.html",
         has_key=secretstore.has("tmdb_api_key"),
+        has_tvdb=catalog.configured("tvdb"),
+        source_first=catalog.first_name(),
         unreadable=secretstore.unreadable(),
         backup=transfer.counts(),
         mail=mailer.config(),
@@ -68,7 +70,7 @@ def index():
         all_languages=languages.show_all(),
         watched_languages=[(c, languages.NAMES[c]) for c in languages.watched() if c != "en"],
         language_choices=languages.choices(),
-        country=tmdb.country(),
+        country=catalog.country(),
         countries=_country_choices(),
         accents=ACCENTS,
         last_sync=sync.last_run(),
@@ -84,8 +86,8 @@ def save_tmdb():
     if not key:
         return notify("tmdb", "Paste a key first.", "error")
     try:
-        tmdb.verify_key(key)
-    except tmdb.TmdbError as exc:
+        catalog.verify_key(key)
+    except catalog.TmdbError as exc:
         return notify("tmdb", str(exc), "error")
     secretstore.set("tmdb_api_key", key, encrypted=True)
     return notify("tmdb", "Key checked against TMDB and saved, encrypted.", "success")
@@ -97,6 +99,41 @@ def clear_tmdb():
         return notify("tmdb", "Tick \"Yes, remove it\" to remove the key.", "error")
     secretstore.delete("tmdb_api_key")
     return notify("tmdb", "Key removed.", "success")
+
+@bp.route("/settings/tvdb", methods=["POST"])
+@login_required
+def save_tvdb():
+    key = (request.form.get("tvdb_api_key") or "").strip()
+    if not key:
+        return notify("tvdb", "Paste a key first.", "error")
+    try:
+        catalog.tvdb.verify_key(key)
+    except catalog.TmdbError as exc:
+        return notify("tvdb", str(exc), "error")
+    secretstore.set("tvdb_api_key", key, encrypted=True)
+    return notify("tvdb", "Key checked against TheTVDB and saved, encrypted.", "success")
+
+@bp.route("/settings/tvdb/clear", methods=["POST"])
+@login_required
+def clear_tvdb():
+    if not confirmed():
+        return notify("tvdb", "Tick \"Yes, remove it\" to remove the key.", "error")
+    secretstore.delete("tvdb_api_key")
+    return notify("tvdb", "Key removed.", "success")
+
+@bp.route("/settings/source", methods=["POST"])
+@login_required
+def save_source():
+    choice = request.form.get("source_first")
+    if choice not in ("tvdb", "tmdb"):
+        return notify("source", "Pick one of the two.", "error")
+    secretstore.set("source_first", choice)
+    return notify(
+        "source",
+        "TheTVDB is asked first, TMDB fills the gaps." if choice == "tvdb"
+        else "TMDB is asked first, TheTVDB fills the gaps.",
+        "success",
+    )
 
 @bp.route("/settings/account", methods=["POST"])
 @login_required
@@ -134,8 +171,8 @@ def save_accent():
 @bp.route("/settings/sync", methods=["POST"])
 @login_required
 def run_sync():
-    if not secretstore.has("tmdb_api_key"):
-        return notify("sync", "Add a TMDB key first.", "error")
+    if not catalog.any_key():
+        return notify("sync", "Add a TheTVDB or TMDB key first.", "error")
     if not sync.start_now(current_app._get_current_object()):
         return notify("sync", "A refresh is already running.", "error")
     return notify("sync", "Refresh started. Reload this page in a minute to see how it went.", "success")
@@ -202,8 +239,8 @@ def save_country():
         code = timezones.country_for(request.form.get("timezone")) or ""
         if not code:
             return notify("country", "Your time zone does not belong to one country. Pick yours from the list.", "error")
-    if code == tmdb.NO_COUNTRY:
-        secretstore.set("country", tmdb.NO_COUNTRY)
+    if code == catalog.NO_COUNTRY:
+        secretstore.set("country", catalog.NO_COUNTRY)
         message = "No country chosen. Movies show their first home release anywhere."
     else:
         names = dict(_country_choices())
@@ -362,5 +399,5 @@ def import_data():
     session["starter"] = uses_default_password()
     message = f"Restored {transfer.summarise(restored)}."
     if not restored.get("secrets"):
-        message += " The file had no keys in it, so type your TMDB key and mail password in again."
+        message += " The file had no keys in it, so type your API keys and mail password in again."
     return notify("transfer", message, "success")

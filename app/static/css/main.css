@@ -830,6 +830,8 @@ input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px;
 .toolbar-row > .toolbar-switch:last-child { flex: none; }
 .login { max-width: 400px; margin: 8vh auto 0; }
 .login-head { text-align: center; margin-bottom: 22px; }
+.steps { margin: 0 0 18px; padding-left: 1.25rem; line-height: 1.6; }
+.steps li + li { margin-top: 8px; }
 .sign-in-error { color: var(--danger); font-size: 0.875rem; line-height: 1.5; min-height: 3em; margin: 6px 0 0; }
 .h-section { font-size: 1.25rem; margin-bottom: 14px; }
 

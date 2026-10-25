@@ -1,6 +1,6 @@
 from flask import Blueprint, abort, flash, redirect, render_template, url_for
 
-from .. import clock, db, queries, sync, tmdb
+from .. import catalog, clock, db, queries, sync
 from ..auth import login_required
 from ..forms import confirmed, wanted_state
 from ..redirects import back_to
@@ -25,8 +25,8 @@ def detail(movie_id):
     row = db.query("SELECT * FROM movie WHERE id = ?", (movie_id,), one=True)
     if row is None:
         try:
-            sync.upsert_movie(tmdb.movie(movie_id))
-        except tmdb.TmdbError as exc:
+            sync.upsert_movie(catalog.movie(movie_id))
+        except catalog.TmdbError as exc:
             flash(str(exc), "error")
             return redirect(url_for("main.search"))
         row = db.query("SELECT * FROM movie WHERE id = ?", (movie_id,), one=True)
@@ -35,21 +35,21 @@ def detail(movie_id):
     extras = {"cast": [], "crew": [], "genres": [], "trailer": None,
               "imdb": None, "certification": None, "tagline": None}
     try:
-        payload = tmdb.movie_detail(movie_id)
+        payload = catalog.movie_detail(movie_id)
         extras.update(
-            cast=tmdb.cast_from(payload),
-            crew=tmdb.crew_from(payload),
-            genres=tmdb.genres_from(payload),
-            trailer=tmdb.trailer_from(payload),
-            imdb=tmdb.imdb_from(payload),
-            certification=tmdb.certification_from(payload),
+            cast=catalog.cast_from(payload),
+            crew=catalog.crew_from(payload),
+            genres=catalog.genres_from(payload),
+            trailer=catalog.trailer_from(payload),
+            imdb=catalog.imdb_from(payload),
+            certification=catalog.certification_from(payload),
             tagline=payload.get("tagline") or None,
         )
         if row["original_language"] is None and payload.get("original_language"):
             db.execute("UPDATE movie SET original_language = ? WHERE id = ?",
                        (payload["original_language"], movie_id))
             row = db.query("SELECT * FROM movie WHERE id = ?", (movie_id,), one=True)
-    except tmdb.TmdbError:
+    except catalog.TmdbError:
         pass
 
     tracked = queries.movie_list_state(movie_id)
@@ -67,9 +67,9 @@ def detail(movie_id):
 @login_required
 def track(movie_id):
     try:
-        payload = tmdb.movie(movie_id)
+        payload = catalog.movie(movie_id)
         sync.upsert_movie(payload)
-    except tmdb.TmdbError as exc:
+    except catalog.TmdbError as exc:
         flash(str(exc), "error")
         return back_to("movies.index")
     db.execute(
@@ -78,7 +78,7 @@ def track(movie_id):
     )
     try:
         digital, names = sync.sync_movie_availability(movie_id)
-    except tmdb.TmdbError:
+    except catalog.TmdbError:
         digital, names = None, []
     title = payload.get("title") or "this movie"
     if names:
@@ -95,7 +95,7 @@ def refresh(movie_id):
     try:
         sync.sync_movie_availability(movie_id)
         flash("Checked TMDB for a streaming date.", "success")
-    except tmdb.TmdbError as exc:
+    except catalog.TmdbError as exc:
         flash(str(exc), "error")
     return back_to("movies.index")
 
