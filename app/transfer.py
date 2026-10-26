@@ -16,7 +16,7 @@ TABLES = [
     ("dismissed", None),
 ]
 
-NOT_BACKED_UP = ("session_epoch", "countries_cache", "countries_fetched_at")
+NOT_BACKED_UP = ("session_epoch", "countries_cache", "countries_fetched_at", "tvdb_api_key")
 
 def _rows(table):
     return [dict(row) for row in db.query(f"SELECT * FROM {table}")]

@@ -192,7 +192,7 @@ One directory, the one you mounted:
 Backing up that directory backs up everything. The Settings page also has a
 **Download a backup** button that writes one JSON file holding every show and
 movie you added, what you marked watched, what you dismissed and your settings.
-Your API keys and mail password are left out by default, because they are
+Your TMDB key and mail password are left out by default, because they are
 encrypted with a key that stays on that server; a second button includes them
 as plain text, so keep that file somewhere safe. Every backup, with or
 without those two, also holds your username and a hash of your password, so

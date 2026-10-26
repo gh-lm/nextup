@@ -66,6 +66,15 @@ def test_asking_for_the_keys_puts_them_in(app):
         assert out["secrets_included"] is True
         assert out["data"]["secrets"]["tmdb_api_key"] == "the-key-itself"
 
+def test_a_thetvdb_key_is_never_in_a_backup(app):
+    from app import secretstore, transfer
+
+    with app.app_context():
+        _populate(app)
+        secretstore.set("tvdb_api_key", "private-tvdb", encrypted=True)
+        for asked in (False, True):
+            assert "private-tvdb" not in json.dumps(transfer.export_data(include_secrets=asked))
+
 def test_a_backup_restores_onto_an_empty_copy(app):
     from app import db, queries, secretstore, transfer
 
