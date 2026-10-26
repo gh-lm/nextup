@@ -131,3 +131,31 @@ def test_first_sign_in_goes_to_a_page_that_picks_the_username_and_password(clien
     client.post("/logout")
     again = client.post("/login", data={"username": "Charlie", "password": "a-long-own-password"})
     assert again.headers["Location"] == "/"
+
+def test_an_older_show_with_no_number_match_is_found_by_its_exact_title(app, monkeypatch):
+    catalog._legacy.clear()
+    monkeypatch.setattr(tvdb, "find_by_tmdb", lambda number, kind: None)
+    monkeypatch.setattr(tvdb, "_get", lambda path, params=None, tries=3: [
+        {"type": "series", "tvdb_id": "480102", "name": "Benidorm Is Murder"},
+        {"type": "series", "tvdb_id": "9", "name": "Benidorm Is Murder Too"}])
+    with app.app_context():
+        db.execute("INSERT INTO show (id, name) VALUES (328804, 'Benidorm Is Murder')")
+        assert catalog._twin(328804, "tv") == tvdb.internal(480102)
+
+def test_two_exact_title_matches_are_not_guessed_between(monkeypatch):
+    monkeypatch.setattr(tvdb, "_get", lambda path, params=None, tries=3: [
+        {"type": "series", "tvdb_id": "1", "name": "Betrayal"},
+        {"type": "series", "tvdb_id": "2", "name": "Betrayal"}])
+    assert tvdb.find_by_name("Betrayal", "tv") is None
+
+def test_watched_films_and_maybe_shows_never_synced_still_get_their_pictures(app, monkeypatch):
+    seen = []
+    monkeypatch.setattr(sync, "sync_movie", lambda movie_id: seen.append(("movie", movie_id)))
+    monkeypatch.setattr(sync, "sync_show", lambda show_id, failed=None: seen.append(("show", show_id)))
+    with app.app_context():
+        db.execute("INSERT INTO movie (id, title) VALUES (1, 'Seen')")
+        db.execute("INSERT INTO tracked_movie (movie_id, added_at, watched_at) VALUES (1, '2026-01-01', '2026-02-01')")
+        db.execute("INSERT INTO show (id, name) VALUES (2, 'Maybe')")
+        db.execute("INSERT INTO tracked_show (show_id, added_at, shortlist) VALUES (2, '2026-01-01', 1)")
+        sync.sync_all(force=True)
+    assert ("movie", 1) in seen and ("show", 2) in seen

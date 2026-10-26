@@ -60,3 +60,9 @@ test("odd parameters are dropped and sizes capped", () => {
   const out = cleanQuery(new URL("https://x/?query=abc&limit=500&page=2&evil=1&short=true").searchParams);
   assert.equal(out.toString(), "query=abc&limit=20&page=2&short=true");
 });
+
+test("filter parameters are checked and passed in a fixed order", () => {
+  const out = cleanQuery(new URL("https://x/?year=2026&sort=firstAired&sortType=desc&country=usa&lang=eng&sort2=x").searchParams);
+  assert.equal(out.toString(), "country=usa&lang=eng&sort=firstAired&sortType=desc&year=2026");
+  assert.equal(cleanQuery(new URL("https://x/?sort=drop&year=20x6&country=us").searchParams).toString(), "");
+});

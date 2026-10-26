@@ -261,6 +261,21 @@ def find_by_tmdb(tmdb_id, kind):
         return None
     return None
 
+def find_by_name(name, kind):
+    if not name:
+        return None
+    wanted = "series" if kind == "tv" else "movie"
+    try:
+        found = _get("/search", {"query": name, "limit": 20}) or []
+    except TvdbError:
+        return None
+    same = [
+        item for item in found
+        if item.get("type") == wanted and str(item.get("tvdb_id", "")).isdigit()
+        and (item.get("name") or "").strip().lower() == name.strip().lower()
+    ]
+    return internal(same[0]["tvdb_id"]) if len(same) == 1 else None
+
 def safe_url(value):
     try:
         parts = urlsplit(value or "")

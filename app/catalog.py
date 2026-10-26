@@ -4,12 +4,17 @@ from .tvdb import TvdbError
 
 _legacy = {}
 
+def _old_name(record_id, kind):
+    table, column = ("show", "name") if kind == "tv" else ("movie", "title")
+    row = db.query(f"SELECT {column} AS name FROM {table} WHERE id = ?", (record_id,), one=True)
+    return row["name"] if row else None
+
 def _twin(record_id, kind):
     if tvdb.is_tvdb(record_id):
         return record_id
     key = (kind, record_id)
     if key not in _legacy:
-        _legacy[key] = tvdb.find_by_tmdb(record_id, kind)
+        _legacy[key] = tvdb.find_by_tmdb(record_id, kind) or tvdb.find_by_name(_old_name(record_id, kind), kind)
     if not _legacy[key]:
         raise TvdbError("TheTVDB has no match for this older entry.")
     return _legacy[key]

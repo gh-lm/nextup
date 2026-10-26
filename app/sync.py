@@ -204,7 +204,7 @@ def sync_all_movies(force=False):
     rows = db.query(
         "SELECT m.id, m.synced_at FROM movie m"
         " JOIN tracked_movie t ON t.movie_id = m.id"
-        " WHERE t.watched_at IS NULL"
+        " WHERE t.watched_at IS NULL OR m.synced_at IS NULL"
     )
     done = 0
     _progress["total"] += len(rows)
@@ -241,7 +241,8 @@ def sync_all(force=False):
         rows = db.query(
             "SELECT s.id, s.name, s.status, s.synced_at FROM show s"
             " JOIN tracked_show t ON t.show_id = s.id"
-            " WHERE t.shortlist = 0 AND (t.archived = 0 OR t.auto_unarchive = 1)"
+            " WHERE (t.shortlist = 0 AND (t.archived = 0 OR t.auto_unarchive = 1))"
+            " OR s.synced_at IS NULL"
         )
         _progress.update(done=0, total=len(rows))
         for row in rows:
