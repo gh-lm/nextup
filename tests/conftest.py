@@ -14,12 +14,6 @@ def no_relay(monkeypatch):
 
     monkeypatch.setattr(tvdb, "RELAY_URL", None)
 
-@pytest.fixture(autouse=True)
-def older_ids_resolve(monkeypatch):
-    from app import tvdb
-
-    monkeypatch.setattr(tvdb, "find_by_tmdb", lambda number, kind: tvdb.internal(number))
-
 @pytest.fixture()
 def data_dir(tmp_path):
     from app import config, secretstore
