@@ -12,8 +12,6 @@ import pytest
     "/calendar?y=²&m=³",
     "/calendar?y=2026&m=13",
     "/search?q=x&page=²",
-    "/discover/tv?days=²",
-    "/discover/films?days=²",
 ])
 def test_odd_query_strings_do_not_crash(signed_in, path):
     assert signed_in.get(path).status_code in (200, 302)

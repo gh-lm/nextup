@@ -15,7 +15,6 @@
       <label for="password">Password</label>
       <input id="password" name="password" type="password" autocomplete="current-password" required
              aria-describedby="sign-in-error"{% if error %} aria-invalid="true" autofocus{% endif %}>
-      <input type="hidden" name="timezone" value="" data-timezone>
             <p class="sign-in-error" id="sign-in-error">{{ error or "" }}</p>
     </div>
     <button class="btn btn-primary btn-block" type="submit">Sign in</button>

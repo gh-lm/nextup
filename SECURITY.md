@@ -4,7 +4,7 @@
 
 | Version | Supported |
 |---|---|
-| 1.7.2 (latest) | Yes |
+| 2.0.0 (latest) | Yes |
 | Anything older | No |
 
 There is one line of releases and no long-term branch. A fix goes into the
@@ -38,7 +38,7 @@ bounty programme.
 ## What is already in place
 
 - Passwords are never stored, only a hash.
-- The TMDB key and the mail password are encrypted before they reach the
+- The API keys and the mail password are encrypted before they reach the
   database. The key that encrypts them sits beside it at 0600, readable only
   by the user the app runs as, and never leaves that server.
 - Forms carry no separate anti-forgery token. Protection against another
@@ -54,7 +54,7 @@ bounty programme.
   drops every Linux capability, forbids gaining new privileges, and uses a
   read-only filesystem with a small writable `/tmp`.
 - No analytics, no telemetry, no third-party script. The only outbound calls
-  are to TMDB and to your own mail server.
+  are to the TheTVDB lookup service and to your own mail server.
 
 ## What is not in place
 

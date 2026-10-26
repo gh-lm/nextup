@@ -8,6 +8,18 @@ sys.path.insert(0, ROOT)
 
 os.environ.setdefault("NEXTUP_DATA_DIR", "/tmp/nextup-test-placeholder")
 
+@pytest.fixture(autouse=True)
+def no_relay(monkeypatch):
+    from app import tvdb
+
+    monkeypatch.setattr(tvdb, "RELAY_URL", None)
+
+@pytest.fixture(autouse=True)
+def older_ids_resolve(monkeypatch):
+    from app import tvdb
+
+    monkeypatch.setattr(tvdb, "find_by_tmdb", lambda number, kind: tvdb.internal(number))
+
 @pytest.fixture()
 def data_dir(tmp_path):
     from app import config, secretstore
@@ -41,4 +53,5 @@ def signed_in(client):
     client.post("/login", data={"username": "admin", "password": "nextup"})
     with client.session_transaction() as sess:
         sess["starter"] = False
+        sess["skip_welcome"] = True
     return client

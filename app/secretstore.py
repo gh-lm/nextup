@@ -25,7 +25,7 @@ def _load_fernet():
             if db.query("SELECT 1 FROM settings WHERE encrypted = 1 LIMIT 1", one=True):
                 logging.getLogger(__name__).error(
                     "secret.key is missing but encrypted settings exist. A new key is "
-                    "being made, so the saved TMDB key and mail password cannot be read "
+                    "being made, so the saved mail password cannot be read "
                     "and must be entered again."
                 )
             key = Fernet.generate_key()
@@ -46,7 +46,7 @@ def get(key, default=None):
     except (InvalidToken, ValueError):
         return default
 
-LABELS = {"tmdb_api_key": "TMDB key", "smtp_password": "mail password"}
+LABELS = {"smtp_password": "mail password"}
 
 def unreadable():
     broken = []

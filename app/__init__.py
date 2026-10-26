@@ -46,7 +46,6 @@ def create_app(start_sync=True):
     app.teardown_appcontext(db.close_db)
 
     from .routes import auth as auth_routes
-    from .routes import discover as discover_routes
     from .routes import images as image_routes
     from .routes import main as main_routes
     from .routes import movies as movie_routes
@@ -54,7 +53,6 @@ def create_app(start_sync=True):
     from .routes import shows as show_routes
 
     app.register_blueprint(auth_routes.bp)
-    app.register_blueprint(discover_routes.bp)
     app.register_blueprint(main_routes.bp)
     app.register_blueprint(show_routes.bp)
     app.register_blueprint(movie_routes.bp)
@@ -168,6 +166,8 @@ def _register_context(app):
 
     @app.context_processor
     def inject():
+        from . import sync
+
         accent = "brand"
         try:
             accent = secretstore.get("accent", "brand") or "brand"
@@ -182,6 +182,9 @@ def _register_context(app):
             "app_version": __version__,
             "notes": notes,
             "user": current_user() if session.get("logged_in") else None,
+            "starter": bool(session.get("starter")),
             "accent": accent,
             "today": clock.today_date(),
+            "loading": sync.progress() if session.get("logged_in") else None,
+            "show_intro": bool(session.get("logged_in")) and not session.get("starter") and not secretstore.get("intro_seen"),
         }

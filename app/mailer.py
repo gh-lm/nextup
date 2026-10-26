@@ -243,10 +243,8 @@ def build_digest():
     if films:
         lines.append("Movies")
         for row in films:
-            services = queries.provider_names(row)
-            where = "On " + ", ".join(services) if services else "Out for home viewing"
             lines += block(
-                row["title"], where, row["overview"], item_url("movie", row["id"]),
+                row["title"], "Out now", row["overview"], item_url("movie", row["id"]),
             )
     lines.append("Sent by Nextup, running on your own server.")
     lines.append(f"Made by Lightmorphic. {SITE_URL}")
@@ -358,8 +356,8 @@ def _html_section(title, rows):
 def _html_digest(when, episodes, films):
     images = []
 
-    def attach(tmdb_path, key):
-        data, subtype = posters.read_bytes(POSTER_SIZE, tmdb_path)
+    def attach(image_path, key):
+        data, subtype = posters.read_bytes(POSTER_SIZE, image_path)
         if data is None:
             return None
         cid = f"nextup-{key}"
@@ -385,8 +383,7 @@ def _html_digest(when, episodes, films):
 
     film_rows = []
     for row in films:
-        services = queries.provider_names(row)
-        detail = "On " + ", ".join(services) if services else "Out for home viewing"
+        detail = "Out now"
         if row["runtime"]:
             detail += f" · {row['runtime']} min"
         film_rows.append({

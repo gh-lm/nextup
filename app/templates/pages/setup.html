@@ -1,0 +1,26 @@
+{% extends 'layout/base.html' %}
+{% block title %}Choose your sign-in | Nextup{% endblock %}
+{% block body %}
+<div class="login">
+  <div class="login-head">
+    <h1>Choose your sign-in</h1>
+    <p class="subtle">The starting password is public, so pick your own username and password before you go in. Have a backup file? Do this first, then restore it from Settings. The restore brings back the username and password saved in that file.</p>
+  </div>
+  <form class="panel" method="post">
+    <div class="field">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" autocomplete="username" value="{{ username }}" required>
+    </div>
+    <div class="field">
+      <label for="password">New password</label>
+      <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required aria-describedby="setup-error">
+    </div>
+    <div class="field">
+      <label for="confirm">New password again</label>
+      <input id="confirm" name="confirm" type="password" autocomplete="new-password" minlength="8" required aria-describedby="setup-error"{% if error %} aria-invalid="true"{% endif %}>
+      <p class="sign-in-error" id="setup-error">{{ error or "" }}</p>
+    </div>
+    <button class="btn btn-primary btn-block" type="submit">Save and go in</button>
+  </form>
+</div>
+{% endblock %}

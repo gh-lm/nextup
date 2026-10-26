@@ -1,6 +1,6 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
-from .. import clock, db, queries, sync, tmdb
+from .. import catalog, clock, db, queries, sync, tvdb
 from ..auth import login_required
 from ..forms import confirmed, wanted_state
 from ..redirects import back_to
@@ -57,35 +57,28 @@ def detail(show_id):
     row = db.query("SELECT * FROM show WHERE id = ?", (show_id,), one=True)
     if row is None:
         try:
-            sync.upsert_show(tmdb.show(show_id), stamp=False)
-        except tmdb.TmdbError as exc:
+            sync.upsert_show(catalog.show(show_id), stamp=False)
+        except catalog.TvdbError as exc:
             flash(str(exc), "error")
             return redirect(url_for("main.search"))
         row = db.query("SELECT * FROM show WHERE id = ?", (show_id,), one=True)
         if row is None:
             abort(404)
 
-    extras = {"cast": [], "genres": [], "creators": [], "providers": [],
-              "trailer": None, "imdb": None,
-              "certification": None, "tagline": None, "homepage": None}
+    extras = {"cast": [], "genres": [], "trailer": None, "imdb": None}
     try:
-        payload = tmdb.show_detail(show_id)
+        payload = catalog.show_detail(show_id)
         extras.update(
-            cast=tmdb.cast_from(payload),
-            genres=tmdb.genres_from(payload),
-            creators=tmdb.creators_from(payload),
-            providers=tmdb.providers_from(payload)[0],
-            trailer=tmdb.trailer_from(payload),
-            imdb=tmdb.imdb_from(payload),
-            certification=tmdb.certification_from(payload),
-            tagline=payload.get("tagline") or None,
-            homepage=tmdb.safe_url(payload.get("homepage")),
+            cast=tvdb.cast_from(payload),
+            genres=tvdb.genres_from(payload),
+            trailer=tvdb.trailer_from(payload),
+            imdb=tvdb.imdb_from(payload),
         )
         if row["original_language"] is None and payload.get("original_language"):
             db.execute("UPDATE show SET original_language = ? WHERE id = ?",
                        (payload["original_language"], show_id))
             row = db.query("SELECT * FROM show WHERE id = ?", (show_id,), one=True)
-    except tmdb.TmdbError:
+    except catalog.TvdbError:
         pass
 
     tracked_row = queries.show_list_state(show_id)
@@ -111,7 +104,7 @@ def track(show_id):
     failed = []
     try:
         name = sync.sync_show(show_id, failed)
-    except tmdb.TmdbError as exc:
+    except catalog.TvdbError as exc:
         flash(str(exc), "error")
         return back_to("main.search", q="")
     db.execute(
@@ -121,7 +114,7 @@ def track(show_id):
         (show_id, clock.now_iso(), 1 if wants_maybe else 0),
     )
     if failed:
-        flash(f"TMDB would not serve season {', '.join(str(n) for n in failed)}. It will be tried again.", "error")
+        flash(f"The source would not serve season {', '.join(str(n) for n in failed)}. It will be tried again.", "error")
     if wants_maybe:
         flash(f"Put {name} on your maybe list.", "success")
         return back_to("shows.maybe")
@@ -201,10 +194,10 @@ def refresh(show_id):
         sync.sync_show(show_id, failed)
         if failed:
             seasons = ", ".join(str(n) for n in failed)
-            flash(f"Refreshed, but TMDB would not serve season {seasons}. It will be tried again.", "error")
+            flash(f"Refreshed, but the source would not serve season {seasons}. It will be tried again.", "error")
         else:
-            flash("Refreshed from TMDB.", "success")
-    except tmdb.TmdbError as exc:
+            flash("Refreshed.", "success")
+    except catalog.TvdbError as exc:
         flash(str(exc), "error")
     return back_to("shows.detail", show_id=show_id)
 
@@ -223,27 +216,6 @@ def episode(episode_id):
     if show is None:
         abort(404)
 
-    guests, crew, rating, providers = [], [], None, []
-    try:
-        providers = tmdb.watch_providers(tmdb.show_providers(row["show_id"]))[0]
-    except tmdb.TmdbError:
-        pass
-    try:
-        payload = tmdb.episode(row["show_id"], row["season_number"], row["episode_number"])
-        guests = [
-            {"name": person.get("name"), "role": person.get("character")}
-            for person in (payload.get("guest_stars") or [])[:12]
-            if person.get("name")
-        ]
-        crew = [
-            {"name": person.get("name"), "role": person.get("job")}
-            for person in (payload.get("crew") or [])
-            if person.get("job") in {"Director", "Writer"}
-        ][:6]
-        rating = payload.get("vote_average") or None
-    except tmdb.TmdbError:
-        pass
-
     previous, following = queries.episode_neighbours(
         row["show_id"], row["season_number"], row["episode_number"]
     )
@@ -252,10 +224,6 @@ def episode(episode_id):
         show=show,
         episode=row,
         tracked=queries.is_tracked(row["show_id"]),
-        guests=guests,
-        crew=crew,
-        rating=rating,
-        providers=providers,
         previous=previous,
         following=following,
     )

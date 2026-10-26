@@ -26,16 +26,16 @@ def test_a_trailing_newline_is_not_a_good_path():
 
 def test_a_good_picture_is_cached_and_no_temporary_file_is_left(data_dir, monkeypatch):
     monkeypatch.setattr(posters.requests, "get", lambda *a, **k: _Reply(b"image-bytes"))
-    path = posters.cached_file("w92", "/abc.jpg")
+    path = posters.cached_file("w92", "/tvdb__banners__v4__abc.jpg")
     assert open(path, "rb").read() == b"image-bytes"
     assert not [n for n in os.listdir(config.CACHE_DIR) if n.endswith(".part")]
 
 def test_something_that_is_not_an_image_is_not_cached(data_dir, monkeypatch):
     monkeypatch.setattr(posters.requests, "get", lambda *a, **k: _Reply(b"<html>", "text/html"))
-    assert posters.cached_file("w92", "/abc.jpg") is None
+    assert posters.cached_file("w92", "/tvdb__banners__v4__abc.jpg") is None
     assert os.listdir(config.CACHE_DIR) == []
 
 def test_a_truncated_picture_is_not_cached(data_dir, monkeypatch):
     monkeypatch.setattr(posters.requests, "get", lambda *a, **k: _Reply(b"short", length=500))
-    assert posters.cached_file("w92", "/abc.jpg") is None
+    assert posters.cached_file("w92", "/tvdb__banners__v4__abc.jpg") is None
     assert os.listdir(config.CACHE_DIR) == []

@@ -8,12 +8,12 @@ from ..auth import login_required
 
 bp = Blueprint("images", __name__)
 
-@bp.route("/img/<size>/<path:tmdb_path>")
+@bp.route("/img/<size>/<path:image_path>")
 @login_required
-def poster(size, tmdb_path):
+def poster(size, image_path):
     if size not in posters.ALLOWED_SIZES:
         abort(404)
-    clean = posters.normalise(tmdb_path)
+    clean = posters.normalise(image_path)
     if clean is None:
         abort(404)
 

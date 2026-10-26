@@ -5,7 +5,7 @@
 <div class="page-head">
   <div>
     <h1>Search</h1>
-    <p>Shows and movies from TMDB.</p>
+    <p>Shows and movies from TheTVDB.</p>
   </div>
 </div>
 
@@ -30,7 +30,7 @@
         <article class="result">
           <a class="poster" href="{{ target }}" tabindex="-1" aria-hidden="true">
             {% if item.poster_path %}
-              <img src="{{ url_for('images.poster', size='w185', tmdb_path=item.poster_path.lstrip('/')) }}"
+              <img src="{{ url_for('images.poster', size='w185', image_path=item.poster_path.lstrip('/')) }}"
                    alt="" loading="lazy">
             {% else %}<span class="poster-empty">{{ item.title }}</span>{% endif %}
           </a>
@@ -83,7 +83,7 @@
     <div class="panel mt-20">
       <div class="empty">
         <h2>Nothing found</h2>
-        <p>TMDB has no show or movie matching that. Try a shorter title.</p>
+        <p>Nothing matched that. Try a shorter title.</p>
       </div>
     </div>
   {% endif %}

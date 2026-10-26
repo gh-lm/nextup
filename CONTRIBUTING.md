@@ -42,5 +42,5 @@ Please do not open a public issue for a vulnerability.
 Nextup is English only at the moment and the interface strings are not
 extracted, so there is nothing useful to translate yet.
 
-Show and film artwork comes from TMDB and is not ours to relicense. The
+Show and film artwork comes from TheTVDB and is not ours to relicense. The
 Manrope font is under the SIL Open Font Licence, included with the font files.

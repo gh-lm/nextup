@@ -31,7 +31,7 @@
     <article class="show-tile">
       <a class="poster" href="{{ url_for('shows.detail', show_id=show.id) }}">
         {% if show.poster_path %}
-          <img src="{{ url_for('images.poster', size='w342', tmdb_path=show.poster_path.lstrip('/')) }}"
+          <img src="{{ url_for('images.poster', size='w342', image_path=show.poster_path.lstrip('/')) }}"
                alt="{{ show.name }}" loading="lazy">
         {% else %}<span class="poster-empty">{{ show.name }}</span>{% endif %}
       </a>
@@ -60,7 +60,7 @@
     <article class="show-tile">
       <a class="poster" href="{{ url_for('movies.detail', movie_id=film.id) }}">
         {% if film.poster_path %}
-          <img src="{{ url_for('images.poster', size='w342', tmdb_path=film.poster_path.lstrip('/')) }}"
+          <img src="{{ url_for('images.poster', size='w342', image_path=film.poster_path.lstrip('/')) }}"
                alt="{{ film.title }}" loading="lazy">
         {% else %}<span class="poster-empty">{{ film.title }}</span>{% endif %}
       </a>

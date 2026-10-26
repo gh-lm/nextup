@@ -43,7 +43,7 @@ def test_a_good_change_signs_out_every_other_browser(app, signed_in):
 
 def test_the_starter_password_locks_everything_but_the_account_form(client):
     client.post("/login", data={"username": "admin", "password": "nextup"})
-    assert client.get("/").headers["Location"].endswith("/settings#account")
+    assert client.get("/").headers["Location"].endswith("/setup")
     assert client.get("/settings").status_code == 200
 
     response = _save(client, password="my-own-password", confirm="my-own-password")

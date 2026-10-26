@@ -13,18 +13,31 @@ TABLES = [
     ("tracked_show", "show_id"),
     ("watched_episode", "episode_id"),
     ("tracked_movie", "movie_id"),
-    ("dismissed", None),
 ]
 
-NOT_BACKED_UP = ("session_epoch", "countries_cache", "countries_fetched_at")
+STUB_COLUMNS = {
+    "show": ("id", "name"),
+    "episode": ("id", "show_id", "season_number", "episode_number"),
+    "movie": ("id", "title"),
+}
+SELECTS = {
+    "show": "SELECT id, name FROM show WHERE id IN (SELECT show_id FROM tracked_show)",
+    "episode": "SELECT id, show_id, season_number, episode_number FROM episode"
+               " WHERE id IN (SELECT episode_id FROM watched_episode)",
+    "movie": "SELECT id, title FROM movie WHERE id IN (SELECT movie_id FROM tracked_movie)",
+}
+
+NOT_BACKED_UP = (
+    "session_epoch", "intro_seen", "tmdb_api_key", "tvdb_api_key", "source_first", "country",
+    "watch_languages", "watch_all_languages", "countries_cache", "countries_fetched_at",
+)
 
 def _rows(table):
-    return [dict(row) for row in db.query(f"SELECT * FROM {table}")]
+    return [dict(row) for row in db.query(SELECTS.get(table) or f"SELECT * FROM {table}")]
 
 def counts():
     found = {
-        table: db.query(f"SELECT COUNT(*) AS n FROM {table}", one=True)["n"]
-        for table, _key in TABLES
+        table: len(_rows(table)) for table, _key in TABLES
     }
     found["settings"] = db.query(
         "SELECT COUNT(*) AS n FROM settings WHERE encrypted = 0 AND value IS NOT NULL"
@@ -131,7 +144,10 @@ def import_data(payload):
         conn.execute("DELETE FROM settings")
 
         for table, _key in TABLES:
-            restored[table] = _insert(conn, table, data.get(table) or [])
+            rows = data.get(table) or []
+            if table in STUB_COLUMNS:
+                rows = [{k: r[k] for k in STUB_COLUMNS[table] if k in r} for r in rows]
+            restored[table] = _insert(conn, table, rows)
 
         account = data.get("account")
         if isinstance(account, dict) and account.get("password_hash"):
@@ -150,6 +166,7 @@ def import_data(payload):
 
         secrets = data.get("secrets")
         if isinstance(secrets, dict):
+            secrets = {k: v for k, v in secrets.items() if k not in NOT_BACKED_UP}
             for key, value in secrets.items():
                 _put_setting(conn, key, secretstore.encrypt(str(value)), encrypted=True)
             restored["secrets"] = len(secrets)
@@ -172,5 +189,5 @@ def summarise(restored):
         if n:
             bits.append(f"{n} {label}{'s' if n != 1 else ''}")
     if restored.get("secrets"):
-        bits.append("your keys")
+        bits.append("your mail password")
     return ", ".join(bits) if bits else "nothing"

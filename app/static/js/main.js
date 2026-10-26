@@ -93,16 +93,6 @@
   }); }
   armConfirms(document);
 
-  var zone = '';
-  try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) { zone = ''; }
-  function applyZone(root) {
-    root.querySelectorAll('input[data-timezone]').forEach(function (input) { input.value = zone; });
-    if (zone) {
-      root.querySelectorAll('[data-needs-timezone]').forEach(function (el) { el.hidden = false; });
-    }
-  }
-  applyZone(document);
-
   function hideSaveButtons(root) {
     root.querySelectorAll('form[data-autosave]').forEach(function (form) {
       var button = form.querySelector('button[type="submit"], button:not([type])');
@@ -180,4 +170,22 @@
     var box = document.getElementById('q');
     if (box) { event.preventDefault(); box.focus(); box.select(); }
   });
+
+  var card = document.getElementById('loading-card');
+  if (card && window.fetch) {
+    var poll = window.setInterval(function () {
+      fetch('/sync/status', { credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (state) {
+          if (!state) { return; }
+          if (!state.running) { window.clearInterval(poll); window.location.reload(); return; }
+          document.getElementById('loading-count').textContent = state.done + ' of ' + state.total + ' done.';
+          var bar = card.querySelector('.progress span');
+          bar.style.width = Math.floor(state.done * 100 / state.total) + '%';
+          bar.parentNode.setAttribute('aria-valuenow', state.done);
+          bar.parentNode.setAttribute('aria-valuemax', state.total);
+        })
+        .catch(function () {  });
+    }, 4000);
+  }
 })();

@@ -1,4 +1,4 @@
-{# A row of faces. Anyone TMDB has no photograph for still gets their name. #}
+{# A row of faces. Anyone TheTVDB has no photograph for still gets their name. #}
 {% if cast %}
 <section class="panel">
   <div class="panel-head"><h2>Cast</h2></div>
@@ -7,7 +7,7 @@
       <li class="cast-member">
         <span class="cast-face">
           {% if person.profile_path %}
-            <img src="{{ url_for('images.poster', size='w185', tmdb_path=person.profile_path.lstrip('/')) }}"
+            <img src="{{ url_for('images.poster', size='w185', image_path=person.profile_path.lstrip('/')) }}"
                  alt="" loading="lazy" width="88" height="110">
           {% else %}
             <span class="cast-initials" aria-hidden="true">

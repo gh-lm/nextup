@@ -16,18 +16,17 @@ def test_dashboard_after_login(signed_in):
     resp = signed_in.get("/")
     assert resp.status_code == 200
     assert b"Next up" in resp.data
-    assert b"No TMDB key yet" in resp.data
 
 def test_every_page_loads(signed_in):
     for path in ["/", "/shows", "/calendar", "/upcoming", "/movies", "/settings", "/search"]:
         assert signed_in.get(path).status_code == 200, path
 
-def test_search_without_key_explains_itself(signed_in):
+def test_search_says_so_when_the_source_cannot_be_reached(signed_in):
     resp = signed_in.get("/search?q=anything")
     assert resp.status_code == 200
-    assert b"No TMDB API key saved" in resp.data
+    assert b"Could not reach TheTVDB" in resp.data
 
 def test_no_external_hosts_in_markup(signed_in):
     body = signed_in.get("/").data.decode()
-    for host in ["image.tmdb.org", "fonts.googleapis.com", "cdn.", "unpkg", "jsdelivr"]:
+    for host in ["image.tvdb.org", "fonts.googleapis.com", "cdn.", "unpkg", "jsdelivr"]:
         assert host not in body

@@ -3,6 +3,20 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [2.0.0], 2026-10-26
+
+Nextup now uses TheTVDB for everything, and nothing needs a key. Your shows and watched marks carry over.
+
+- **TheTVDB for everything, with nothing to sign up for.** Nextup finds shows and movies, and fetches their episodes, dates, covers and cast, from TheTVDB through its own small lookup service, which holds the key so you do not need one.
+- **TMDB is gone.** Discover, where to watch, streaming alerts, age certificates, star ratings, taglines, guest cast, and the country and language settings went with it. No key of any kind is asked for.
+- **Movies use their release date.** A movie sits under coming soon until its release date has passed, then moves to ready to watch by itself. The date is re-checked every few days.
+- **Your shows carry over.** Shows saved under TMDB numbers are matched to TheTVDB on their next refresh, and keep their watched marks.
+- **Smaller backups.** A backup holds what you follow, what you watched and your settings. Names, pictures and dates are fetched fresh from TheTVDB when you restore. The mail password is the only secret left.
+- **Easier to install.** Nextup gives the data folder to its own user when it starts, so there is no chown step and no helper container.
+- **First sign-in picks your own login.** The starter password sends you to a page where you choose a username and password before anything else.
+- **Restores load gently.** Background refreshes keep inside the lookup limit, a one-time card says the first load can take a while, and a progress card shows while names and pictures fill in.
+- **Credit.** The footer carries TheTVDB's credit and a link, as their terms ask.
+
 ## [1.7.2], 2026-10-24
 
 Fixes and tidying. Your data is untouched.

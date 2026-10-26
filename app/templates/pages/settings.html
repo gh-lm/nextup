@@ -69,7 +69,7 @@
           <label for="smtp_password">Password</label>
           <input id="smtp_password" name="smtp_password" type="password" autocomplete="off"
                  placeholder="{{ 'Saved. Type a new one to replace it' if mail.has_password else 'App password' }}">
-          <p class="hint">Stored encrypted, the same as the TMDB key.</p>
+          <p class="hint">Stored encrypted.</p>
         </div>
       </div>
       <div class="field-row">
@@ -194,9 +194,9 @@
     </div>
     <p class="subtle">
       One file holds every show and movie you have added, everything you have
-      marked as watched, the things you said no to, and how you like Nextup set
-      up. Put it on another machine and you carry on where you left off, before
-      it has even spoken to TMDB.
+      marked as watched, and how you like Nextup set up. Put it on another
+      machine and you carry on where you left off. Names, pictures and dates
+      are fetched fresh from TheTVDB.
     </p>
     <p class="hint">
       Right now that is {{ backup.tracked_show }} show{{ '' if backup.tracked_show == 1 else 's' }},
@@ -208,15 +208,15 @@
     <div class="btn-row mb-8">
       <a class="btn btn-primary" href="{{ url_for('settings.export_data') }}">Download a backup</a>
       <a class="btn" href="{{ url_for('settings.export_data', secrets=1) }}"
-         title="Includes your keys in plain text">
-        Include my keys
+         title="Includes your mail password in plain text">
+        Include my mail password
       </a>
     </div>
     <p class="hint">
-      The plain download leaves your TMDB key and mail password out, because
-      they are encrypted with a key that stays on this server and cannot travel.
-      You would type those two back in. The second button puts them in the file
-      readable by anyone who opens it, so keep that one somewhere safe. Either file
+      The plain download leaves your mail password out, because it is encrypted
+      with a key that stays on this server and cannot travel. You would type it
+      back in. The second button puts it in the file readable by anyone who
+      opens it, so keep that one somewhere safe. Either file
       holds your username and a hash of your password.
     </p>
 
@@ -238,87 +238,6 @@
       </p>
     </form>
     {{ n.notes_for(notes, "transfer") }}
-  </section>
-
-  <section class="panel" id="country">
-    <div class="panel-head">
-      <h2>Your country</h2>
-    </div>
-    <p class="subtle">
-      Shows and movies use this country's streaming services and age ratings,
-      and movies its home release date. It starts as the country of your computer's time zone when you
-      sign in, and changing it refreshes everything.
-    </p>
-    {% if countries %}
-      <form data-autosave method="post" action="{{ url_for('settings.save_country') }}">
-        <div class="field">
-          <label for="country_choice">Country</label>
-          <select id="country_choice" name="country">
-            <option value="-" {{ 'selected' if not country else '' }}>No country</option>
-            {% for code, name in countries %}
-              <option value="{{ code }}" {{ 'selected' if code == country else '' }}>{{ name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <button class="btn btn-primary" type="submit">Save</button>
-      </form>
-      {% if not country %}
-        <form method="post" action="{{ url_for('settings.save_country') }}">
-          <input type="hidden" name="timezone" value="" data-timezone>
-          <button class="btn" type="submit" data-needs-timezone hidden>Use my time zone's country</button>
-        </form>
-      {% endif %}
-    {% else %}
-      <p class="hint">
-        {% if country %}Using {{ country }}. {% endif %}The list of countries comes
-        from TMDB, so it appears once a working TMDB key is saved.
-      </p>
-    {% endif %}
-    {{ n.notes_for(notes, "country") }}
-  </section>
-
-  <section class="panel" id="languages">
-    <div class="panel-head">
-      <h2>Languages</h2>
-    </div>
-    <p class="subtle">
-      Choose which original languages Discover lists. Anything already on your
-      lists stays.
-    </p>
-    <form data-autosave method="post" action="{{ url_for('settings.save_languages') }}">
-      <input type="hidden" name="toggle" value="1">
-      <label class="inline-check">
-        <input type="checkbox" name="all" value="1" {{ 'checked' if all_languages else '' }}>
-        Show every language
-      </label>
-      <button class="btn btn-primary" type="submit">Save</button>
-    </form>
-    {% if not all_languages %}
-    <p class="hint">English is always included.</p>
-    <ul class="language-list">
-      <li><span class="lang-tag">English</span></li>
-      {% for code, name in watched_languages %}
-        <li>
-          <span class="lang-tag">{{ name }}</span>
-          <form data-inplace method="post" action="{{ url_for('settings.save_languages') }}">
-            <button class="btn btn-small btn-quiet" type="submit" name="remove" value="{{ code }}"
-                    aria-label="Stop listing {{ name }}">Remove</button>
-          </form>
-        </li>
-      {% endfor %}
-    </ul>
-    <form data-autosave method="post" action="{{ url_for('settings.save_languages') }}">
-      <div class="field">
-        <label for="add_language">Add a language</label>
-        <select id="add_language" name="add">
-          <option value="">Choose one</option>
-          {% for code, name in language_choices %}<option value="{{ code }}">{{ name }}</option>{% endfor %}
-        </select>
-      </div>
-      <button class="btn btn-primary" type="submit">Add</button>
-    </form>
-    {% endif %}
-    {{ n.notes_for(notes, "languages") }}
   </section>
 
   </div>
@@ -407,53 +326,13 @@
     {{ n.notes_for(notes, "accent") }}
   </section>
 
-  <section class="panel" id="tmdb">
-    <div class="panel-head">
-      <h2>TMDB key</h2>
-      <span class="spacer"></span>
-      {% if has_key %}<span class="badge">Saved and encrypted</span>
-      {% else %}<span class="badge badge-warning">Not set</span>{% endif %}
-    </div>
-    <p class="subtle">
-      Every show, episode and cover comes from TMDB. Copy your API Key (v3 auth)
-      from <a href="https://www.themoviedb.org/settings/api" rel="noopener noreferrer">themoviedb.org/settings/api</a>,
-      which opens on their site. It is checked before it is saved, then encrypted.
-    </p>
-    <form method="post" action="{{ url_for('settings.save_tmdb') }}">
-      <div class="field inline-field">
-        <label class="visually-hidden" for="tmdb_api_key">API key</label>
-        <input id="tmdb_api_key" name="tmdb_api_key" type="password" autocomplete="off"
-               placeholder="{{ 'Saved. Paste a new one to replace it' if has_key else 'Paste your key' }}">
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" type="submit">Check and save</button>
-        {% if has_key %}
-          <button class="btn btn-quiet" type="submit" form="clear-tmdb-form"
-                  data-confirm-label="Really remove? This deletes the saved key."
-                  title="Delete the saved key"
-                  aria-label="Delete the saved key">Remove key</button>
-          <noscript>
-            <label class="inline-check">
-              <input type="checkbox" name="sure" value="1" form="clear-tmdb-form" required>
-              Yes, remove it
-            </label>
-          </noscript>
-        {% endif %}
-      </div>
-    </form>
-    {% if has_key %}
-      <form id="clear-tmdb-form" method="post" action="{{ url_for('settings.clear_tmdb') }}" data-confirm></form>
-    {% endif %}
-    {{ n.notes_for(notes, "tmdb") }}
-  </section>
-
   <section class="panel" id="order">
     <div class="panel-head">
       <h2>Order</h2>
     </div>
     <p class="subtle">
       Which way round things are listed by date: seasons and episodes, Ready to watch,
-      Movies and Discover. Coming soon always shows the next thing first.
+      and Movies. Coming soon always shows the next thing first.
     </p>
     <form data-autosave method="post" action="{{ url_for('settings.save_season_order') }}">
       <div class="field">
@@ -469,7 +348,7 @@
   </section>
 
   <section class="panel" id="sync">
-    <div class="panel-head"><h2>Refresh from TMDB</h2></div>
+    <div class="panel-head"><h2>Refresh now</h2></div>
     <p class="hint mt-0">
       Runs on its own every 12 hours. Shows that have ended are checked far less often.
     </p>

@@ -13,7 +13,7 @@ def _seed(app, air_offset_days=0, digital_offset_days=0):
         (aired,),
     )
     db.execute(
-        "INSERT OR REPLACE INTO movie (id, title, digital_release) VALUES (301, 'A Late Film', ?)",
+        "INSERT OR REPLACE INTO movie (id, title, release_date) VALUES (301, 'A Late Film', ?)",
         (digital,),
     )
     db.execute(
@@ -49,7 +49,7 @@ def test_something_that_aired_today_waits_until_tomorrow(app):
         _seed(app, air_offset_days=0, digital_offset_days=0)
         assert queries.next_unwatched(300) is None
         film = queries.movies(watched=False)[0]
-        assert queries.is_streamable(film) is False
+        assert queries.is_released(film) is False
 
 def test_the_same_thing_a_day_later_is_ready(app):
     from app import queries, secretstore
@@ -59,7 +59,7 @@ def test_the_same_thing_a_day_later_is_ready(app):
         _seed(app, air_offset_days=1, digital_offset_days=1)
         assert queries.next_unwatched(300)["id"] == 3001
         film = queries.movies(watched=False)[0]
-        assert queries.is_streamable(film) is True
+        assert queries.is_released(film) is True
 
 def test_setting_it_to_zero_makes_it_available_the_same_day(app):
     from app import queries, secretstore
@@ -68,7 +68,7 @@ def test_setting_it_to_zero_makes_it_available_the_same_day(app):
         secretstore.set("available_after_days", "0")
         _seed(app, air_offset_days=0, digital_offset_days=0)
         assert queries.next_unwatched(300)["id"] == 3001
-        assert queries.is_streamable(queries.movies(watched=False)[0]) is True
+        assert queries.is_released(queries.movies(watched=False)[0]) is True
 
 def test_the_email_uses_the_same_rule_as_the_app(app):
     from app import queries, secretstore

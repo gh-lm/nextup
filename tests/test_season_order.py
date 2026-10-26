@@ -30,7 +30,7 @@ def test_movies_and_dashboard_follow_the_same_setting(signed_in, app):
     with app.app_context():
         for movie_id, title, day in ((830, "Older One", old), (831, "Newer One", new)):
             db.execute(
-                "INSERT OR REPLACE INTO movie (id, title, digital_release) VALUES (?, ?, ?)",
+                "INSERT OR REPLACE INTO movie (id, title, release_date) VALUES (?, ?, ?)",
                 (movie_id, title, day),
             )
             db.execute(
@@ -45,23 +45,6 @@ def test_movies_and_dashboard_follow_the_same_setting(signed_in, app):
     assert newer_first("/movies") and newer_first("/")
     signed_in.post("/settings/season-order", data={"season_order": "oldest"})
     assert not newer_first("/movies") and not newer_first("/")
-
-def test_discover_languages_default_to_english_and_can_be_added(signed_in, app):
-    from app import languages
-
-    with app.app_context():
-        assert languages.show_all() is True
-        assert languages.watched() == ["en"]
-    signed_in.post("/settings/languages", data={"toggle": "1"})
-    with app.app_context():
-        assert languages.show_all() is False
-    signed_in.post("/settings/languages", data={"add": "nl"})
-    signed_in.post("/settings/languages", data={"add": "en"})
-    with app.app_context():
-        assert languages.watched() == ["en", "nl"]
-    signed_in.post("/settings/languages", data={"remove": "nl"})
-    with app.app_context():
-        assert languages.watched() == ["en"]
 
 def test_maybe_lists_follow_the_order_setting(signed_in, app):
     from app import db

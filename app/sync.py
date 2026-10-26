@@ -1,12 +1,13 @@
-"""Pulling show and episode data from TMDB into the local database."""
+"""Pulling show and episode data from TheTVDB into the local database."""
 import threading
 import time
 from datetime import datetime, timedelta, timezone
 
-from . import clock, config, db, queries, secretstore, tmdb
+from . import catalog, clock, config, db, queries, secretstore, tvdb
 
 _sync_lock = threading.Lock()
 _running = False
+_progress = {"done": 0, "total": 0}
 
 def _age(stamp):
     try:
@@ -92,6 +93,11 @@ def upsert_episodes(show_id, season_payload):
         )
     for row in rows:
         slot = row[1:4]
+        carried = conn.execute(
+            "SELECT w.watched_at FROM watched_episode w JOIN episode e ON e.id = w.episode_id"
+            " WHERE e.show_id = ? AND e.season_number = ? AND e.episode_number = ? AND e.id != ?",
+            (*slot, row[0]),
+        ).fetchone()
         conn.execute(
             "DELETE FROM episode WHERE show_id = ? AND season_number = ? AND episode_number = ? AND id != ?",
             (*slot, row[0]),
@@ -113,6 +119,11 @@ def upsert_episodes(show_id, season_payload):
             """,
             row,
         )
+        if carried:
+            conn.execute(
+                "INSERT OR IGNORE INTO watched_episode (episode_id, show_id, watched_at) VALUES (?, ?, ?)",
+                (row[0], show_id, carried["watched_at"]),
+            )
     conn.commit()
     return len(rows)
 
@@ -132,7 +143,7 @@ def _unarchive_if_new_season(show_id):
 
 def sync_show(show_id, failed=None):
     _note_archived_season(show_id)
-    payload = tmdb.show(show_id)
+    payload = catalog.show(show_id)
     upsert_show(payload, stamp=False)
     missed = []
     for season in payload.get("seasons", []):
@@ -140,8 +151,8 @@ def sync_show(show_id, failed=None):
         if number is None:
             continue
         try:
-            upsert_episodes(show_id, tmdb.season(show_id, number))
-        except tmdb.TmdbError:
+            upsert_episodes(show_id, catalog.season(show_id, number))
+        except catalog.TvdbError:
             missed.append(number)
     if missed:
         if failed is not None:
@@ -180,33 +191,32 @@ def upsert_movie(payload):
         ),
     )
 
-def sync_movie_availability(movie_id):
-    digital = tmdb.digital_release_date(tmdb.movie_release_dates(movie_id))
-    names, link = tmdb.watch_providers(tmdb.movie_providers(movie_id))
+def sync_movie(movie_id):
+    upsert_movie(catalog.movie(movie_id))
 
-    db.execute(
-        "UPDATE movie SET digital_release = COALESCE(?, digital_release),"
-        " providers = ?, provider_link = ?, providers_checked_at = ?"
-        " WHERE id = ?",
-        (digital, "\n".join(names) if names else None, link, clock.now_iso(), movie_id),
-    )
-    return digital, names
+def progress():
+    return dict(_progress) if _running and _progress["total"] else None
+
+def _step():
+    _progress["done"] += 1
 
 def sync_all_movies(force=False):
     rows = db.query(
-        "SELECT m.id, m.providers_checked_at FROM movie m"
+        "SELECT m.id, m.synced_at FROM movie m"
         " JOIN tracked_movie t ON t.movie_id = m.id"
         " WHERE t.watched_at IS NULL"
     )
     done = 0
+    _progress["total"] += len(rows)
     for row in rows:
-        age = _age(row["providers_checked_at"])
+        _step()
+        age = _age(row["synced_at"])
         if not force and age is not None and age < timedelta(days=3):
             continue
         try:
-            sync_movie_availability(row["id"])
+            sync_movie(row["id"])
             done += 1
-        except tmdb.TmdbError:
+        except catalog.TvdbError:
             continue
     return done
 
@@ -233,7 +243,9 @@ def sync_all(force=False):
             " JOIN tracked_show t ON t.show_id = s.id"
             " WHERE t.shortlist = 0 AND (t.archived = 0 OR t.auto_unarchive = 1)"
         )
+        _progress.update(done=0, total=len(rows))
         for row in rows:
+            _step()
             if not _needs_refresh(row, force):
                 skipped += 1
                 continue
@@ -281,6 +293,7 @@ def start_now(app, force=True):
         return False
 
     def work():
+        tvdb.patient()
         with app.app_context():
             try:
                 sync_all(force=force)
@@ -293,12 +306,12 @@ def start_now(app, force=True):
 def start_background(app):
 
     def loop():
+        tvdb.patient()
         time.sleep(20)
         while True:
             with app.app_context():
                 try:
-                    if secretstore.has("tmdb_api_key"):
-                        sync_all(force=False)
+                    sync_all(force=False)
                 except Exception:
                     app.logger.exception("Background sync failed")
             time.sleep(config.SYNC_INTERVAL_HOURS * 3600)

@@ -3,13 +3,6 @@
 {% block title %}Next up | Nextup{% endblock %}
 {% block body %}
 
-{% if not has_key %}
-<div class="notice">
-  <span>No TMDB key yet, so nothing can be looked up.</span>
-  <span class="spacer"></span>
-  <a class="btn btn-small" href="{{ url_for('settings.index') }}">Add one</a>
-</div>
-{% endif %}
 {% if unreadable %}
 <div class="notice">
   <span>Nextup cannot read the saved {{ unreadable|join(' and ') }}, most likely because secret.key was replaced. Enter {{ 'it' if unreadable|length == 1 else 'them' }} again.</span>
@@ -69,7 +62,7 @@
             <article class="watch-card">
               <a class="poster" href="{{ url_for('shows.detail', show_id=item.show_id) }}" tabindex="-1" aria-hidden="true">
                 {% if item.poster_path %}
-                  <img src="{{ url_for('images.poster', size='w185', tmdb_path=item.poster_path.lstrip('/')) }}"
+                  <img src="{{ url_for('images.poster', size='w185', image_path=item.poster_path.lstrip('/')) }}"
                        alt="" loading="lazy">
                 {% else %}<span class="poster-empty">{{ item.show_name }}</span>{% endif %}
               </a>
@@ -109,7 +102,7 @@
             <article class="watch-card">
               <a class="poster" href="{{ url_for('movies.detail', movie_id=film.id) }}" tabindex="-1" aria-hidden="true">
                 {% if film.poster_path %}
-                  <img src="{{ url_for('images.poster', size='w185', tmdb_path=film.poster_path.lstrip('/')) }}"
+                  <img src="{{ url_for('images.poster', size='w185', image_path=film.poster_path.lstrip('/')) }}"
                        alt="" loading="lazy">
                 {% else %}<span class="poster-empty">{{ film.title }}</span>{% endif %}
               </a>
@@ -120,11 +113,8 @@
                 </div>
                 <div class="watch-card-meta">
                   <span class="badge">
-                    {% if film.digital_release %}Out {{ film.digital_release|relative_day }}{% else %}Out now{% endif %}
+                    {% if film.release_date %}Out {{ film.release_date|relative_day }}{% else %}Out now{% endif %}
                   </span>
-                  {% for name in provider_names(film)[:2] %}
-                    <span class="badge badge-info">{{ name }}</span>
-                  {% endfor %}
                 </div>
               </div>
               <div class="watch-card-actions">
@@ -180,7 +170,7 @@
           <div class="schedule-row">
             <a class="poster" href="{{ url_for('shows.detail', show_id=item.show_id) }}" tabindex="-1" aria-hidden="true">
               {% if item.poster_path %}
-                <img src="{{ url_for('images.poster', size='w92', tmdb_path=item.poster_path.lstrip('/')) }}" alt="" loading="lazy">
+                <img src="{{ url_for('images.poster', size='w92', image_path=item.poster_path.lstrip('/')) }}" alt="" loading="lazy">
               {% else %}<span class="poster-empty"></span>{% endif %}
             </a>
             <div class="min-0">
@@ -195,12 +185,12 @@
           <div class="schedule-row">
             <a class="poster" href="{{ url_for('movies.detail', movie_id=item.id) }}" tabindex="-1" aria-hidden="true">
               {% if item.poster_path %}
-                <img src="{{ url_for('images.poster', size='w92', tmdb_path=item.poster_path.lstrip('/')) }}" alt="" loading="lazy">
+                <img src="{{ url_for('images.poster', size='w92', image_path=item.poster_path.lstrip('/')) }}" alt="" loading="lazy">
               {% else %}<span class="poster-empty"></span>{% endif %}
             </a>
             <div class="min-0">
               <a class="show-tile-name" href="{{ url_for('movies.detail', movie_id=item.id) }}">{{ item.title }}</a>
-              <div class="ep-date">Movie · {{ item.digital_release|relative_day }}</div>
+              <div class="ep-date">Movie · {{ item.release_date|relative_day }}</div>
             </div>
           </div>
           {% endif %}
@@ -217,7 +207,7 @@
         <div class="schedule-row">
           <a class="poster" href="{{ url_for('shows.detail', show_id=ep.show_id) }}" tabindex="-1" aria-hidden="true">
             {% if ep.poster_path %}
-              <img src="{{ url_for('images.poster', size='w92', tmdb_path=ep.poster_path.lstrip('/')) }}" alt="" loading="lazy">
+              <img src="{{ url_for('images.poster', size='w92', image_path=ep.poster_path.lstrip('/')) }}" alt="" loading="lazy">
             {% else %}<span class="poster-empty"></span>{% endif %}
           </a>
           <div class="min-0">

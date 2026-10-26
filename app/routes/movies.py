@@ -1,6 +1,6 @@
 from flask import Blueprint, abort, flash, redirect, render_template, url_for
 
-from .. import clock, db, queries, sync, tmdb
+from .. import catalog, clock, db, queries, sync, tvdb
 from ..auth import login_required
 from ..forms import confirmed, wanted_state
 from ..redirects import back_to
@@ -16,7 +16,6 @@ def index():
         ready=films["ready"],
         waiting=films["waiting"],
         seen=films["seen"],
-        provider_names=queries.provider_names,
     )
 
 @bp.route("/movie/<int:movie_id>")
@@ -25,31 +24,27 @@ def detail(movie_id):
     row = db.query("SELECT * FROM movie WHERE id = ?", (movie_id,), one=True)
     if row is None:
         try:
-            sync.upsert_movie(tmdb.movie(movie_id))
-        except tmdb.TmdbError as exc:
+            sync.upsert_movie(catalog.movie(movie_id))
+        except catalog.TvdbError as exc:
             flash(str(exc), "error")
             return redirect(url_for("main.search"))
         row = db.query("SELECT * FROM movie WHERE id = ?", (movie_id,), one=True)
         if row is None:
             abort(404)
-    extras = {"cast": [], "crew": [], "genres": [], "trailer": None,
-              "imdb": None, "certification": None, "tagline": None}
+    extras = {"cast": [], "genres": [], "trailer": None, "imdb": None}
     try:
-        payload = tmdb.movie_detail(movie_id)
+        payload = catalog.movie_detail(movie_id)
         extras.update(
-            cast=tmdb.cast_from(payload),
-            crew=tmdb.crew_from(payload),
-            genres=tmdb.genres_from(payload),
-            trailer=tmdb.trailer_from(payload),
-            imdb=tmdb.imdb_from(payload),
-            certification=tmdb.certification_from(payload),
-            tagline=payload.get("tagline") or None,
+            cast=tvdb.cast_from(payload),
+            genres=tvdb.genres_from(payload),
+            trailer=tvdb.trailer_from(payload),
+            imdb=tvdb.imdb_from(payload),
         )
         if row["original_language"] is None and payload.get("original_language"):
             db.execute("UPDATE movie SET original_language = ? WHERE id = ?",
                        (payload["original_language"], movie_id))
             row = db.query("SELECT * FROM movie WHERE id = ?", (movie_id,), one=True)
-    except tmdb.TmdbError:
+    except catalog.TvdbError:
         pass
 
     tracked = queries.movie_list_state(movie_id)
@@ -59,43 +54,32 @@ def detail(movie_id):
         movie=row,
         tracked=tracked,
         shortlisted=bool(tracked and tracked["shortlist"]),
-        providers=queries.provider_names(row),
-        streamable=queries.is_streamable(row),
+        released=queries.is_released(row),
     )
 
 @bp.route("/movie/<int:movie_id>/track", methods=["POST"])
 @login_required
 def track(movie_id):
     try:
-        payload = tmdb.movie(movie_id)
+        payload = catalog.movie(movie_id)
         sync.upsert_movie(payload)
-    except tmdb.TmdbError as exc:
+    except catalog.TvdbError as exc:
         flash(str(exc), "error")
         return back_to("movies.index")
     db.execute(
         "INSERT OR IGNORE INTO tracked_movie (movie_id, added_at) VALUES (?, ?)",
         (movie_id, clock.now_iso()),
     )
-    try:
-        digital, names = sync.sync_movie_availability(movie_id)
-    except tmdb.TmdbError:
-        digital, names = None, []
-    title = payload.get("title") or "this movie"
-    if names:
-        flash(f"Added {title}. It is on {', '.join(names)} now.", "success")
-    elif digital:
-        flash(f"Added {title}. Streaming from {digital}.", "success")
-    else:
-        flash(f"Added {title}. No streaming date announced yet.", "success")
+    flash(f"Added {payload.get('title') or 'this movie'}.", "success")
     return back_to("movies.index")
 
 @bp.route("/movie/<int:movie_id>/refresh", methods=["POST"])
 @login_required
 def refresh(movie_id):
     try:
-        sync.sync_movie_availability(movie_id)
-        flash("Checked TMDB for a streaming date.", "success")
-    except tmdb.TmdbError as exc:
+        sync.sync_movie(movie_id)
+        flash("Checked TheTVDB for a new release date.", "success")
+    except catalog.TvdbError as exc:
         flash(str(exc), "error")
     return back_to("movies.index")
 

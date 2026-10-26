@@ -34,9 +34,9 @@
       "applicationCategory": "MultimediaApplication",
       "applicationSubCategory": "Media tracker",
       "operatingSystem": "Linux, via Docker",
-      "description": "A self-hosted tracker for TV shows and movies. It records which episodes you have watched, shows the next one to watch, lists when new episodes air, tells you when a movie reaches streaming in your country, and emails you each morning.",
+      "description": "A self-hosted tracker for TV shows and movies. It records which episodes you have watched, shows the next one to watch, lists when new episodes air, tells you when a movie is released, and emails you each morning.",
       "license": "https://www.gnu.org/licenses/gpl-3.0.html",
-      "softwareVersion": "1.7.2",
+      "softwareVersion": "2.0.0",
       "programmingLanguage": "Python",
       "isAccessibleForFree": true,
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
@@ -67,17 +67,17 @@
         {
           "@type": "Question",
           "name": "Does Nextup play or download anything?",
-          "acceptedAnswer": { "@type": "Answer", "text": "No. Nextup is a notebook, not a player. It records what you have watched and tells you what is next. It holds no video, links to no streams and downloads nothing except artwork from TMDB." }
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Nextup is a notebook, not a player. It records what you have watched and tells you what is next. It holds no video, links to no streams and downloads nothing except artwork from TheTVDB." }
         },
         {
           "@type": "Question",
-          "name": "Do I need a TMDB API key?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes, and it is free. Make an account, then go straight to themoviedb.org/settings/api and copy the API Key for v3 auth. You paste it into the Settings page inside Nextup, where it is stored encrypted." }
+          "name": "Do I need an API key?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Nextup finds shows and movies on TheTVDB through a service run by Lightmorphic, which holds the key, so you need none of your own." }
         },
         {
           "@type": "Question",
-          "name": "How does Nextup know when a movie reaches streaming?",
-          "acceptedAnswer": { "@type": "Answer", "text": "TMDB records several release dates for a movie, including the digital, physical and television ones. Nextup reads those and uses the date for the country chosen in its settings, which starts as the country of your time zone. It also lists which subscription, free and ad-supported services in that country carry the movie, using the JustWatch data TMDB publishes." }
+          "name": "How does Nextup know when a movie is released?",
+          "acceptedAnswer": { "@type": "Answer", "text": "TheTVDB records a first release date for a movie. Nextup reads it, re-checks it every few days, and moves the movie from coming soon to ready to watch once that day has passed." }
         },
         {
           "@type": "Question",
@@ -112,7 +112,6 @@
     <nav aria-label="Main">
       <a href="#email">The email</a>
       <a href="#watching">Watching</a>
-      <a href="#deciding">Deciding</a>
       <a href="#install">Install</a>
       <div id="all-apps"></div>
     </nav>
@@ -178,7 +177,7 @@
       <figure class="letter">
         <div class="shot">
           <img src="images/nextup-email.webp"
-               alt="The Nextup morning email, headed Ready to watch, showing an episode with its cover, the service it is on and a short description."
+               alt="The Nextup morning email, headed Ready to watch, showing an episode with its cover and a short description."
                width="760" height="900" loading="lazy" decoding="async">
         </div>
       </figure>
@@ -192,7 +191,7 @@
       <figure>
         <div class="shot">
           <img src="images/nextup-show.webp"
-               alt="The Slow Horses page in Nextup, with the poster, a progress bar, buttons to move it to maybe, archive or remove it, the cast, a details panel, and the latest season's episodes listed below."
+               alt="The Salt Road page in Nextup, with the poster, a progress bar, buttons to move it to maybe, archive or remove it, the cast, a details panel, and the latest season's episodes listed below."
                width="1400" height="1283" loading="lazy" decoding="async">
         </div>
       </figure>
@@ -222,63 +221,22 @@
   </div>
 </section>
 
-<section id="deciding" class="band">
-  <div class="wrap">
-    <div class="feature-lead">
-      <div>
-        <h2>Yes, no, or maybe</h2>
-        <p>
-          Discover shows you what is arriving and asks one question about each of
-          it. A plus puts it on your list. A question mark parks it on the maybe
-          list. A cross sends it away and it does not come back.
-        </p>
-        <p>
-          The movie list asks for home releases rather than cinema ones, so it
-          answers the question someone who does not go to the cinema is actually
-          asking. A cross deletes nothing: the title still turns up in a search,
-          and one button brings back everything you dismissed.
-        </p>
-        <p>
-          Discover shows only what is new: the days you choose, then a second
-          group for what came out in the last 14 days. Each title carries its
-          original language, and the <b>Languages</b> setting decides which
-          ones you see. It starts on every language.
-        </p>
-      </div>
-      <figure>
-        <div class="shot">
-          <img src="images/nextup-discover.webp"
-               alt="The Discover page in Nextup, a row of real movie covers arriving on streaming, each with its release date and Yes, Maybe and No buttons underneath."
-               width="1400" height="900" loading="lazy" decoding="async">
-        </div>
-      </figure>
-    </div>
-  </div>
-</section>
-
 <section>
   <div class="wrap">
     <div class="feature-lead flip">
       <figure>
         <div class="shot">
           <img src="images/nextup-films.webp"
-               alt="The Movies page in Nextup, with Ready to watch showing the services and the original language under each cover, then Coming to streaming below it."
+               alt="The Movies page in Nextup, with Ready to watch showing the year, length and original language under each cover."
                width="1400" height="1089" loading="lazy" decoding="async">
         </div>
       </figure>
       <div>
-        <h2>Movies, and when you can actually watch them</h2>
+        <h2>Movies, and when they come out</h2>
         <p>
-          A cinema date is no use if you wait for things to reach a service you
-          already have. Nextup reads the digital, physical and television release
-          dates a movie has been given, picks the one for your country, and
-          shows you that instead.
-        </p>
-        <p>
-          It also names which services in your country carry a movie right now. Subscription,
-          free and ad-supported ones are listed. Rental and purchase are left out,
-          because the question is what you can put on tonight without paying for
-          it twice.
+          Nextup reads each movie's release date from TheTVDB and re-checks it
+          every few days, so a date that moves is picked up. A movie sits under
+          coming soon until that day, then moves to ready to watch by itself.
         </p>
       </div>
     </div>
@@ -333,7 +291,7 @@
     </div>
     <ul class="plain-list">
       <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>Artwork is fetched once and then served by Nextup itself.</b> Covers are cached in your data directory, so no page in the app ever points your browser at a third-party host, and the email carries its pictures inside the message.</span></li>
-      <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>The only outbound calls are to TMDB and your own mail server</b>, both made by your server: TMDB to look up the shows and movies you asked for and when a movie reaches streaming, and your mail server only if you turn on the morning email.</span></li>
+      <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>The only outbound calls are to Nextup's TheTVDB lookup service, and to your own mail server</b>, all made by your server: to look up the shows and movies you asked for, and to your mail server only if you turn on the morning email.</span></li>
       <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>No analytics, no telemetry, no crash reporting</b> and no third-party scripts, in the app or on this page. The only script here that is not part of the page is the Lightmorphic apps menu, which is ours and reports nothing.</span></li>
       <li><span class="cross" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span><b>No account with us</b>, because there is no us. Nextup has no server of its own to phone.</span></li>
       <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span><span><b>One cookie, and it is yours.</b> It keeps you signed in. It never leaves your server and it tracks nothing.</span></li>
@@ -347,21 +305,9 @@
   <div class="wrap">
     <div class="section-head">
       <h2>Running in about five minutes</h2>
-      <p>You need Docker and a free TMDB account.</p>
+      <p>You need Docker. There is no sign-up.</p>
     </div>
     <ol class="steps">
-      <li>
-        <div>
-          <h3>Make the data directory</h3>
-          <p>
-            Nextup runs as a normal user inside the container, user ID 1000, so
-            the folder on the host has to belong to that same ID or the app
-            cannot write to it.
-          </p>
-          <pre><code>sudo mkdir -p /opt/nextup
-sudo chown -R 1000:1000 /opt/nextup</code></pre>
-        </div>
-      </li>
       <li>
         <div>
           <h3>Start it</h3>
@@ -382,6 +328,10 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
       - no-new-privileges:true
     cap_drop:
       - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
     read_only: true
     mem_limit: 512m
     pids_limit: 128
@@ -405,13 +355,10 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
       </li>
       <li>
         <div>
-          <h3>Add your TMDB key</h3>
+          <h3>Start tracking</h3>
           <p>
-            Make a free account, then go straight to
-            <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a>
-            and copy the API Key for v3 auth. Paste it into the Settings page in
-            Nextup. It is checked against TMDB before it is saved, and encrypted
-            once it is.
+            Nextup looks shows and movies up on TheTVDB through a small service run by
+            Lightmorphic, so there is nothing to sign up for.
           </p>
         </div>
       </li>
@@ -452,15 +399,15 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
     <dl class="faq">
       <div>
         <dt>Does Nextup play or download anything?</dt>
-        <dd>No. Nextup is a notebook, not a player. It records what you have watched and tells you what is next. It holds no video, links to no streams and downloads nothing except artwork from TMDB.</dd>
+        <dd>No. Nextup is a notebook, not a player. It records what you have watched and tells you what is next. It holds no video, links to no streams and downloads nothing except artwork from TheTVDB.</dd>
       </div>
       <div>
-        <dt>Do I need a TMDB API key?</dt>
-        <dd>Yes, and it is free. Make an account, then go straight to <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a> and copy the API Key for v3 auth. You paste it into the Settings page inside Nextup, where it is stored encrypted.</dd>
+        <dt>Do I need an API key?</dt>
+        <dd>No. Nextup finds shows and movies on TheTVDB through a service run by Lightmorphic, which holds the key, so you need none of your own.</dd>
       </div>
       <div>
-        <dt>How does it know when a movie reaches streaming?</dt>
-        <dd>TMDB records several release dates for a movie, including the digital, physical and television ones. Nextup reads those and uses the date for the country chosen in its settings, which starts as the country of your time zone. It also lists which subscription, free and ad-supported services in that country carry the movie, using the JustWatch data TMDB publishes. Rental and purchase are left out.</dd>
+        <dt>How does it know when a movie is released?</dt>
+        <dd>TheTVDB records a first release date for a movie. Nextup reads it, re-checks it every few days, and moves the movie from coming soon to ready to watch once that day has passed.</dd>
       </div>
       <div>
         <dt>Can I keep a list of shows I might watch one day?</dt>
@@ -515,7 +462,6 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
         <ul>
           <li><a href="index.html#watching">Watching</a></li>
           <li><a href="index.html#install">Install</a></li>
-          <li><a href="index.html#deciding">Deciding</a></li>
           <li><a href="index.html#email">The email</a></li>
           <li><a href="documentation.html">Documentation</a></li>
           <li><a href="runbook.html">Runbook</a></li>
@@ -557,10 +503,9 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
   <div class="sub-footer">
     <div class="wrap">
       <p class="sub-footer-note">
-        This product uses the TMDB API but is not endorsed or certified by TMDB.
-        Streaming availability is supplied by JustWatch through TMDB. Show and
-        movie artwork in the screenshots comes from TMDB and belongs to its
-        respective owners.
+        Metadata provided by <a href="https://thetvdb.com/">TheTVDB</a>. Please consider adding missing information or <a href="https://thetvdb.com/subscribe">subscribing</a>.
+        Show and movie artwork in the screenshots comes from TheTVDB and belongs
+        to its respective owners.
       </p>
       <div class="sub-footer-inner">
         <p>

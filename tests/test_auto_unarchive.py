@@ -4,11 +4,11 @@ def _season(number):
     ]}
 
 def _set_up(app, monkeypatch, seasons):
-    from app import db, tmdb
+    from app import db, tvdb
 
     payload = {"id": 600, "name": "Returning", "seasons": [{"season_number": n} for n in seasons]}
-    monkeypatch.setattr(tmdb, "show", lambda show_id: payload)
-    monkeypatch.setattr(tmdb, "season", lambda show_id, number: _season(number))
+    monkeypatch.setattr(tvdb, "show", lambda show_id: payload)
+    monkeypatch.setattr(tvdb, "season", lambda show_id, number: _season(number))
     return db
 
 def _archived(db):

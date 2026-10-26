@@ -20,7 +20,7 @@ def _seed(app):
     ]
     for film_id, title, digital, shortlist, watched in films:
         db.execute(
-            "INSERT OR REPLACE INTO movie (id, title, digital_release) VALUES (?, ?, ?)",
+            "INSERT OR REPLACE INTO movie (id, title, release_date) VALUES (?, ?, ?)",
             (film_id, title, digital),
         )
         db.execute(
@@ -48,7 +48,7 @@ def test_maybe_films_stay_off_the_calendar(app):
         end = (date.today() + timedelta(days=3)).isoformat()
         assert 413 not in {row["id"] for row in queries.films_between(start, end)}
 
-def test_a_film_with_no_streaming_date_is_not_placed(app):
+def test_a_film_with_no_release_date_is_not_placed(app):
     from app import queries
 
     with app.app_context():

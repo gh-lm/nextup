@@ -56,13 +56,12 @@ def test_toggle_moves_a_show_between_the_two_lists(signed_in, app):
     with app.app_context():
         assert queries.show_list_state(700)["shortlist"] == 0
 
-def _seed_film(app, film_id, title, digital=None, providers=None):
+def _seed_film(app, film_id, title, released=None):
     from app import db
 
     db.execute(
-        "INSERT OR REPLACE INTO movie (id, title, release_date, digital_release, providers)"
-        " VALUES (?, ?, '2026-01-01', ?, ?)",
-        (film_id, title, digital, providers),
+        "INSERT OR REPLACE INTO movie (id, title, release_date) VALUES (?, ?, ?)",
+        (film_id, title, released),
     )
     db.execute(
         "INSERT OR REPLACE INTO tracked_movie (movie_id, added_at) VALUES (?, '2026-01-01')",
@@ -75,15 +74,14 @@ def test_films_split_by_whether_you_can_watch_them(app):
     future = (date.today() + timedelta(days=30)).isoformat()
     past = (date.today() - timedelta(days=30)).isoformat()
     with app.app_context():
-        _seed_film(app, 801, "On a service now", providers="Netflix")
-        _seed_film(app, 802, "Out for home viewing", digital=past)
-        _seed_film(app, 803, "Still in cinemas", digital=future)
+        _seed_film(app, 802, "Already out", released=past)
+        _seed_film(app, 803, "Not out yet", released=future)
         _seed_film(app, 804, "No date at all")
 
         films = queries.films_by_state()
         ready = {row["id"] for row in films["ready"]}
         waiting = {row["id"] for row in films["waiting"]}
-        assert ready == {801, 802}
+        assert ready == {802}
         assert waiting == {803, 804}
 
 def test_films_arriving_only_covers_the_window(app):
@@ -92,76 +90,28 @@ def test_films_arriving_only_covers_the_window(app):
     soon = (date.today() + timedelta(days=10)).isoformat()
     later = (date.today() + timedelta(days=200)).isoformat()
     with app.app_context():
-        _seed_film(app, 811, "Soon", digital=soon)
-        _seed_film(app, 812, "Much later", digital=later)
+        _seed_film(app, 811, "Soon", released=soon)
+        _seed_film(app, 812, "Much later", released=later)
         assert [row["id"] for row in queries.films_arriving(days=60)] == [811]
-
-def test_digital_release_prefers_the_chosen_country(monkeypatch):
-    from app import tmdb
-
-    monkeypatch.setattr(tmdb, "country", lambda: "GB")
-
-    payload = {
-        "results": [
-            {"iso_3166_1": "US", "release_dates": [
-                {"type": 3, "release_date": "2026-01-01T00:00:00.000Z"},
-                {"type": 4, "release_date": "2026-02-01T00:00:00.000Z"},
-            ]},
-            {"iso_3166_1": "GB", "release_dates": [
-                {"type": 4, "release_date": "2026-03-15T00:00:00.000Z"},
-            ]},
-        ]
-    }
-    assert tmdb.digital_release_date(payload) == "2026-03-15"
-    monkeypatch.setattr(tmdb, "country", lambda: None)
-    assert tmdb.digital_release_date(payload) == "2026-02-01"
-
-def test_digital_release_ignores_cinema_dates(monkeypatch):
-    from app import tmdb
-
-    monkeypatch.setattr(tmdb, "country", lambda: "GB")
-
-    payload = {"results": [
-        {"iso_3166_1": "GB", "release_dates": [
-            {"type": 3, "release_date": "2026-01-01T00:00:00.000Z"},
-        ]},
-    ]}
-    assert tmdb.digital_release_date(payload) is None
-
-def test_providers_read_the_chosen_country_and_skip_rentals(monkeypatch):
-    from app import tmdb
-
-    monkeypatch.setattr(tmdb, "country", lambda: "GB")
-
-    payload = {"results": {"GB": {
-        "link": "https://www.themoviedb.org/movie/1/watch",
-        "flatrate": [{"provider_name": "Netflix"}],
-        "free": [{"provider_name": "ITVX"}],
-        "rent": [{"provider_name": "Apple TV"}],
-        "buy": [{"provider_name": "Amazon Video"}],
-    }}}
-    names, link = tmdb.watch_providers(payload)
-    assert names == ["Netflix", "ITVX"]
-    assert "themoviedb.org" in link
 
 def test_pages_still_load_with_the_new_sections(signed_in, app):
     with app.app_context():
         _seed_show(app, shortlist=1)
-        _seed_film(app, 821, "Something", providers="Netflix")
+        _seed_film(app, 821, "Something")
     for path in ["/maybe", "/movies", "/upcoming", "/movie/821", "/show/700"]:
         assert signed_in.get(path).status_code == 200, path
 
 def test_the_dashboard_coming_soon_panel_lists_films_with_the_episodes(signed_in, app):
     with app.app_context():
         _seed_show(app)
-        _seed_film(app, 830, "Soon Film", digital=(date.today() + timedelta(days=3)).isoformat())
+        _seed_film(app, 830, "Soon Film", released=(date.today() + timedelta(days=3)).isoformat())
     page = signed_in.get("/").get_data(as_text=True)
     assert "Soon Film" in page and "Movie · " in page
 
 def test_the_coming_soon_page_puts_films_on_their_day_among_the_episodes(signed_in, app):
     soon = (date.today() + timedelta(days=3)).isoformat()
     with app.app_context():
-        _seed_film(app, 831, "Same Day Film", digital=soon)
+        _seed_film(app, 831, "Same Day Film", released=soon)
     page = signed_in.get("/upcoming").get_data(as_text=True)
     assert "Same Day Film" in page
-    assert "Movies landing on streaming" not in page
+    assert "Movies landing" not in page

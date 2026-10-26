@@ -1,11 +1,12 @@
 import calendar as pycalendar
 from datetime import date, timedelta
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, current_app, jsonify, redirect, render_template, request, session, url_for
 
-from .. import clock, queries, secretstore, sync, tmdb
+from .. import catalog, clock, queries, secretstore, sync
 from ..auth import login_required
 from ..forms import page_number, whole_number
+from ..redirects import back
 
 bp = Blueprint("main", __name__)
 
@@ -23,10 +24,8 @@ def dashboard():
         soon=queries.coming_soon(days=21, limit=12),
         recent=queries.recently_watched(6),
         counts=queries.dashboard_counts(),
-        has_key=secretstore.has("tmdb_api_key"),
         unreadable=secretstore.unreadable(),
         last_sync=sync.last_run(),
-        provider_names=queries.provider_names,
     )
 
 @bp.route("/calendar")
@@ -51,7 +50,7 @@ def calendar_view():
     films = queries.films_between(grid_start.isoformat(), grid_end.isoformat())
     films_by_day = {}
     for film in films:
-        films_by_day.setdefault(film["digital_release"][:10], []).append(film)
+        films_by_day.setdefault(film["release_date"][:10], []).append(film)
 
     weeks, cursor = [], grid_start
     while cursor <= grid_end:
@@ -91,7 +90,7 @@ def upcoming_view():
     for episode in queries.upcoming(days=days):
         grouped.setdefault(episode["air_date"][:10], []).append(("episode", episode))
     for film in queries.films_arriving(days=days):
-        grouped.setdefault(film["digital_release"][:10], []).append(("film", film))
+        grouped.setdefault(film["release_date"][:10], []).append(("film", film))
     return render_template(
         "pages/upcoming.html",
         grouped=sorted(grouped.items()),
@@ -107,10 +106,10 @@ def search():
     results, error, total_pages = [], None, 1
     if term:
         try:
-            payload = tmdb.search_multi(term, page=page)
+            payload = catalog.search_multi(term, page=page)
             results = payload["results"]
             total_pages = min(payload["total_pages"], 500)
-        except tmdb.TmdbError as exc:
+        except catalog.TvdbError as exc:
             error = str(exc)
 
     tracked_tv, tracked_film = queries.known_ids()
@@ -127,3 +126,15 @@ def search():
         page=page,
         total_pages=total_pages,
     )
+
+@bp.route("/sync/status")
+@login_required
+def sync_status():
+    found = sync.progress()
+    return jsonify(running=bool(found), **(found or {"done": 0, "total": 0}))
+
+@bp.route("/intro/ok", methods=["POST"])
+@login_required
+def intro_ok():
+    secretstore.set("intro_seen", "1")
+    return back(url_for("main.dashboard"))
