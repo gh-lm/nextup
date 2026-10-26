@@ -32,10 +32,25 @@ if you add a key, TMDB, to look up the shows and movies you asked for.
 
 ```yaml
 services:
+  nextup-init:
+    image: ghcr.io/gh-lm/nextup:latest
+    user: "0:0"
+    entrypoint: ["chown", "-R", "1000:1000", "/data"]
+    restart: "no"
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+    read_only: true
+    volumes:
+      - /opt/nextup:/data
   nextup:
     image: ghcr.io/gh-lm/nextup:latest
     container_name: nextup
     restart: unless-stopped
+    depends_on:
+      nextup-init:
+        condition: service_completed_successfully
     ports:
       - "127.0.0.1:4090:8080"
     security_opt:
@@ -53,17 +68,15 @@ services:
 ```
 
 ```bash
-sudo mkdir -p /opt/nextup
-sudo chown -R 1000:1000 /opt/nextup
 docker compose up -d
 ```
 
 Open <http://localhost:4090> and sign in with **admin** and **nextup**. Nextup
 then makes you choose your own password before it shows anything else.
 
-The container runs as user 1000, not root, so the `chown` above matters.
-Without it Nextup cannot write to the directory you mounted, and it fails to
-start with a permission error on `/data/session.key`.
+Everything lives in `/opt/nextup`. The small `nextup-init` service runs once
+at start, gives that folder to user 1000 and exits, so there is nothing to set
+up by hand. Nextup itself never runs as root.
 
 Nextup needs no sign-up to start. It looks shows and movies up on TheTVDB
 through a small service run by Lightmorphic, which holds the TheTVDB key so

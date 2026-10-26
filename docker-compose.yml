@@ -1,8 +1,24 @@
 services:
+  nextup-init:
+    image: ghcr.io/gh-lm/nextup:latest
+    user: "0:0"
+    entrypoint: ["chown", "-R", "1000:1000", "/data"]
+    restart: "no"
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+    read_only: true
+    volumes:
+      - /opt/nextup:/data
+
   nextup:
     image: ghcr.io/gh-lm/nextup:latest
     container_name: nextup
     restart: unless-stopped
+    depends_on:
+      nextup-init:
+        condition: service_completed_successfully
     ports:
       - "127.0.0.1:4090:8080"
     security_opt:
