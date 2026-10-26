@@ -52,6 +52,7 @@
 {% endif %}
 
 <main class="shell" id="content">
+  {% include "partials/_loading.html" %}
   {% set loose = notes | rejectattr('panel') | list %}
   {% if loose %}
     <div role="status" class="notes">

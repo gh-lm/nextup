@@ -28,7 +28,7 @@ SELECTS = {
 }
 
 NOT_BACKED_UP = (
-    "session_epoch", "tmdb_api_key", "tvdb_api_key", "source_first", "country",
+    "session_epoch", "intro_seen", "tmdb_api_key", "tvdb_api_key", "source_first", "country",
     "watch_languages", "watch_all_languages", "countries_cache", "countries_fetched_at",
 )
 

@@ -96,3 +96,25 @@ def test_an_older_number_only_matches_a_record_listed_under_it(monkeypatch):
     monkeypatch.setattr(tvdb, "_get", fake)
     assert tvdb.find_by_tmdb(1396, "tv") == tvdb.internal(11)
     assert tvdb.find_by_tmdb(77, "tv") is None
+
+def test_a_running_refresh_shows_a_loading_card_and_a_status(signed_in, monkeypatch):
+    from app import sync
+
+    monkeypatch.setattr(sync, "_running", True)
+    monkeypatch.setitem(sync._progress, "done", 12)
+    monkeypatch.setitem(sync._progress, "total", 94)
+    page = signed_in.get("/").get_data(as_text=True)
+    assert "12 of 94 done." in page
+    assert signed_in.get("/sync/status").get_json() == {"running": True, "done": 12, "total": 94}
+
+def test_no_loading_card_when_nothing_is_running(signed_in):
+    assert "loading-count" not in signed_in.get("/").get_data(as_text=True)
+    assert signed_in.get("/sync/status").get_json()["running"] is False
+
+def test_the_slow_first_load_card_shows_until_ok_is_pressed_and_comes_back_after_a_restore(signed_in):
+    from app import secretstore, transfer
+
+    assert "The first load can take a while" in signed_in.get("/").get_data(as_text=True)
+    signed_in.post("/intro/ok")
+    assert "The first load can take a while" not in signed_in.get("/").get_data(as_text=True)
+    assert "intro_seen" in transfer.NOT_BACKED_UP

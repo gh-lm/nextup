@@ -1,0 +1,16 @@
+{% if show_intro %}
+<section class="panel loading-card" aria-labelledby="intro-title">
+  <h2 id="intro-title">The first load can take a while</h2>
+  <p>Nextup gets the names, pictures and episodes of your shows and movies from TheTVDB, and TheTVDB limits how quickly they can be asked for. Nextup keeps within that limit, so filling in a long list can take several minutes. Pictures and names appear as they arrive, and everything works in the meantime.</p>
+  <form method="post" action="{{ url_for('main.intro_ok') }}">
+    <button class="btn btn-primary" type="submit">OK, I understand</button>
+  </form>
+</section>
+{% endif %}
+{% if loading %}
+{% set loading_percent = loading.done * 100 // loading.total %}
+<section class="panel loading-card" id="loading-card" aria-label="Loading">
+  <p><strong>Fetching your shows and movies from TheTVDB.</strong> <span id="loading-count">{{ loading.done }} of {{ loading.total }} done.</span> Names and pictures fill in as it goes, and this page updates itself.</p>
+  <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="{{ loading.total }}" aria-valuenow="{{ loading.done }}" aria-label="Refresh progress"><span style="width: {{ loading_percent }}%"></span></div>
+</section>
+{% endif %}

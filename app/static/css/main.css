@@ -291,6 +291,11 @@ textarea { min-height: 120px; resize: vertical; }
 }
 .progress span { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
 
+.loading-card { margin: 20px 0; }
+.loading-card p { margin: 0 0 12px; color: var(--muted-fg); }
+.loading-card h2 { margin: 0 0 8px; font-size: 1.125rem; }
+.loading-card form { margin: 0; }
+
 .show-grid {
   display: grid; gap: 20px;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));

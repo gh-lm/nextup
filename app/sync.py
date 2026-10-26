@@ -7,6 +7,7 @@ from . import catalog, clock, config, db, queries, secretstore, tvdb
 
 _sync_lock = threading.Lock()
 _running = False
+_progress = {"done": 0, "total": 0}
 
 def _age(stamp):
     try:
@@ -193,6 +194,12 @@ def upsert_movie(payload):
 def sync_movie(movie_id):
     upsert_movie(catalog.movie(movie_id))
 
+def progress():
+    return dict(_progress) if _running and _progress["total"] else None
+
+def _step():
+    _progress["done"] += 1
+
 def sync_all_movies(force=False):
     rows = db.query(
         "SELECT m.id, m.synced_at FROM movie m"
@@ -200,7 +207,9 @@ def sync_all_movies(force=False):
         " WHERE t.watched_at IS NULL"
     )
     done = 0
+    _progress["total"] += len(rows)
     for row in rows:
+        _step()
         age = _age(row["synced_at"])
         if not force and age is not None and age < timedelta(days=3):
             continue
@@ -234,7 +243,9 @@ def sync_all(force=False):
             " JOIN tracked_show t ON t.show_id = s.id"
             " WHERE t.shortlist = 0 AND (t.archived = 0 OR t.auto_unarchive = 1)"
         )
+        _progress.update(done=0, total=len(rows))
         for row in rows:
+            _step()
             if not _needs_refresh(row, force):
                 skipped += 1
                 continue

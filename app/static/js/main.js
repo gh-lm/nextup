@@ -170,4 +170,22 @@
     var box = document.getElementById('q');
     if (box) { event.preventDefault(); box.focus(); box.select(); }
   });
+
+  var card = document.getElementById('loading-card');
+  if (card && window.fetch) {
+    var poll = window.setInterval(function () {
+      fetch('/sync/status', { credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (state) {
+          if (!state) { return; }
+          if (!state.running) { window.clearInterval(poll); window.location.reload(); return; }
+          document.getElementById('loading-count').textContent = state.done + ' of ' + state.total + ' done.';
+          var bar = card.querySelector('.progress span');
+          bar.style.width = Math.floor(state.done * 100 / state.total) + '%';
+          bar.parentNode.setAttribute('aria-valuenow', state.done);
+          bar.parentNode.setAttribute('aria-valuemax', state.total);
+        })
+        .catch(function () {  });
+    }, 4000);
+  }
 })();

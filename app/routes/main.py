@@ -1,11 +1,12 @@
 import calendar as pycalendar
 from datetime import date, timedelta
 
-from flask import Blueprint, current_app, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, jsonify, redirect, render_template, request, session, url_for
 
 from .. import catalog, clock, queries, secretstore, sync
 from ..auth import login_required
 from ..forms import page_number, whole_number
+from ..redirects import back
 
 bp = Blueprint("main", __name__)
 
@@ -125,3 +126,15 @@ def search():
         page=page,
         total_pages=total_pages,
     )
+
+@bp.route("/sync/status")
+@login_required
+def sync_status():
+    found = sync.progress()
+    return jsonify(running=bool(found), **(found or {"done": 0, "total": 0}))
+
+@bp.route("/intro/ok", methods=["POST"])
+@login_required
+def intro_ok():
+    secretstore.set("intro_seen", "1")
+    return back(url_for("main.dashboard"))

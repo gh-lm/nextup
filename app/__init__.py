@@ -166,6 +166,8 @@ def _register_context(app):
 
     @app.context_processor
     def inject():
+        from . import sync
+
         accent = "brand"
         try:
             accent = secretstore.get("accent", "brand") or "brand"
@@ -182,4 +184,6 @@ def _register_context(app):
             "user": current_user() if session.get("logged_in") else None,
             "accent": accent,
             "today": clock.today_date(),
+            "loading": sync.progress() if session.get("logged_in") else None,
+            "show_intro": bool(session.get("logged_in")) and not secretstore.get("intro_seen"),
         }
