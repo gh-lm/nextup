@@ -711,6 +711,7 @@ textarea { min-height: 120px; resize: vertical; }
   font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
   letter-spacing: 0.05em; color: var(--muted-fg); padding-top: 2px;
 }
+@media (min-width: 900px) { .fact-list-wide { grid-template-columns: auto 1fr auto 1fr; gap: 12px 24px; } }
 .fact-list dd { margin: 0; font-size: 0.9375rem; min-width: 0; overflow-wrap: anywhere; }
 .tagline { font-style: italic; color: var(--muted-fg); margin: 0 0 12px; }
 

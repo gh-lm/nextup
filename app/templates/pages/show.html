@@ -120,11 +120,11 @@
 </article>
 
 {% if extras.cast or extras.creators or extras.imdb or extras.trailer %}
-<div class="split split-even">
+<div class="{{ 'split split-even' if extras.cast else '' }}">
   {% with cast=extras.cast %}{% include 'partials/_cast.html' %}{% endwith %}
   <section class="panel">
     <div class="panel-head"><h2>Details</h2></div>
-    <dl class="fact-list">
+    <dl class="fact-list{{ '' if extras.cast else ' fact-list-wide' }}">
       {% if extras.creators %}
         <dt>Created by</dt><dd>{{ extras.creators|join(', ') }}</dd>
       {% endif %}
