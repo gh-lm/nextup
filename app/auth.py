@@ -4,12 +4,12 @@ import secrets as pysecrets
 import time
 from functools import wraps
 
-from flask import flash, redirect, request, session, url_for
+from flask import redirect, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import config, db, secretstore
 
-STARTER_ALLOWED = {"settings.index", "settings.save_account", "auth.logout", "static"}
+STARTER_ALLOWED = {"auth.setup", "settings.index", "settings.save_account", "auth.logout", "static"}
 
 FREE_TRIES = 5
 MAX_DELAY = 300
@@ -46,8 +46,7 @@ def login_required(view):
             session.clear()
             return redirect(url_for("auth.login", next=request.full_path))
         if session.get("starter") and request.endpoint not in STARTER_ALLOWED:
-            flash("Choose your own password before anything else.", "error:account")
-            return redirect(url_for("settings.index", _anchor="account"))
+            return redirect(url_for("auth.setup"))
         return view(*args, **kwargs)
 
     return wrapped

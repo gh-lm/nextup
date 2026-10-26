@@ -31,7 +31,7 @@ def test_a_username_only_change_cannot_lift_the_starter_lock(app, client):
         from app import db
 
         assert db.query("SELECT username FROM admin_user WHERE id = 1", one=True)["username"] == "admin"
-    assert client.get("/").headers["Location"].endswith("/settings#account")
+    assert client.get("/").headers["Location"].endswith("/setup")
 
 def test_a_username_only_change_keeps_the_lock_off_once_a_password_is_chosen(app, signed_in):
     _account(signed_in, password="a-new-password", confirm="a-new-password")
@@ -45,7 +45,7 @@ def test_a_restore_of_the_default_password_puts_the_lock_back(app, signed_in):
         payload = transfer.export_data()
     assert "session_epoch" not in payload["data"]["settings"]
     _upload(signed_in, payload)
-    assert signed_in.get("/").headers["Location"].endswith("/settings#account")
+    assert signed_in.get("/").headers["Location"].endswith("/setup")
 
 def test_a_restore_ignores_a_session_epoch_in_the_file(app, signed_in):
     with app.app_context():

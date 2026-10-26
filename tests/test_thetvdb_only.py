@@ -118,3 +118,16 @@ def test_the_slow_first_load_card_shows_until_ok_is_pressed_and_comes_back_after
     signed_in.post("/intro/ok")
     assert "The first load can take a while" not in signed_in.get("/").get_data(as_text=True)
     assert "intro_seen" in transfer.NOT_BACKED_UP
+
+def test_first_sign_in_goes_to_a_page_that_picks_the_username_and_password(client):
+    page = client.post("/login", data={"username": "admin", "password": "nextup"}, follow_redirects=True)
+    assert page.request.path == "/setup"
+    assert client.get("/").headers["Location"].endswith("/setup")
+    bad = client.post("/setup", data={"username": "Charlie", "password": "short", "confirm": "short"})
+    assert "at least 8" in bad.get_data(as_text=True)
+    ok = client.post("/setup", data={"username": "Charlie", "password": "a-long-own-password", "confirm": "a-long-own-password"})
+    assert ok.headers["Location"] == "/"
+    assert client.get("/").status_code == 200
+    client.post("/logout")
+    again = client.post("/login", data={"username": "Charlie", "password": "a-long-own-password"})
+    assert again.headers["Location"] == "/"

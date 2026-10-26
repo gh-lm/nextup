@@ -1,7 +1,8 @@
 from flask import Blueprint, redirect, render_template, request, session, url_for
 
-from .. import config
-from ..auth import check_login, forget_failures, record_failure, sign_in_wait, start_session
+from .. import config, db
+from ..auth import (change_account, check_login, forget_failures, login_required, record_failure,
+                    sign_in_wait, start_session)
 from ..redirects import is_local_path
 
 bp = Blueprint("auth", __name__)
@@ -33,3 +34,28 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for("auth.login"))
+
+@bp.route("/setup", methods=["GET", "POST"])
+@login_required
+def setup():
+    if not session.get("starter"):
+        return redirect(url_for("main.dashboard"))
+    current = db.query("SELECT username FROM admin_user WHERE id = 1", one=True)
+    username = current["username"] if current else "admin"
+    error = None
+    if request.method == "POST":
+        username = (request.form.get("username") or "").strip()
+        password = request.form.get("password") or ""
+        confirm = request.form.get("confirm") or ""
+        if not username:
+            error = "The username cannot be empty."
+        elif len(password) < 8:
+            error = "Use at least 8 characters for the password."
+        elif password != confirm:
+            error = "The two passwords did not match."
+        elif password == config.DEFAULT_PASSWORD:
+            error = "Choose a password of your own. The starting one is public."
+        else:
+            change_account(username, password)
+            return redirect(url_for("main.dashboard"))
+    return render_template("pages/setup.html", username=username, error=error)

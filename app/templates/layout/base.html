@@ -10,7 +10,7 @@
 <link rel="icon" href="{{ url_for('static', filename='img/icon.svg') }}" type="image/svg+xml">
 </head>
 <body>
-{% if user %}
+{% if user and not starter %}
 <header class="topbar">
   <div class="topbar-inner">
     <a class="brand" href="{{ url_for('main.dashboard') }}"
@@ -63,7 +63,7 @@
   {% block body %}{% endblock %}
 </main>
 
-{% if user %}
+{% if user and not starter %}
 <footer class="site-footer">
   <span>Nextup {{ app_version }}</span>
   <span>Metadata provided by <a href="https://thetvdb.com" rel="noopener noreferrer">TheTVDB</a>. Please consider adding missing information or <a href="https://thetvdb.com/subscribe" rel="noopener noreferrer">subscribing</a>.</span>

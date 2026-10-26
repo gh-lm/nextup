@@ -182,8 +182,9 @@ def _register_context(app):
             "app_version": __version__,
             "notes": notes,
             "user": current_user() if session.get("logged_in") else None,
+            "starter": bool(session.get("starter")),
             "accent": accent,
             "today": clock.today_date(),
             "loading": sync.progress() if session.get("logged_in") else None,
-            "show_intro": bool(session.get("logged_in")) and not secretstore.get("intro_seen"),
+            "show_intro": bool(session.get("logged_in")) and not session.get("starter") and not secretstore.get("intro_seen"),
         }
