@@ -91,35 +91,11 @@ def test_only_one_key_means_only_that_source(keyed):
     with pytest.raises(tvdb.TvdbError):
         catalog.show_providers(tvdb.internal(1))
 
-def test_a_bad_tvdb_key_is_explained_and_not_saved(signed_in, app, monkeypatch):
-    def refuse(key):
-        raise tvdb.TvdbError("TheTVDB rejected that key.")
-
-    monkeypatch.setattr(tvdb, "verify_key", refuse)
-    response = signed_in.post("/settings/tvdb", data={"tvdb_api_key": "bad"}, follow_redirects=True)
-    assert b"TheTVDB rejected that key." in response.data
-    with app.app_context():
-        assert not secretstore.has("tvdb_api_key")
-
-def test_a_good_tvdb_key_is_saved_and_the_source_choice_sticks(signed_in, app, monkeypatch):
-    monkeypatch.setattr(tvdb, "verify_key", lambda key: None)
-    signed_in.post("/settings/tvdb", data={"tvdb_api_key": "good"})
+def test_the_source_choice_sticks(signed_in, app):
     signed_in.post("/settings/source", data={"source_first": "tmdb"})
     with app.app_context():
-        assert secretstore.has("tvdb_api_key")
         assert catalog.first_name() == "tmdb"
     assert signed_in.post("/settings/source", data={"source_first": "x"}).status_code == 302
-
-def test_the_welcome_page_takes_a_tvdb_key(signed_in, app, monkeypatch):
-    with signed_in.session_transaction() as sess:
-        sess.pop("skip_welcome")
-    body = signed_in.get("/").get_data(as_text=True)
-    assert "thetvdb.com/api-information/signup" in body
-    monkeypatch.setattr(tvdb, "verify_key", lambda key: None)
-    monkeypatch.setattr(sync, "start_now", lambda app: None)
-    assert signed_in.post("/welcome", data={"tvdb_api_key": "abc"}).status_code == 302
-    with app.app_context():
-        assert secretstore.has("tvdb_api_key") and catalog.first_name() == "tvdb"
 
 def test_the_footer_credits_thetvdb_once_a_key_is_saved(signed_in, keyed):
     assert "Metadata provided by" in signed_in.get("/settings").get_data(as_text=True)
@@ -164,12 +140,12 @@ def test_a_saved_key_of_their_own_goes_straight_to_thetvdb(app, monkeypatch):
         tvdb._get("/series/1/extended")
     assert seen["url"].startswith(tvdb.BASE) and seen["headers"]["Authorization"] == "Bearer tok"
 
-def test_with_the_relay_the_welcome_page_is_skipped_and_settings_says_so(signed_in, monkeypatch):
+def test_with_the_relay_the_welcome_page_is_skipped(signed_in, monkeypatch):
     monkeypatch.setattr(tvdb, "RELAY_URL", RELAY)
     with signed_in.session_transaction() as sess:
         sess.pop("skip_welcome")
     assert "One step to start" not in signed_in.get("/").get_data(as_text=True)
-    assert "through its own service" in signed_in.get("/settings").get_data(as_text=True)
+    assert b"TheTVDB key" not in signed_in.get("/settings").data
 
 def test_a_tmdb_show_keeps_refreshing_from_tvdb_when_the_tmdb_key_is_gone(keyed, monkeypatch):
     sid = 41956

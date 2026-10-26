@@ -38,4 +38,4 @@ def test_do_this_later_goes_to_the_dashboard_with_the_old_reminder(fresh):
     assert fresh.post("/welcome/later").status_code == 302
     body = fresh.get("/").get_data(as_text=True)
     assert "One step to start" not in body
-    assert "No TheTVDB or TMDB key yet" in body
+    assert "No TMDB key yet" in body

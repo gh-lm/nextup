@@ -68,10 +68,7 @@ start with a permission error on `/data/session.key`.
 Nextup needs no sign-up to start. It looks shows and movies up on TheTVDB
 through a small service run by Lightmorphic, which holds the TheTVDB key so
 that you do not need one. The service keeps no record of who looks up what;
-Cloudflare, which runs it, sees ordinary request logs. If you would rather go
-straight to TheTVDB, ask for your own key at
-<https://thetvdb.com/api-information/signup> (choose the plan for projects
-earning under 50,000 dollars a year) and paste it into Settings.
+Cloudflare, which runs it, sees ordinary request logs.
 
 A TMDB key is optional and adds Discover, where to watch, trailers and the
 cast. Make an account, go to <https://www.themoviedb.org/settings/api>, and

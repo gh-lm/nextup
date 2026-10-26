@@ -58,8 +58,6 @@ def index():
     return render_template(
         "pages/settings.html",
         has_key=secretstore.has("tmdb_api_key"),
-        has_tvdb=secretstore.has("tvdb_api_key"),
-        relay_tvdb=catalog.tvdb.using_relay(),
         source_first=catalog.first_name(),
         unreadable=secretstore.unreadable(),
         backup=transfer.counts(),
@@ -100,27 +98,6 @@ def clear_tmdb():
         return notify("tmdb", "Tick \"Yes, remove it\" to remove the key.", "error")
     secretstore.delete("tmdb_api_key")
     return notify("tmdb", "Key removed.", "success")
-
-@bp.route("/settings/tvdb", methods=["POST"])
-@login_required
-def save_tvdb():
-    key = (request.form.get("tvdb_api_key") or "").strip()
-    if not key:
-        return notify("tvdb", "Paste a key first.", "error")
-    try:
-        catalog.tvdb.verify_key(key)
-    except catalog.TmdbError as exc:
-        return notify("tvdb", str(exc), "error")
-    secretstore.set("tvdb_api_key", key, encrypted=True)
-    return notify("tvdb", "Key checked against TheTVDB and saved, encrypted.", "success")
-
-@bp.route("/settings/tvdb/clear", methods=["POST"])
-@login_required
-def clear_tvdb():
-    if not confirmed():
-        return notify("tvdb", "Tick \"Yes, remove it\" to remove the key.", "error")
-    secretstore.delete("tvdb_api_key")
-    return notify("tvdb", "Key removed.", "success")
 
 @bp.route("/settings/source", methods=["POST"])
 @login_required
