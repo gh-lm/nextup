@@ -3,7 +3,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 
-from . import catalog, clock, config, db, queries, secretstore
+from . import catalog, clock, config, db, queries, secretstore, tvdb
 
 _sync_lock = threading.Lock()
 _running = False
@@ -282,6 +282,7 @@ def start_now(app, force=True):
         return False
 
     def work():
+        tvdb.patient()
         with app.app_context():
             try:
                 sync_all(force=force)
@@ -294,6 +295,7 @@ def start_now(app, force=True):
 def start_background(app):
 
     def loop():
+        tvdb.patient()
         time.sleep(20)
         while True:
             with app.app_context():

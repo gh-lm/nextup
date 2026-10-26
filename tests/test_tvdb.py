@@ -126,3 +126,26 @@ def test_cast_comes_from_the_characters_in_order_with_photos():
     assert cast[0]["profile_path"] is None
     assert cast[1]["profile_path"] == "/tvdb__banners__v4__actor__2__photo__b.jpg"
     assert tvdb.cast_from({"credits": tvdb._credits(record)})[1]["role"] == "Role B"
+
+def test_a_background_refresh_waits_out_a_refusal_but_a_page_does_not(app, monkeypatch):
+    class Reply:
+        def __init__(self, status):
+            self.status_code, self.ok, self.headers = status, status == 200, {"Retry-After": "7"}
+
+        def json(self):
+            return {"data": {"ok": True}}
+
+    def run(patient):
+        replies = [Reply(429), Reply(200)]
+        sleeps = []
+        monkeypatch.setattr(tvdb.requests, "get", lambda *a, **k: replies.pop(0))
+        monkeypatch.setattr(tvdb.time, "sleep", sleeps.append)
+        tvdb._mode.patient = patient
+        try:
+            assert tvdb._get("/x") == {"ok": True}
+        finally:
+            tvdb._mode.patient = False
+        return sleeps
+
+    assert 7 in run(True)
+    assert 7 not in run(False)

@@ -1,5 +1,6 @@
 """TheTVDB v4 client, reached through Nextup's own relay so nobody needs a key of their own."""
 import re
+import threading
 import time
 from urllib.parse import urlsplit
 
@@ -11,6 +12,13 @@ TIMEOUT = 20
 OFFSET = 10**9
 IMAGE_PREFIX = "/tvdb__"
 EPISODES_KEPT = 60
+PACE = 1.5
+_mode = threading.local()
+_pace_lock = threading.Lock()
+_last_call = [0.0]
+
+def patient():
+    _mode.patient = True
 
 LANGUAGES = {
     "eng": "en", "fra": "fr", "deu": "de", "spa": "es", "ita": "it", "jpn": "ja",
@@ -37,9 +45,21 @@ def internal(tvdb_id):
 def _unreachable(exc):
     return TvdbError(f"Could not reach TheTVDB ({type(exc).__name__}).")
 
+def _wait_turn():
+    with _pace_lock:
+        gap = _last_call[0] + PACE - time.monotonic()
+        if gap > 0:
+            time.sleep(gap)
+        _last_call[0] = time.monotonic()
+
 def _get(path, params=None, tries=3):
+    waiting = getattr(_mode, "patient", False)
+    if waiting:
+        tries = 6
     for attempt in range(tries):
         last = attempt == tries - 1
+        if waiting:
+            _wait_turn()
         try:
             resp = requests.get(f"{RELAY_URL}/v4{path}", params=params, timeout=TIMEOUT, headers={"User-Agent": "Nextup"})
         except requests.RequestException as exc:
@@ -52,7 +72,8 @@ def _get(path, params=None, tries=3):
         if resp.status_code == 429 or not resp.ok:
             if last:
                 raise TvdbError(f"TheTVDB returned {resp.status_code}.")
-            time.sleep(1 + attempt)
+            retry = resp.headers.get("Retry-After", "")
+            time.sleep(min(int(retry), 65) if waiting and retry.isdigit() else 1 + attempt)
             continue
         try:
             return resp.json().get("data")
