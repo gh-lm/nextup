@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Security: Nextup</title>
-<meta name="description" content="How Nextup keeps your password, your API keys and your data safe, what it does not do, and how to report a problem.">
+<meta name="description" content="How Nextup keeps your password, your mail password and your data safe, what it does not do, and how to report a problem.">
 <link rel="canonical" href="https://nextup.lightmorphic.com/security.html">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/site.css?v=f378da080b">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Nextup">
 <meta property="og:title" content="Security: Nextup">
-<meta property="og:description" content="How Nextup keeps your password, your API keys and your data safe, what it does not do, and how to report a problem.">
+<meta property="og:description" content="How Nextup keeps your password, your mail password and your data safe, what it does not do, and how to report a problem.">
 <meta property="og:url" content="https://nextup.lightmorphic.com/security.html">
 <meta property="og:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
 <meta property="og:image:width" content="1200">
@@ -19,7 +19,7 @@
 <meta property="og:image:alt" content="The Nextup dashboard, listing TV shows with the next episode to watch.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Security: Nextup">
-<meta name="twitter:description" content="How Nextup keeps your password, your API keys and your data safe, what it does not do, and how to report a problem.">
+<meta name="twitter:description" content="How Nextup keeps your password, your mail password and your data safe, what it does not do, and how to report a problem.">
 <meta name="twitter:image" content="https://nextup.lightmorphic.com/images/nextup-social-card.png">
 </head>
 <body>
@@ -34,7 +34,6 @@
     <nav aria-label="Main">
       <a href="index.html#watching">Watching</a>
       <a href="index.html#install">Install</a>
-      <a href="index.html#deciding">Deciding</a>
       <a href="index.html#email">The email</a>
       <div id="all-apps"></div>
     </nav>
@@ -75,8 +74,8 @@
             turned back into the password.
           </p>
           <p>
-            Your API keys and your mail password are encrypted before they go into the
-            database. The key that encrypts them sits beside the database as
+            Your mail password is encrypted before they go into the
+            database. The key that encrypts it sits beside the database as
             <code>secret.key</code>, readable only by the user the app runs as. The login
             cookie is signed with a second key, <code>session.key</code>, kept the same
             way.
@@ -189,7 +188,6 @@ tmpfs:
         <ul>
           <li><a href="index.html#watching">Watching</a></li>
           <li><a href="index.html#install">Install</a></li>
-          <li><a href="index.html#deciding">Deciding</a></li>
           <li><a href="index.html#email">The email</a></li>
           <li><a href="documentation.html">Documentation</a></li>
           <li><a href="runbook.html">Runbook</a></li>

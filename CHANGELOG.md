@@ -3,14 +3,16 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
-## [2.0.0], 2026-10-25
+## [2.0.0], 2026-10-26
 
-TheTVDB joins TMDB. Your data is untouched, and nothing changes until you add a TheTVDB key.
+Nextup now uses TheTVDB for everything, and nothing needs a key. Your shows and watched marks carry over.
 
-- **TheTVDB as a source, with nothing to sign up for.** Nextup finds shows and movies, and fetches their episodes, dates and covers, from TheTVDB through its own small lookup service, which holds the key so you do not need one. A TMDB key is now optional. Paste a key of your own under Settings to go straight to TheTVDB instead.
-- **Choose which is asked first.** With a TMDB key saved as well, Settings has a "Which source first" choice. The first is used for searches and new shows. The other fills anything left empty, such as a missing summary, cover or episode date. TheTVDB is the default first source.
-- **TMDB still adds the extras.** Discover, where to watch, trailers and the cast need a TMDB key. A show found through TheTVDB gets them too when a TMDB key is saved.
-- **Your shows carry over.** Shows saved under TMDB numbers keep their watched marks and refresh from TheTVDB when there is no TMDB key.
+- **TheTVDB for everything, with nothing to sign up for.** Nextup finds shows and movies, and fetches their episodes, dates, covers and cast, from TheTVDB through its own small lookup service, which holds the key so you do not need one.
+- **TMDB is gone.** Discover, where to watch, streaming alerts, age certificates, star ratings, taglines, guest cast, and the country and language settings went with it. No key of any kind is asked for.
+- **Movies use their release date.** A movie sits under coming soon until its release date has passed, then moves to ready to watch by itself. The date is re-checked every few days.
+- **Your shows carry over.** Shows saved under TMDB numbers are matched to TheTVDB on their next refresh, and keep their watched marks.
+- **Smaller backups.** A backup holds what you follow, what you watched and your settings. Names, pictures and dates are fetched fresh from TheTVDB when you restore. The mail password is the only secret left.
+- **Easier to install.** Nextup gives the data folder to its own user when it starts, so there is no chown step and no helper container.
 - **Credit.** The footer carries TheTVDB's credit and a link, as their terms ask.
 
 ## [1.7.2], 2026-10-24

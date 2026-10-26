@@ -1,4 +1,4 @@
-"""One place that turns a TMDB image path into a file on this server."""
+"""One place that turns a stored image path into a file on this server."""
 import hashlib
 import os
 import re
@@ -6,9 +6,7 @@ import tempfile
 
 import requests
 
-from . import config
-from . import tvdb
-from .tmdb import IMAGE_BASE
+from . import config, tvdb
 
 ALLOWED_SIZES = {"w92", "w154", "w185", "w300", "w342", "w500", "w780", "original"}
 MAX_BYTES = 10 * 1024 * 1024
@@ -18,16 +16,16 @@ def cache_name(size, clean_path):
     suffix = os.path.splitext(clean_path)[1]
     return hashlib.sha256(f"{size}{clean_path}".encode()).hexdigest() + suffix
 
-def normalise(tmdb_path):
-    if not tmdb_path:
+def normalise(image_path):
+    if not image_path:
         return None
-    clean = "/" + str(tmdb_path).lstrip("/")
+    clean = "/" + str(image_path).lstrip("/")
     return clean if PATH_RE.fullmatch(clean) else None
 
-def cached_file(size, tmdb_path):
+def cached_file(size, image_path):
     if size not in ALLOWED_SIZES:
         return None
-    clean = normalise(tmdb_path)
+    clean = normalise(image_path)
     if clean is None:
         return None
 
@@ -37,7 +35,8 @@ def cached_file(size, tmdb_path):
     if os.path.exists(path):
         return path
 
-    body = _download(tvdb.image_url(clean) or f"{IMAGE_BASE}/{size}{clean}")
+    url = tvdb.image_url(clean)
+    body = _download(url) if url else None
     if body is None:
         return None
 
@@ -74,8 +73,8 @@ def _download(url):
         return None
     return bytes(body)
 
-def read_bytes(size, tmdb_path):
-    path = cached_file(size, tmdb_path)
+def read_bytes(size, image_path):
+    path = cached_file(size, image_path)
     if path is None:
         return None, None
     try:

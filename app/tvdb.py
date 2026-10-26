@@ -1,15 +1,11 @@
-"""TheTVDB v4 client. It answers in the shapes tmdb.py returns, so the rest of the app does not care which source a record came from."""
+"""TheTVDB v4 client, reached through Nextup's own relay so nobody needs a key of their own."""
 import re
-import threading
 import time
 from urllib.parse import urlsplit
 
 import requests
 
-from . import secretstore
-from .tmdb import TmdbError
-
-BASE = "https://api4.thetvdb.com/v4"
+RELAY_URL = "https://tvdb-relay.lightmorphic.com"
 IMAGE_HOST = "artworks.thetvdb.com"
 TIMEOUT = 20
 OFFSET = 10**9
@@ -24,14 +20,9 @@ LANGUAGES = {
 }
 STATUSES = {"Continuing": "Returning Series", "Ended": "Ended", "Upcoming": "In Production"}
 
-class TvdbError(TmdbError):
+class TvdbError(RuntimeError):
     pass
 
-class MissingKey(TvdbError):
-    pass
-
-_token = {"value": None, "at": 0.0}
-_token_lock = threading.Lock()
 _episodes = {}
 
 def is_tvdb(record_id):
@@ -43,70 +34,19 @@ def raw(record_id):
 def internal(tvdb_id):
     return OFFSET + int(tvdb_id)
 
-RELAY_URL = "https://tvdb-relay.lightmorphic.com"
-
-def own_key():
-    return secretstore.get("tvdb_api_key")
-
-def using_relay():
-    return not own_key() and RELAY_URL is not None
-
-def api_key():
-    key = own_key()
-    if not key:
-        raise MissingKey("No TheTVDB API key saved. Add one on the Settings page.")
-    return key
-
-def has_key():
-    return bool(own_key()) or RELAY_URL is not None
-
-def _target():
-    if using_relay():
-        return f"{RELAY_URL}/v4", {"User-Agent": "Nextup"}
-    return BASE, {"Authorization": f"Bearer {_bearer()}"}
-
 def _unreachable(exc):
     return TvdbError(f"Could not reach TheTVDB ({type(exc).__name__}).")
 
-def _login(key):
-    try:
-        resp = requests.post(f"{BASE}/login", json={"apikey": key}, timeout=TIMEOUT)
-    except requests.RequestException as exc:
-        raise _unreachable(exc) from None
-    if resp.status_code == 401:
-        raise TvdbError("TheTVDB rejected that key.")
-    if not resp.ok:
-        raise TvdbError(f"TheTVDB returned {resp.status_code}.")
-    try:
-        return resp.json()["data"]["token"]
-    except (ValueError, KeyError, TypeError):
-        raise TvdbError("TheTVDB sent a reply Nextup could not read.") from None
-
-def _bearer(fresh=False):
-    with _token_lock:
-        if fresh or not _token["value"] or time.time() - _token["at"] > 20 * 24 * 3600:
-            _token["value"] = _login(api_key())
-            _token["at"] = time.time()
-        return _token["value"]
-
 def _get(path, params=None, tries=3):
-    refreshed = False
     for attempt in range(tries):
         last = attempt == tries - 1
         try:
-            base, headers = _target()
-            resp = requests.get(f"{base}{path}", params=params, timeout=TIMEOUT, headers=headers)
+            resp = requests.get(f"{RELAY_URL}/v4{path}", params=params, timeout=TIMEOUT, headers={"User-Agent": "Nextup"})
         except requests.RequestException as exc:
             if last:
                 raise _unreachable(exc) from None
             time.sleep(1 + attempt)
             continue
-        if resp.status_code == 401 and not refreshed and not using_relay():
-            refreshed = True
-            _bearer(fresh=True)
-            continue
-        if resp.status_code == 401:
-            raise TvdbError("TheTVDB rejected the API key. Check it on the Settings page.")
         if resp.status_code == 404:
             raise TvdbError("TheTVDB has no record of that.")
         if resp.status_code == 429 or not resp.ok:
@@ -119,9 +59,6 @@ def _get(path, params=None, tries=3):
         except ValueError:
             raise TvdbError("TheTVDB sent a reply Nextup could not read.") from None
     raise TvdbError("TheTVDB kept refusing the request.")
-
-def verify_key(candidate):
-    _login(candidate)
 
 def image(url):
     try:
@@ -147,10 +84,6 @@ def _remote(record, source):
         if entry.get("sourceName") == source and entry.get("id"):
             return str(entry["id"])
     return None
-
-def _tmdb_id(record):
-    value = _remote(record, "TheMovieDB.com")
-    return int(value) if value and value.isdigit() else None
 
 def _overview(kind, number, record):
     if record.get("overview"):
@@ -226,7 +159,6 @@ def show(show_id, full=False):
         "genres": [{"name": g.get("name")} for g in record.get("genres") or []],
         "videos": _trailers(record),
         "external_ids": _external_ids(record),
-        "tmdb_id": _tmdb_id(record),
         "credits": _credits(record),
     }
 
@@ -287,7 +219,6 @@ def movie(movie_id, full=False):
         "genres": [{"name": g.get("name")} for g in record.get("genres") or []],
         "videos": _trailers(record),
         "external_ids": _external_ids(record),
-        "tmdb_id": _tmdb_id(record),
         "credits": _credits(record),
     }
 
@@ -295,12 +226,46 @@ def movie_detail(movie_id):
     return movie(movie_id, full=True)
 
 def find_by_tmdb(tmdb_id, kind):
+    path = "series" if kind == "tv" else "movies"
     try:
         found = _get(f"/search/remoteid/{int(tmdb_id)}") or []
+        for entry in found:
+            record = entry.get("series" if kind == "tv" else "movie")
+            if not record or not record.get("id"):
+                continue
+            full = _get(f"/{path}/{record['id']}/extended", {"short": "true"}) or {}
+            if _remote(full, "TheMovieDB.com") == str(int(tmdb_id)):
+                return internal(record["id"])
     except TvdbError:
         return None
-    for entry in found:
-        record = entry.get("series" if kind == "tv" else "movie")
-        if record and record.get("id"):
-            return internal(record["id"])
     return None
+
+def safe_url(value):
+    try:
+        parts = urlsplit(value or "")
+    except ValueError:
+        return None
+    return value if parts.scheme in ("http", "https") and parts.netloc else None
+
+def cast_from(payload, limit=14):
+    people = [
+        {"name": p.get("name"), "role": p.get("character"), "profile_path": p.get("profile_path")}
+        for p in (payload.get("credits") or {}).get("cast") or []
+    ]
+    return [p for p in people if p["name"]][:limit]
+
+def genres_from(payload):
+    return [g.get("name") for g in (payload.get("genres") or []) if g.get("name")]
+
+def trailer_from(payload):
+    for video in (payload.get("videos") or {}).get("results") or []:
+        key = video.get("key") or ""
+        if re.fullmatch(r"[A-Za-z0-9_-]+", key):
+            return {"name": video.get("name"), "url": f"https://www.youtube.com/watch?v={key}"}
+    return None
+
+def imdb_from(payload):
+    imdb_id = payload.get("imdb_id") or (payload.get("external_ids") or {}).get("imdb_id")
+    if not re.fullmatch(r"tt\d+", str(imdb_id or "")):
+        return None
+    return f"https://www.imdb.com/title/{imdb_id}/"

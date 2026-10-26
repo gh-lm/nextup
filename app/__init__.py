@@ -5,7 +5,7 @@ from datetime import datetime
 
 from flask import Flask
 
-from . import clock, config, db, languages, tvdb
+from . import clock, config, db, languages
 
 def _read_version():
     path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "VERSION")
@@ -46,7 +46,6 @@ def create_app(start_sync=True):
     app.teardown_appcontext(db.close_db)
 
     from .routes import auth as auth_routes
-    from .routes import discover as discover_routes
     from .routes import images as image_routes
     from .routes import main as main_routes
     from .routes import movies as movie_routes
@@ -54,7 +53,6 @@ def create_app(start_sync=True):
     from .routes import shows as show_routes
 
     app.register_blueprint(auth_routes.bp)
-    app.register_blueprint(discover_routes.bp)
     app.register_blueprint(main_routes.bp)
     app.register_blueprint(show_routes.bp)
     app.register_blueprint(movie_routes.bp)
@@ -180,9 +178,6 @@ def _register_context(app):
 
         return {
             "app_version": __version__,
-            "has_tmdb": secretstore.has("tmdb_api_key"),
-            "credit_tvdb": tvdb.has_key(),
-            "credit_tmdb": secretstore.has("tmdb_api_key") or not tvdb.has_key(),
             "notes": notes,
             "user": current_user() if session.get("logged_in") else None,
             "accent": accent,

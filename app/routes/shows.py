@@ -1,6 +1,6 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
-from .. import catalog, clock, db, queries, sync
+from .. import catalog, clock, db, queries, sync, tvdb
 from ..auth import login_required
 from ..forms import confirmed, wanted_state
 from ..redirects import back_to
@@ -58,34 +58,27 @@ def detail(show_id):
     if row is None:
         try:
             sync.upsert_show(catalog.show(show_id), stamp=False)
-        except catalog.TmdbError as exc:
+        except catalog.TvdbError as exc:
             flash(str(exc), "error")
             return redirect(url_for("main.search"))
         row = db.query("SELECT * FROM show WHERE id = ?", (show_id,), one=True)
         if row is None:
             abort(404)
 
-    extras = {"cast": [], "genres": [], "creators": [], "providers": [],
-              "trailer": None, "imdb": None,
-              "certification": None, "tagline": None, "homepage": None}
+    extras = {"cast": [], "genres": [], "trailer": None, "imdb": None}
     try:
         payload = catalog.show_detail(show_id)
         extras.update(
-            cast=catalog.cast_from(payload),
-            genres=catalog.genres_from(payload),
-            creators=catalog.creators_from(payload),
-            providers=catalog.providers_from(payload)[0],
-            trailer=catalog.trailer_from(payload),
-            imdb=catalog.imdb_from(payload),
-            certification=catalog.certification_from(payload),
-            tagline=payload.get("tagline") or None,
-            homepage=catalog.safe_url(payload.get("homepage")),
+            cast=tvdb.cast_from(payload),
+            genres=tvdb.genres_from(payload),
+            trailer=tvdb.trailer_from(payload),
+            imdb=tvdb.imdb_from(payload),
         )
         if row["original_language"] is None and payload.get("original_language"):
             db.execute("UPDATE show SET original_language = ? WHERE id = ?",
                        (payload["original_language"], show_id))
             row = db.query("SELECT * FROM show WHERE id = ?", (show_id,), one=True)
-    except catalog.TmdbError:
+    except catalog.TvdbError:
         pass
 
     tracked_row = queries.show_list_state(show_id)
@@ -111,7 +104,7 @@ def track(show_id):
     failed = []
     try:
         name = sync.sync_show(show_id, failed)
-    except catalog.TmdbError as exc:
+    except catalog.TvdbError as exc:
         flash(str(exc), "error")
         return back_to("main.search", q="")
     db.execute(
@@ -204,7 +197,7 @@ def refresh(show_id):
             flash(f"Refreshed, but the source would not serve season {seasons}. It will be tried again.", "error")
         else:
             flash("Refreshed.", "success")
-    except catalog.TmdbError as exc:
+    except catalog.TvdbError as exc:
         flash(str(exc), "error")
     return back_to("shows.detail", show_id=show_id)
 
@@ -223,27 +216,6 @@ def episode(episode_id):
     if show is None:
         abort(404)
 
-    guests, crew, rating, providers = [], [], None, []
-    try:
-        providers = catalog.watch_providers(catalog.show_providers(row["show_id"]))[0]
-    except catalog.TmdbError:
-        pass
-    try:
-        payload = catalog.episode(row["show_id"], row["season_number"], row["episode_number"])
-        guests = [
-            {"name": person.get("name"), "role": person.get("character")}
-            for person in (payload.get("guest_stars") or [])[:12]
-            if person.get("name")
-        ]
-        crew = [
-            {"name": person.get("name"), "role": person.get("job")}
-            for person in (payload.get("crew") or [])
-            if person.get("job") in {"Director", "Writer"}
-        ][:6]
-        rating = payload.get("vote_average") or None
-    except catalog.TmdbError:
-        pass
-
     previous, following = queries.episode_neighbours(
         row["show_id"], row["season_number"], row["episode_number"]
     )
@@ -252,10 +224,6 @@ def episode(episode_id):
         show=show,
         episode=row,
         tracked=queries.is_tracked(row["show_id"]),
-        guests=guests,
-        crew=crew,
-        rating=rating,
-        providers=providers,
         previous=previous,
         following=following,
     )

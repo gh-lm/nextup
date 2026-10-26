@@ -108,17 +108,17 @@ def requests_json_error():
 
     return requests.exceptions.JSONDecodeError("Expecting value", "<html>", 0)
 
-def test_a_200_reply_that_is_not_json_is_a_tmdb_error(app, monkeypatch):
-    from app import tmdb
+def test_a_200_reply_that_is_not_json_is_a_thetvdb_error(app, monkeypatch):
+    from app import tvdb
 
-    monkeypatch.setattr(tmdb, "api_key", lambda: "k")
-    monkeypatch.setattr(tmdb.requests, "get", lambda *a, **k: _Reply())
+    monkeypatch.setattr(tvdb, "RELAY_URL", "https://relay.example")
+    monkeypatch.setattr(tvdb.requests, "get", lambda *a, **k: _Reply())
     with app.app_context():
-        with pytest.raises(tmdb.TmdbError):
-            tmdb._get("/search/multi")
+        with pytest.raises(tvdb.TvdbError):
+            tvdb._get("/search/multi")
 
 def test_a_bad_reply_for_one_show_does_not_stop_the_refresh(app, monkeypatch):
-    from app import db, sync, tmdb
+    from app import db, sync, tvdb
 
     with app.app_context():
         for show_id, name in ((801, "Broken"), (802, "Fine")):
@@ -126,11 +126,11 @@ def test_a_bad_reply_for_one_show_does_not_stop_the_refresh(app, monkeypatch):
             db.execute("INSERT INTO tracked_show (show_id, added_at) VALUES (?, '2026-01-01')", (show_id,))
 
         def show(show_id):
-            if show_id == 801:
+            if show_id == tvdb.internal(801):
                 raise ValueError("not json")
             return {"id": show_id, "name": "Fine", "seasons": []}
 
-        monkeypatch.setattr(tmdb, "show", show)
+        monkeypatch.setattr(tvdb, "show", show)
         monkeypatch.setattr(sync, "sync_all_movies", lambda force=False: 0)
         done, _skipped, errors = sync.sync_all(force=True)
         run = sync.last_run()
@@ -233,56 +233,17 @@ def test_a_time_with_odd_digits_is_not_a_time():
     assert mailer.parse_time("²:00") is None
     assert mailer.parse_time("07:30").hour == 7
 
-def test_the_country_list_is_kept_and_reused_for_a_week(app, monkeypatch):
-    from app import tmdb
-
-    calls = []
-
-    def fetch(path, params=None, **kw):
-        calls.append(kw)
-        return [{"iso_3166_1": "DE", "english_name": "Germany"}]
-
-    monkeypatch.setattr(tmdb, "_get", fetch)
-    with app.app_context():
-        assert tmdb.countries() == [("DE", "Germany")]
-        assert tmdb.countries() == [("DE", "Germany")]
-    assert len(calls) == 1
-    assert calls[0]["tries"] == 1 and calls[0]["timeout"] <= 10
-
-def test_an_old_country_list_is_used_when_tmdb_is_down(app, monkeypatch):
-    from app import secretstore, tmdb
-
-    def down(*a, **k):
-        raise tmdb.TmdbError("down")
-
-    monkeypatch.setattr(tmdb, "_get", down)
-    with app.app_context():
-        secretstore.set("countries_cache", json.dumps([["DE", "Germany"]]))
-        secretstore.set("countries_fetched_at", "2020-01-01T00:00:00+00:00")
-        assert tmdb.countries() == [("DE", "Germany")]
-        secretstore.delete("countries_cache")
-        with pytest.raises(tmdb.TmdbError):
-            tmdb.countries()
-
-def test_the_country_cache_is_not_part_of_a_backup(app):
-    from app import secretstore, transfer
-
-    with app.app_context():
-        secretstore.set("countries_cache", "[]")
-        secretstore.set("countries_fetched_at", "2026-01-01T00:00:00+00:00")
-        assert "countries_cache" not in transfer.export_data()["data"]["settings"]
-
 def test_unsafe_links_and_keyless_trailers_are_dropped():
-    from app import tmdb
+    from app import tvdb
 
-    assert tmdb.safe_url("javascript:alert(1)") is None
-    assert tmdb.safe_url("https://example.com/a") == "https://example.com/a"
-    assert tmdb.safe_url(None) is None
-    assert tmdb.trailer_from({"videos": {"results": [
+    assert tvdb.safe_url("javascript:alert(1)") is None
+    assert tvdb.safe_url("https://example.com/a") == "https://example.com/a"
+    assert tvdb.safe_url(None) is None
+    assert tvdb.trailer_from({"videos": {"results": [
         {"site": "YouTube", "type": "Trailer", "key": None}]}}) is None
-    assert tmdb.trailer_from({"videos": {"results": [
+    assert tvdb.trailer_from({"videos": {"results": [
         {"site": "YouTube", "type": "Trailer", "key": "abc_123"}]}})["url"].endswith("abc_123")
-    assert tmdb.imdb_from({"imdb_id": "x/../y"}) is None
+    assert tvdb.imdb_from({"imdb_id": "x/../y"}) is None
 
 def test_a_webp_picture_is_labelled_webp_and_svg_is_not_accepted(data_dir):
     import os
@@ -322,7 +283,7 @@ def test_an_oversize_picture_is_not_cached(data_dir, monkeypatch):
 
     big = _Picture([b"x"], length=posters.MAX_BYTES + 1)
     monkeypatch.setattr(posters.requests, "get", lambda *a, **k: big)
-    assert posters.cached_file("w185", "/big.jpg") is None
+    assert posters.cached_file("w185", "/tvdb__big.jpg") is None
     assert big.closed and big.read == 0
 
 def test_a_picture_with_no_length_stops_being_read_once_too_big(data_dir, monkeypatch):
@@ -330,31 +291,30 @@ def test_a_picture_with_no_length_stops_being_read_once_too_big(data_dir, monkey
 
     endless = _Picture(iter(lambda: b"x" * 65536, None))
     monkeypatch.setattr(posters.requests, "get", lambda *a, **k: endless)
-    assert posters.cached_file("w185", "/endless.jpg") is None
+    assert posters.cached_file("w185", "/tvdb__endless.jpg") is None
     assert endless.closed and endless.read == posters.MAX_BYTES // 65536 + 1
 
 def test_opening_an_unknown_show_does_not_mark_it_fresh(app, signed_in, monkeypatch):
-    from app import db, tmdb
+    from app import db, tvdb
 
-    monkeypatch.setattr(tmdb, "show", lambda show_id: {"id": show_id, "name": "New"})
-    monkeypatch.setattr(tmdb, "show_detail", _raises(tmdb.TmdbError("x")))
+    monkeypatch.setattr(tvdb, "show", lambda show_id: {"id": show_id, "name": "New"})
+    monkeypatch.setattr(tvdb, "show_detail", _raises(tvdb.TvdbError("x")))
     assert signed_in.get("/show/777").status_code == 200
     with app.app_context():
         assert db.query("SELECT synced_at FROM show WHERE id = 777", one=True)["synced_at"] is None
 
 def test_adding_a_show_with_a_missing_season_says_so(app, signed_in, monkeypatch):
-    from app import tmdb
+    from app import tvdb
 
-    monkeypatch.setattr(tmdb, "show", lambda show_id: {"id": show_id, "name": "Patchy", "seasons": [{"season_number": 1}]})
-    monkeypatch.setattr(tmdb, "season", _raises(tmdb.TmdbError("x")))
+    monkeypatch.setattr(tvdb, "show", lambda show_id: {"id": show_id, "name": "Patchy", "seasons": [{"season_number": 1}]})
+    monkeypatch.setattr(tvdb, "season", _raises(tvdb.TvdbError("x")))
     page = signed_in.post("/show/778/track", follow_redirects=True).get_data(as_text=True)
     assert "would not serve season 1" in page
 
 def test_a_film_without_a_title_is_not_announced_as_none(app, signed_in, monkeypatch):
-    from app import sync, tmdb
+    from app import tvdb
 
-    monkeypatch.setattr(tmdb, "movie", lambda movie_id: {"id": movie_id})
-    monkeypatch.setattr(sync, "sync_movie_availability", lambda movie_id: (None, []))
+    monkeypatch.setattr(tvdb, "movie", lambda movie_id: {"id": movie_id})
     page = signed_in.post("/movie/779/track", follow_redirects=True).get_data(as_text=True)
     assert "None" not in page
 
@@ -362,16 +322,16 @@ def test_remove_buttons_do_nothing_without_the_second_click(app, signed_in):
     from app import db, secretstore
 
     with app.app_context():
-        secretstore.set("tmdb_api_key", "made-up-key")
+        secretstore.set("smtp_host", "mail.example.com")
         db.execute("INSERT INTO show (id, name) VALUES (780, 'Kept')")
         db.execute("INSERT INTO tracked_show (show_id, added_at) VALUES (780, '2026-10-24')")
-    signed_in.post("/settings/tmdb/clear")
+    signed_in.post("/settings/mail/clear")
     signed_in.post("/show/780/untrack")
     with app.app_context():
-        assert secretstore.get("tmdb_api_key") == "made-up-key"
+        assert secretstore.get("smtp_host") == "mail.example.com"
         assert db.query("SELECT 1 FROM tracked_show WHERE show_id = 780", one=True)
-    signed_in.post("/settings/tmdb/clear", data={"sure": "1"})
+    signed_in.post("/settings/mail/clear", data={"sure": "1"})
     signed_in.post("/show/780/untrack", data={"sure": "1"})
     with app.app_context():
-        assert not secretstore.get("tmdb_api_key")
+        assert not secretstore.get("smtp_host")
         assert db.query("SELECT 1 FROM tracked_show WHERE show_id = 780", one=True) is None

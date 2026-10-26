@@ -93,16 +93,6 @@
   }); }
   armConfirms(document);
 
-  var zone = '';
-  try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) { zone = ''; }
-  function applyZone(root) {
-    root.querySelectorAll('input[data-timezone]').forEach(function (input) { input.value = zone; });
-    if (zone) {
-      root.querySelectorAll('[data-needs-timezone]').forEach(function (el) { el.hidden = false; });
-    }
-  }
-  applyZone(document);
-
   function hideSaveButtons(root) {
     root.querySelectorAll('form[data-autosave]').forEach(function (form) {
       var button = form.querySelector('button[type="submit"], button:not([type])');

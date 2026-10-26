@@ -17,8 +17,8 @@ def _seed(app, poster=True):
         ("A thing happens. Then another thing happens to somebody else entirely.", yesterday),
     )
     db.execute(
-        "INSERT OR REPLACE INTO movie (id, title, overview, digital_release, runtime,"
-        " poster_path, providers) VALUES (501, 'A Film', 'A film about something.', ?, 101, ?, 'Netflix')",
+        "INSERT OR REPLACE INTO movie (id, title, overview, release_date, runtime,"
+        " poster_path) VALUES (501, 'A Film', 'A film about something.', ?, 101, ?)",
         (yesterday, "/filmposter.jpg" if poster else None),
     )
     db.execute("INSERT OR REPLACE INTO tracked_movie (movie_id, added_at) VALUES (501, '2026-01-01')")
@@ -48,7 +48,7 @@ def test_nothing_is_fetched_from_another_server(app, monkeypatch):
     with app.app_context():
         _seed(app)
         _s, _t, html, _i = mailer.build_digest()
-        assert "image.tmdb.org" not in html
+        assert "image.tvdb.org" not in html
         assert "<img" in html
         assert html.count("http") == html.count("https://lightmorphic.com")
 

@@ -4,7 +4,7 @@ import re
 from flask import (Blueprint, Response, current_app, flash, redirect, render_template,
                    request, session, url_for)
 
-from .. import catalog, clock, db, languages, mailer, queries, secretstore, sync, timezones, transfer
+from .. import clock, db, mailer, queries, secretstore, sync, transfer
 from ..auth import (change_account, check_current_password, keep_this_browser_signed_in,
                     login_required, uses_default_password)
 from ..forms import confirmed, whole_number
@@ -29,14 +29,6 @@ ACCENTS = [
     ("blue_grey", "Blue grey", "#607c8b"),
 ]
 
-def _country_choices():
-    if not secretstore.has("tmdb_api_key"):
-        return []
-    try:
-        return catalog.countries()
-    except catalog.TmdbError:
-        return []
-
 def _remember_address():
     if secretstore.get("site_url"):
         return
@@ -57,8 +49,6 @@ def index():
     )
     return render_template(
         "pages/settings.html",
-        has_key=secretstore.has("tmdb_api_key"),
-        source_first=catalog.first_name(),
         unreadable=secretstore.unreadable(),
         backup=transfer.counts(),
         mail=mailer.config(),
@@ -66,51 +56,11 @@ def index():
         securities=mailer.SECURITIES,
         available_after=queries.available_after_days(),
         newest_first=queries.newest_first(),
-        all_languages=languages.show_all(),
-        watched_languages=[(c, languages.NAMES[c]) for c in languages.watched() if c != "en"],
-        language_choices=languages.choices(),
-        country=catalog.country(),
-        countries=_country_choices(),
         accents=ACCENTS,
         last_sync=sync.last_run(),
         syncing=sync.is_running(),
         stats=stats,
         default_password=bool(session.get("starter")),
-    )
-
-@bp.route("/settings/tmdb", methods=["POST"])
-@login_required
-def save_tmdb():
-    key = (request.form.get("tmdb_api_key") or "").strip()
-    if not key:
-        return notify("tmdb", "Paste a key first.", "error")
-    try:
-        catalog.verify_key(key)
-    except catalog.TmdbError as exc:
-        return notify("tmdb", str(exc), "error")
-    secretstore.set("tmdb_api_key", key, encrypted=True)
-    return notify("tmdb", "Key checked against TMDB and saved, encrypted.", "success")
-
-@bp.route("/settings/tmdb/clear", methods=["POST"])
-@login_required
-def clear_tmdb():
-    if not confirmed():
-        return notify("tmdb", "Tick \"Yes, remove it\" to remove the key.", "error")
-    secretstore.delete("tmdb_api_key")
-    return notify("tmdb", "Key removed.", "success")
-
-@bp.route("/settings/source", methods=["POST"])
-@login_required
-def save_source():
-    choice = request.form.get("source_first")
-    if choice not in ("tvdb", "tmdb"):
-        return notify("source", "Pick one of the two.", "error")
-    secretstore.set("source_first", choice)
-    return notify(
-        "source",
-        "TheTVDB is asked first, TMDB fills the gaps." if choice == "tvdb"
-        else "TMDB is asked first, TheTVDB fills the gaps.",
-        "success",
     )
 
 @bp.route("/settings/account", methods=["POST"])
@@ -149,8 +99,6 @@ def save_accent():
 @bp.route("/settings/sync", methods=["POST"])
 @login_required
 def run_sync():
-    if not catalog.any_key():
-        return notify("sync", "Add a TheTVDB or TMDB key first.", "error")
     if not sync.start_now(current_app._get_current_object()):
         return notify("sync", "A refresh is already running.", "error")
     return notify("sync", "Refresh started. Reload this page in a minute to see how it went.", "success")
@@ -190,45 +138,6 @@ def save_season_order():
         else "Oldest first, latest at the bottom.",
         "success",
     )
-
-@bp.route("/settings/languages", methods=["POST"])
-@login_required
-def save_languages():
-    if request.form.get("toggle"):
-        every = bool(request.form.get("all"))
-        secretstore.set("watch_all_languages", "1" if every else "0")
-        return notify("languages", "Discover lists every language." if every
-                      else "Discover lists English and the languages you add.", "success")
-    chosen = [c for c in languages.watched() if c != "en"]
-    add, remove = request.form.get("add"), request.form.get("remove")
-    if add in languages.NAMES and add != "en" and add not in chosen:
-        chosen.append(add)
-    if remove in chosen:
-        chosen.remove(remove)
-    secretstore.set("watch_languages", ",".join(chosen))
-    return notify("languages", "Discover now lists " + ", ".join(
-        ["English"] + [languages.NAMES[c] for c in chosen]) + ".", "success")
-
-@bp.route("/settings/country", methods=["POST"])
-@login_required
-def save_country():
-    code = (request.form.get("country") or "").strip().upper()
-    if not code and request.form.get("timezone"):
-        code = timezones.country_for(request.form.get("timezone")) or ""
-        if not code:
-            return notify("country", "Your time zone does not belong to one country. Pick yours from the list.", "error")
-    if code == catalog.NO_COUNTRY:
-        secretstore.set("country", catalog.NO_COUNTRY)
-        message = "No country chosen. Movies show their first home release anywhere."
-    else:
-        names = dict(_country_choices())
-        if code not in names:
-            return notify("country", "Pick a country from the list.", "error")
-        secretstore.set("country", code)
-        message = f"Country set to {names[code]}. Dates, services and age ratings now follow it."
-    if secretstore.has("tmdb_api_key"):
-        sync.start_now(current_app._get_current_object())
-    return notify("country", message, "success")
 
 @bp.route("/settings/mail", methods=["POST"])
 @login_required
@@ -375,7 +284,8 @@ def import_data():
 
     keep_this_browser_signed_in()
     session["starter"] = uses_default_password()
-    message = f"Restored {transfer.summarise(restored)}."
+    sync.start_now(current_app._get_current_object())
+    message = f"Restored {transfer.summarise(restored)}. Names, pictures and dates are being fetched again from TheTVDB."
     if not restored.get("secrets"):
-        message += " The file had no keys in it, so type your API keys and mail password in again."
+        message += " The file had no mail password in it, so type that in again."
     return notify("transfer", message, "success")

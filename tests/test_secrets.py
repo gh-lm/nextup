@@ -2,11 +2,11 @@ def test_key_is_stored_encrypted(app):
     from app import db, secretstore
 
     with app.app_context():
-        secretstore.set("tmdb_api_key", "abc123secret", encrypted=True)
-        assert secretstore.get("tmdb_api_key") == "abc123secret"
+        secretstore.set("smtp_password", "abc123secret", encrypted=True)
+        assert secretstore.get("smtp_password") == "abc123secret"
 
         row = db.query("SELECT value, encrypted FROM settings WHERE key = ?",
-                       ("tmdb_api_key",), one=True)
+                       ("smtp_password",), one=True)
         assert row["encrypted"] == 1
         assert "abc123secret" not in row["value"]
 

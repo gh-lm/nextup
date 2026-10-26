@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS admin_user (
 );
 
 CREATE TABLE IF NOT EXISTS show (
-    id              INTEGER PRIMARY KEY,          -- TMDB series id
+    id              INTEGER PRIMARY KEY,          -- series id: TheTVDB id plus 10^9, or an older number
     name            TEXT NOT NULL,
     overview        TEXT,
     poster_path     TEXT,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS show (
 );
 
 CREATE TABLE IF NOT EXISTS episode (
-    id             INTEGER PRIMARY KEY,           -- TMDB episode id
+    id             INTEGER PRIMARY KEY,           -- episode id
     show_id        INTEGER NOT NULL REFERENCES show(id) ON DELETE CASCADE,
     season_number  INTEGER NOT NULL,
     episode_number INTEGER NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS watched_episode (
 CREATE INDEX IF NOT EXISTS idx_watched_show ON watched_episode (show_id);
 
 CREATE TABLE IF NOT EXISTS movie (
-    id                   INTEGER PRIMARY KEY,     -- TMDB movie id
+    id                   INTEGER PRIMARY KEY,     -- movie id: as for shows
     title                TEXT NOT NULL,
     overview             TEXT,
     poster_path          TEXT,
@@ -69,9 +69,9 @@ CREATE TABLE IF NOT EXISTS movie (
     runtime              INTEGER,
     vote_average         REAL,
     original_language    TEXT,
-    digital_release      TEXT,   -- the date it lands on streaming or download
-    providers            TEXT,   -- streaming services in the chosen country, one per line
-    provider_link        TEXT,   -- TMDB's "where to watch" page
+    digital_release      TEXT,   -- no longer used
+    providers            TEXT,   -- no longer used
+    provider_link        TEXT,   -- no longer used
     providers_checked_at TEXT,
     synced_at            TEXT
 );

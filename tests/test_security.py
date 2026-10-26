@@ -52,7 +52,7 @@ def test_the_session_cookie_is_locked_down(client):
     assert "samesite=lax" in flags
     assert "secure" not in flags
 
-def test_the_poster_proxy_only_fetches_tmdb_shaped_paths(app):
+def test_the_poster_proxy_only_fetches_stored_shaped_paths(app):
     from app import posters
 
     for bad in (
@@ -98,7 +98,7 @@ def test_a_good_restore_puts_the_settings_back(app):
 
     with app.app_context():
         secretstore.set("accent", "brand")
-        secretstore.set("tmdb_api_key", "0123456789abcdef", encrypted=True)  # gitleaks:allow
+        secretstore.set("smtp_password", "0123456789abcdef", encrypted=True)  # gitleaks:allow
         payload = transfer.export_data(include_secrets=True)
 
         db.execute("DELETE FROM settings")
@@ -106,8 +106,8 @@ def test_a_good_restore_puts_the_settings_back(app):
 
         transfer.import_data(payload)
         assert secretstore.get("accent") == "brand"
-        assert secretstore.get("tmdb_api_key") == "0123456789abcdef"
-        row = db.query("SELECT encrypted FROM settings WHERE key = 'tmdb_api_key'", one=True)
+        assert secretstore.get("smtp_password") == "0123456789abcdef"
+        row = db.query("SELECT encrypted FROM settings WHERE key = 'smtp_password'", one=True)
         assert row["encrypted"] == 1
 
 def test_a_file_that_is_not_a_backup_is_turned_away(app):
@@ -122,7 +122,7 @@ def test_a_file_that_is_not_a_backup_is_turned_away(app):
             raise AssertionError(f"accepted {rubbish!r}")
 
 def test_signed_out_visitors_are_sent_to_the_login_page(client):
-    for path in ("/", "/shows", "/movies", "/settings", "/calendar", "/discover/tv"):
+    for path in ("/", "/shows", "/movies", "/settings", "/calendar"):
         response = client.get(path)
         assert response.status_code == 302, path
         assert "/login" in response.headers["Location"], path

@@ -34,7 +34,6 @@
     <nav aria-label="Main">
       <a href="index.html#watching">Watching</a>
       <a href="index.html#install">Install</a>
-      <a href="index.html#deciding">Deciding</a>
       <a href="index.html#email">The email</a>
       <div id="all-apps"></div>
     </nav>
@@ -83,13 +82,13 @@ docker compose start</code></pre>
           <ul>
             <li>
               <strong>From the JSON file.</strong> Settings, then restore the backup. If
-              you used the button that leaves the secrets out, type the API keys and the
-              mail password in again afterwards.
+              you used the button that leaves the secret out, type the mail password in
+              again afterwards. Names, pictures and dates are fetched again by themselves.
             </li>
             <li>
               <strong>From the whole directory.</strong> Stop the container on both sides,
               copy <code>/opt/nextup</code> across keeping the ownership, and start it. It
-              carries on exactly where it was, keys and all.
+              carries on exactly where it was, mail password and all.
             </li>
           </ul>
         </section>
@@ -168,31 +167,14 @@ docker compose start</code></pre>
           <pre><code>docker compose logs --tail 50 nextup</code></pre>
         </section>
         <section>
-          <h2>A service will not take the key</h2>
-          <p>
-            The key is checked against TMDB before it is saved, so a refusal means TMDB
-            itself said no. Make sure you copied the <strong>API Key for v3 auth</strong>
-            and not the read access token, which is much longer. A new key can take a few
-            minutes to start working.
-          </p>
-        </section>
-        <section>
-          <h2>Services and age ratings are missing</h2>
-          <p>
-            Movies and shows only show the services and age rating for your own country.
-            Open Settings and choose it under Your country. If it says No country, or
-            the wrong one, pick yours and Nextup refreshes everything.
-          </p>
-        </section>
-        <section>
           <h2>Posters are missing</h2>
           <p>
-            Artwork is fetched from TMDB once and then cached in
+            Artwork is fetched from TheTVDB once and then cached in
             <code>images/</code> inside your data directory. If none of it appears, the
-            server either cannot reach TMDB or cannot write to that directory. The
-            directory has to belong to user 1000:
+            server either cannot reach TheTVDB or cannot write to that directory. The
+            logs say which:
           </p>
-          <pre><code>sudo chown -R 1000:1000 /opt/nextup</code></pre>
+          <pre><code>docker compose logs --tail 50 nextup</code></pre>
         </section>
         <section>
           <h2>Changes do not save, and nothing says why</h2>
@@ -262,7 +244,6 @@ docker compose up -d</code></pre>
         <ul>
           <li><a href="index.html#watching">Watching</a></li>
           <li><a href="index.html#install">Install</a></li>
-          <li><a href="index.html#deciding">Deciding</a></li>
           <li><a href="index.html#email">The email</a></li>
           <li><a href="documentation.html">Documentation</a></li>
           <li><a href="runbook.html">Runbook</a></li>

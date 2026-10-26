@@ -33,7 +33,7 @@ def _seed(app):
         )
 
     db.execute(
-        "INSERT OR REPLACE INTO movie (id, title, digital_release) VALUES (901, 'A Film', ?)",
+        "INSERT OR REPLACE INTO movie (id, title, release_date) VALUES (901, 'A Film', ?)",
         (_days_ago(1),),
     )
     db.execute(
@@ -41,7 +41,7 @@ def _seed(app):
         " VALUES (901, '2026-01-01', 0)"
     )
     db.execute(
-        "INSERT OR REPLACE INTO movie (id, title, digital_release) VALUES (902, 'Later Film', ?)",
+        "INSERT OR REPLACE INTO movie (id, title, release_date) VALUES (902, 'Later Film', ?)",
         ((date.today() + timedelta(days=30)).isoformat(),),
     )
     db.execute(

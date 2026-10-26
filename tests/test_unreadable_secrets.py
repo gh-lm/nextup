@@ -4,7 +4,7 @@ def test_a_replaced_key_is_reported(app, signed_in):
     from app import secretstore
 
     with app.app_context():
-        secretstore.set("tmdb_api_key", "abc", encrypted=True)
+        secretstore.set("smtp_password", "abc", encrypted=True)
         assert secretstore.unreadable() == []
 
     import os
@@ -14,14 +14,14 @@ def test_a_replaced_key_is_reported(app, signed_in):
     os.remove(config.KEY_PATH)
     secretstore._fernet = None
     with app.app_context():
-        assert secretstore.get("tmdb_api_key") is None
-        assert secretstore.unreadable() == ["TMDB key"]
+        assert secretstore.get("smtp_password") is None
+        assert secretstore.unreadable() == ["mail password"]
 
     page = signed_in.get("/settings").data.decode()
-    assert "cannot read the saved TMDB key" in page
-    assert "cannot read the saved TMDB key" in signed_in.get("/").data.decode()
+    assert "cannot read the saved mail password" in page
+    assert "cannot read the saved mail password" in signed_in.get("/").data.decode()
 
     with app.app_context():
-        secretstore.set("tmdb_api_key", "fresh", encrypted=True)
+        secretstore.set("smtp_password", "fresh", encrypted=True)
         assert secretstore.unreadable() == []
-        assert secretstore.get("tmdb_api_key") == "fresh"
+        assert secretstore.get("smtp_password") == "fresh"

@@ -104,8 +104,8 @@ def _seed_ready(app):
         (yesterday,),
     )
     db.execute(
-        "INSERT OR REPLACE INTO movie (id, title, digital_release, runtime, providers)"
-        " VALUES (201, 'A Good Film', ?, 118, 'Netflix')",
+        "INSERT OR REPLACE INTO movie (id, title, release_date, runtime)"
+        " VALUES (201, 'A Good Film', ?, 118)",
         (yesterday,),
     )
     db.execute("INSERT OR REPLACE INTO tracked_movie (movie_id, added_at) VALUES (201, '2026-01-01')")
@@ -129,7 +129,7 @@ def test_the_email_names_what_is_ready_and_where(app):
         _subject, text, html, _images = mailer.build_digest()
         assert "A Series" in html and "S02E04" in html
         assert "BBC One" in html
-        assert "A Good Film" in html and "Netflix" in html
+        assert "A Good Film" in html and "Out now" in html
         assert "A Series S02E04" in text
 
 def test_the_email_loads_nothing_from_anywhere_else(app):

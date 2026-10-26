@@ -25,7 +25,7 @@ def _seed(app, language):
         (yesterday,),
     )
     db.execute(
-        "INSERT OR REPLACE INTO movie (id, title, original_language, digital_release)"
+        "INSERT OR REPLACE INTO movie (id, title, original_language, release_date)"
         " VALUES (811, 'Paris Rain', ?, ?)",
         (language and "fr", yesterday),
     )

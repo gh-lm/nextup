@@ -1,6 +1,6 @@
-from flask import Blueprint, current_app, redirect, render_template, request, session, url_for
+from flask import Blueprint, redirect, render_template, request, session, url_for
 
-from .. import catalog, config, secretstore, sync
+from .. import config
 from ..auth import check_login, forget_failures, record_failure, sign_in_wait, start_session
 from ..redirects import is_local_path
 
@@ -21,8 +21,6 @@ def login():
         if check_login(username, password):
             forget_failures(address, username)
             start_session(starter=password == config.DEFAULT_PASSWORD)
-            if catalog.remember_country(request.form.get("timezone")) and secretstore.has("tmdb_api_key"):
-                sync.start_now(current_app._get_current_object())
             target = request.args.get("next") or ""
             if not is_local_path(target):
                 target = url_for("main.dashboard")

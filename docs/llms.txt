@@ -2,9 +2,9 @@
 
 > A self-hosted tracker for the TV shows and films you watch. It records which
 > episodes you have seen, works out which one is next, says when the next
-> episode airs, and says when a film reaches streaming in your country. It runs
-> on your own server and sends nothing anywhere except requests to TMDB and,
-> if you turn on the morning email, to your own mail server.
+> episode airs, and says when a film is released. It runs
+> on your own server and sends nothing anywhere except requests to TheTVDB
+> and, if you turn on the morning email, to your own mail server.
 
 Nextup is free software published by Lightmorphic Ltd under the GNU General
 Public Licence version 3. There is no hosted version, no account to create and
@@ -15,13 +15,11 @@ no paid tier. You install it yourself with Docker.
 - Next up: every aired episode you have not watched, newest first by default, with a switch to oldest first.
 - Marking watched: one episode, a whole season, or everything up to a chosen episode.
 - Calendar and Coming soon: when your shows air, over 14 to 180 days.
-- Discover: what is arriving, with a plus, question mark and cross on each item. Films are filtered to home releases, not cinema ones.
 - Maybe list: shows and films you are curious about, kept out of Next up.
-- Films: split into ready to watch, coming to streaming, and seen, with the services in your country that carry each one.
-- Country setting: release dates, streaming services and age ratings follow the country chosen in Settings, first set from the browser's time zone.
+- Films: split into ready to watch, coming soon, and seen, using each film's release date.
 - Morning email: what became watchable overnight, sent through your own mail server at a time you choose.
-- Episode pages: still, synopsis, air date, runtime, guest cast and director.
-- Show and film pages: cast with photographs, genres, certificate, who made it, where to watch it.
+- Episode pages: still, synopsis, air date and runtime.
+- Show and film pages: cast with photographs, genres, trailer and IMDb links.
 
 ## What it does not do
 
@@ -32,8 +30,8 @@ no paid tier. You install it yourself with Docker.
 
 ## Requirements
 
-Docker, and a free TMDB API key entered in the app's own Settings page, where it
-is stored encrypted rather than in an environment file.
+Docker. There is nothing to sign up for: Nextup looks shows and films up on
+TheTVDB through a service run by Lightmorphic.
 
 ## Links
 
@@ -48,4 +46,4 @@ is stored encrypted rather than in an environment file.
 
 Published by Lightmorphic Ltd, registered in England and Wales, company number
 17423646, 82A James Carter Road, Mildenhall, IP28 7DE.
-Last updated 2026-10-24.
+Last updated 2026-10-26.

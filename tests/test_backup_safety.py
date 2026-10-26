@@ -1,6 +1,14 @@
 """Backups are never cached, and a restore is honest about the keys."""
 import io
 
+import pytest
+
+@pytest.fixture(autouse=True)
+def no_refetch(monkeypatch):
+    from app import sync
+
+    monkeypatch.setattr(sync, "start_now", lambda *a, **k: True)
+
 def test_the_backup_download_is_never_cached(signed_in):
     assert signed_in.get("/settings/export").headers["Cache-Control"] == "no-store"
     assert signed_in.get("/settings/export?secrets=1").headers["Cache-Control"] == "no-store"
@@ -14,4 +22,4 @@ def test_a_restore_without_keys_says_so_and_keeps_you_signed_in(signed_in):
     assert response.status_code == 302
     page = signed_in.get("/settings")
     assert page.status_code == 200
-    assert b"type your API keys and mail password in again" in page.data
+    assert b"type that in again" in page.data

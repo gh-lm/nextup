@@ -1,4 +1,4 @@
-"""Pulling show and episode data from TMDB into the local database."""
+"""Pulling show and episode data from TheTVDB into the local database."""
 import threading
 import time
 from datetime import datetime, timedelta, timezone
@@ -151,7 +151,7 @@ def sync_show(show_id, failed=None):
             continue
         try:
             upsert_episodes(show_id, catalog.season(show_id, number))
-        except catalog.TmdbError:
+        except catalog.TvdbError:
             missed.append(number)
     if missed:
         if failed is not None:
@@ -190,33 +190,24 @@ def upsert_movie(payload):
         ),
     )
 
-def sync_movie_availability(movie_id):
-    digital = catalog.digital_release_date(catalog.movie_release_dates(movie_id))
-    names, link = catalog.watch_providers(catalog.movie_providers(movie_id))
-
-    db.execute(
-        "UPDATE movie SET digital_release = COALESCE(?, digital_release),"
-        " providers = ?, provider_link = ?, providers_checked_at = ?"
-        " WHERE id = ?",
-        (digital, "\n".join(names) if names else None, link, clock.now_iso(), movie_id),
-    )
-    return digital, names
+def sync_movie(movie_id):
+    upsert_movie(catalog.movie(movie_id))
 
 def sync_all_movies(force=False):
     rows = db.query(
-        "SELECT m.id, m.providers_checked_at FROM movie m"
+        "SELECT m.id, m.synced_at FROM movie m"
         " JOIN tracked_movie t ON t.movie_id = m.id"
         " WHERE t.watched_at IS NULL"
     )
     done = 0
     for row in rows:
-        age = _age(row["providers_checked_at"])
+        age = _age(row["synced_at"])
         if not force and age is not None and age < timedelta(days=3):
             continue
         try:
-            sync_movie_availability(row["id"])
+            sync_movie(row["id"])
             done += 1
-        except catalog.TmdbError:
+        except catalog.TvdbError:
             continue
     return done
 
@@ -307,8 +298,7 @@ def start_background(app):
         while True:
             with app.app_context():
                 try:
-                    if catalog.any_key():
-                        sync_all(force=False)
+                    sync_all(force=False)
                 except Exception:
                     app.logger.exception("Background sync failed")
             time.sleep(config.SYNC_INTERVAL_HOURS * 3600)

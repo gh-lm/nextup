@@ -176,8 +176,8 @@ def ready_to_watch(order=None, page=1, per_page=60):
         for row in episodes
     ]
     for film in movies(watched=False, shortlist=False):
-        if is_streamable(film, cutoff):
-            items.append({"kind": "film", "date": film["digital_release"], "film": film})
+        if is_released(film, cutoff):
+            items.append({"kind": "film", "date": film["release_date"], "film": film})
 
     order = order or date_order()
     missing = "0000-00-00" if order == "newest" else "9999-99-99"
@@ -229,7 +229,7 @@ def available_today():
         """
         SELECT m.* FROM movie m
         JOIN tracked_movie t ON t.movie_id = m.id
-        WHERE t.watched_at IS NULL AND t.shortlist = 0 AND m.digital_release = ?
+        WHERE t.watched_at IS NULL AND t.shortlist = 0 AND m.release_date = ?
         ORDER BY m.title COLLATE NOCASE
         """,
         (cutoff,),
@@ -273,9 +273,9 @@ def films_between(start_iso, end_iso):
         SELECT m.*, t.watched_at FROM movie m
         JOIN tracked_movie t ON t.movie_id = m.id
         WHERE t.shortlist = 0
-          AND m.digital_release IS NOT NULL
-          AND m.digital_release >= ? AND m.digital_release <= ?
-        ORDER BY m.digital_release, m.title COLLATE NOCASE
+          AND m.release_date IS NOT NULL
+          AND m.release_date >= ? AND m.release_date <= ?
+        ORDER BY m.release_date, m.title COLLATE NOCASE
         """,
         (start_iso, end_iso),
     )
@@ -373,36 +373,24 @@ def movie_list_state(movie_id):
         one=True,
     )
 
-def dismissed_ids(kind):
-    return {
-        row["item_id"]
-        for row in db.query("SELECT item_id FROM dismissed WHERE kind = ?", (kind,))
-    }
-
 def known_ids():
     return (
         {row["show_id"] for row in db.query("SELECT show_id FROM tracked_show")},
         {row["movie_id"] for row in db.query("SELECT movie_id FROM tracked_movie")},
     )
 
-def provider_names(row):
-    value = row["providers"] if "providers" in row.keys() else None
-    return [line for line in (value or "").split("\n") if line]
-
-def is_streamable(row, cutoff=None):
-    if provider_names(row):
-        return True
-    digital = row["digital_release"] if "digital_release" in row.keys() else None
-    return bool(digital and digital <= (cutoff or available_cutoff_iso()))
+def is_released(row, cutoff=None):
+    date = row["release_date"]
+    return bool(date and date <= (cutoff or available_cutoff_iso()))
 
 def films_by_state():
     ready, waiting = [], []
     cutoff = available_cutoff_iso()
     for row in movies(watched=False, shortlist=False):
-        (ready if is_streamable(row, cutoff) else waiting).append(row)
+        (ready if is_released(row, cutoff) else waiting).append(row)
     return {
-        "ready": dated(ready, lambda r: r["digital_release"] or r["release_date"]),
-        "waiting": sorted(waiting, key=lambda r: r["digital_release"] or "9999-99-99"),
+        "ready": dated(ready, lambda r: r["release_date"]),
+        "waiting": sorted(waiting, key=lambda r: r["release_date"] or "9999-99-99"),
         "seen": dated(movies(watched=True), lambda r: r["watched_at"]),
         "maybe": movies(shortlist=True),
     }
@@ -414,16 +402,16 @@ def films_arriving(days=60):
         SELECT m.*, t.added_at FROM movie m
         JOIN tracked_movie t ON t.movie_id = m.id
         WHERE t.watched_at IS NULL AND t.shortlist = 0
-          AND m.digital_release IS NOT NULL
-          AND m.digital_release >= ? AND m.digital_release <= ?
-        ORDER BY m.digital_release
+          AND m.release_date IS NOT NULL
+          AND m.release_date >= ? AND m.release_date <= ?
+        ORDER BY m.release_date
         """,
         (clock.today(), end),
     )
 
 def coming_soon(days=21, limit=12):
     items = [("episode", row["air_date"], row) for row in upcoming(days=days)]
-    items += [("film", row["digital_release"], row) for row in films_arriving(days=days)]
+    items += [("film", row["release_date"], row) for row in films_arriving(days=days)]
     items.sort(key=lambda item: item[1])
     return items[:limit]
 

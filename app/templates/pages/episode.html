@@ -16,7 +16,7 @@
 <article class="panel">
   {% if episode.still_path %}
     <img class="episode-still"
-         src="{{ url_for('images.poster', size='w780', tmdb_path=episode.still_path.lstrip('/')) }}"
+         src="{{ url_for('images.poster', size='w780', image_path=episode.still_path.lstrip('/')) }}"
          alt="A scene from {{ show.name }} {{ episode|episode_code }}" loading="lazy">
   {% endif %}
 
@@ -31,7 +31,6 @@
       <span class="badge">Date to be announced</span>
     {% endif %}
     {% if episode.runtime %}<span class="badge">{{ episode.runtime }} min</span>{% endif %}
-    {% if rating %}<span class="badge">{{ icons.star() }}{{ '%.1f'|format(rating) }}</span>{% endif %}
     {% if episode.watched %}<span class="badge">Watched</span>{% endif %}
   </div>
 
@@ -39,13 +38,6 @@
     <p class="measure">{{ episode.overview }}</p>
   {% else %}
     <p class="subtle">No synopsis for this episode yet.</p>
-  {% endif %}
-
-  {% if providers %}
-    <p class="subtle mb-6">
-      <strong>Watch it on:</strong>
-      {% for name in providers %}<span class="badge badge-info">{{ name }}</span> {% endfor %}
-    </p>
   {% endif %}
 
   {% if tracked %}
@@ -67,31 +59,6 @@
     </div>
   {% endif %}
 </article>
-
-{% if crew or guests %}
-<div class="split">
-  {% if guests %}
-  <section class="panel">
-    <div class="panel-head"><h2>Guest cast</h2></div>
-    <ul class="credit-list">
-      {% for person in guests %}
-        <li><strong>{{ person.name }}</strong>{% if person.role %}<span class="subtle"> as {{ person.role }}</span>{% endif %}</li>
-      {% endfor %}
-    </ul>
-  </section>
-  {% endif %}
-  {% if crew %}
-  <section class="panel">
-    <div class="panel-head"><h2>Made by</h2></div>
-    <ul class="credit-list">
-      {% for person in crew %}
-        <li><strong>{{ person.name }}</strong><span class="subtle"> · {{ person.role }}</span></li>
-      {% endfor %}
-    </ul>
-  </section>
-  {% endif %}
-</div>
-{% endif %}
 
 <nav class="ep-nav" aria-label="Other episodes">
   {% if previous %}

@@ -3,6 +3,14 @@ import io
 import json
 from datetime import date, timedelta
 
+import pytest
+
+@pytest.fixture(autouse=True)
+def no_refetch(monkeypatch):
+    from app import sync
+
+    monkeypatch.setattr(sync, "start_now", lambda *a, **k: True)
+
 def _populate(app):
     from app import db, secretstore
 
@@ -28,10 +36,9 @@ def _populate(app):
     )
     db.execute("INSERT OR REPLACE INTO movie (id, title) VALUES (910, 'A Film')")
     db.execute("INSERT OR REPLACE INTO tracked_movie (movie_id, added_at) VALUES (910, '2026-01-03')")
-    db.execute("INSERT OR REPLACE INTO dismissed (kind, item_id, dismissed_at) VALUES ('tv', 555, '2026-01-04')")
     secretstore.set("accent", "teal")
     secretstore.set("available_after_days", "2")
-    secretstore.set("tmdb_api_key", "the-key-itself", encrypted=True)
+    secretstore.set("smtp_password", "the-key-itself", encrypted=True)
 
 def test_a_backup_holds_what_you_added_and_watched(app):
     from app import transfer
@@ -43,8 +50,19 @@ def test_a_backup_holds_what_you_added_and_watched(app):
         assert out["counts"]["tracked_show"] == 2
         assert out["counts"]["watched_episode"] == 1
         assert out["counts"]["tracked_movie"] == 1
-        assert out["counts"]["dismissed"] == 1
         assert out["data"]["settings"]["accent"] == "teal"
+
+def test_a_backup_holds_ids_and_marks_not_details(app):
+    from app import transfer
+
+    with app.app_context():
+        _populate(app)
+        out = transfer.export_data()
+        assert out["data"]["show"][0].keys() == {"id", "name"}
+        assert "overview" not in json.dumps(out)
+        episode = out["data"]["episode"][0]
+        assert episode.keys() == {"id", "show_id", "season_number", "episode_number"}
+        assert [row["episode_id"] for row in out["data"]["watched_episode"]] == [9001]
 
 def test_keys_are_left_out_unless_you_ask(app):
     from app import transfer
@@ -54,7 +72,7 @@ def test_keys_are_left_out_unless_you_ask(app):
         out = transfer.export_data()
         assert out["secrets_included"] is False
         assert "secrets" not in out["data"]
-        assert "tmdb_api_key" in out["secrets_omitted"]
+        assert "smtp_password" in out["secrets_omitted"]
         assert "the-key-itself" not in json.dumps(out)
 
 def test_asking_for_the_keys_puts_them_in(app):
@@ -64,7 +82,7 @@ def test_asking_for_the_keys_puts_them_in(app):
         _populate(app)
         out = transfer.export_data(include_secrets=True)
         assert out["secrets_included"] is True
-        assert out["data"]["secrets"]["tmdb_api_key"] == "the-key-itself"
+        assert out["data"]["secrets"]["smtp_password"] == "the-key-itself"
 
 def test_a_thetvdb_key_is_never_in_a_backup(app):
     from app import secretstore, transfer
@@ -82,7 +100,7 @@ def test_a_backup_restores_onto_an_empty_copy(app):
         _populate(app)
         saved = json.loads(json.dumps(transfer.export_data(include_secrets=True)))
 
-        for table in ("watched_episode", "tracked_show", "tracked_movie", "dismissed",
+        for table in ("watched_episode", "tracked_show", "tracked_movie",
                       "episode", "show", "movie", "settings"):
             db.execute(f"DELETE FROM {table}")
         assert queries.tracked_shows() == []
@@ -96,9 +114,8 @@ def test_a_backup_restores_onto_an_empty_copy(app):
         assert queries.tracked_shows()[0]["favourite"] == 1
         assert queries.show_progress(900)["watched"] == 1
         assert [r["id"] for r in queries.movies()] == [910]
-        assert 555 in queries.dismissed_ids("tv")
         assert secretstore.get("accent") == "teal"
-        assert secretstore.get("tmdb_api_key") == "the-key-itself"
+        assert secretstore.get("smtp_password") == "the-key-itself"
 
 def test_the_restored_key_is_encrypted_again_not_left_in_the_clear(app):
     from app import db, transfer
@@ -107,7 +124,7 @@ def test_the_restored_key_is_encrypted_again_not_left_in_the_clear(app):
         _populate(app)
         saved = json.loads(json.dumps(transfer.export_data(include_secrets=True)))
         transfer.import_data(saved)
-        row = db.query("SELECT value, encrypted FROM settings WHERE key = 'tmdb_api_key'", one=True)
+        row = db.query("SELECT value, encrypted FROM settings WHERE key = 'smtp_password'", one=True)
         assert row["encrypted"] == 1
         assert "the-key-itself" not in row["value"]
 

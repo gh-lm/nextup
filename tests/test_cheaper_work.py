@@ -30,19 +30,10 @@ def test_the_cheap_counts_match_a_real_export(app):
     with app.app_context():
         assert transfer.counts() == transfer.export_data()["counts"]
 
-def test_a_429_wait_is_capped_and_survives_a_date(app):
-    from app import tmdb
-
-    assert tmdb._wait_seconds("3") == 4
-    assert tmdb._wait_seconds("100000") == tmdb.MAX_WAIT + 1
-    assert tmdb._wait_seconds("Wed, 21 Oct 2026 07:28:00 GMT") == 3
-    assert tmdb._wait_seconds(None) == 3
-    assert tmdb._wait_seconds("-5") == 1
-
 def test_refresh_now_returns_straight_away_and_runs_in_the_background(signed_in, app, monkeypatch):
     import threading
 
-    from app import secretstore, sync
+    from app import sync
 
     started = threading.Event()
     release = threading.Event()
@@ -53,8 +44,6 @@ def test_refresh_now_returns_straight_away_and_runs_in_the_background(signed_in,
         return 0, 0, []
 
     monkeypatch.setattr(sync, "sync_all", slow)
-    with app.app_context():
-        secretstore.set("tmdb_api_key", "k", encrypted=True)
     response = signed_in.post("/settings/sync")
     assert response.status_code == 302
     assert started.wait(5)

@@ -34,7 +34,6 @@
     <nav aria-label="Main">
       <a href="index.html#watching">Watching</a>
       <a href="index.html#install">Install</a>
-      <a href="index.html#deciding">Deciding</a>
       <a href="index.html#email">The email</a>
       <div id="all-apps"></div>
     </nav>
@@ -69,17 +68,20 @@
       <div class="prose">
         <div class="prose-cards changelog-entries">
           <section>
-        <h2 id="v2.0.0">2.0.0<span class="when"> &middot; 25 October 2026</span></h2>
-        <p>TheTVDB joins TMDB. Your data is untouched, and nothing changes until you add a TheTVDB key.</p>
+        <h2 id="v2.0.0">2.0.0<span class="when"> &middot; 26 October 2026</span></h2>
+        <p>Nextup now uses TheTVDB for everything, and nothing needs a key. Your shows and watched marks carry over.</p>
         <ul>
-          <li><strong>TheTVDB as a source, with nothing to sign up for.</strong> Nextup finds shows and movies, and fetches their episodes, dates and covers, from TheTVDB through its own small lookup service, which holds the key so you do not need one. A TMDB key is now optional. Paste a key of your own under Settings to go straight to TheTVDB instead.
+          <li><strong>TheTVDB for everything, with nothing to sign up for.</strong> Nextup finds shows and movies, and fetches their episodes, dates, covers and cast, from TheTVDB through its own small lookup service, which holds the key so you do not need one.
           </li>
-          <li><strong>Choose which is asked first.</strong> With a TMDB key saved as well, Settings has a "Which source first" choice. The first is used for searches and new shows. The other fills anything left empty, such as a missing summary, cover or episode date. TheTVDB is the default first source.
+          <li><strong>TMDB is gone.</strong> Discover, where to watch, streaming alerts, age certificates, star ratings, taglines, guest cast, and the country and language settings went with it. No key of any kind is asked for.
           </li>
-          <li><strong>TMDB still adds the extras.</strong> Discover, where to watch, trailers and the cast need a TMDB key. A show found through TheTVDB gets them too when a TMDB key is saved.
+          <li><strong>Movies use their release date.</strong> A movie sits under coming soon until its release date has passed, then moves to ready to watch by itself. The date is re-checked every few days.
           </li>
-
-          <li><strong>Your shows carry over.</strong> Shows saved under TMDB numbers keep their watched marks and refresh from TheTVDB when there is no TMDB key.
+          <li><strong>Your shows carry over.</strong> Shows saved under TMDB numbers are matched to TheTVDB on their next refresh, and keep their watched marks.
+          </li>
+          <li><strong>Smaller backups.</strong> A backup holds what you follow, what you watched and your settings. Names, pictures and dates are fetched fresh from TheTVDB when you restore. The mail password is the only secret left.
+          </li>
+          <li><strong>Easier to install.</strong> Nextup gives the data folder to its own user when it starts, so there is no chown step and no helper container.
           </li>
           <li><strong>Credit.</strong> The footer carries TheTVDB's credit and a link, as their terms ask.
           </li>
@@ -489,7 +491,6 @@
         <ul>
           <li><a href="index.html#watching">Watching</a></li>
           <li><a href="index.html#install">Install</a></li>
-          <li><a href="index.html#deciding">Deciding</a></li>
           <li><a href="index.html#email">The email</a></li>
           <li><a href="documentation.html">Documentation</a></li>
           <li><a href="runbook.html">Runbook</a></li>

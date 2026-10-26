@@ -1,11 +1,10 @@
 import pytest
 
-from app import catalog, db, secretstore, sync, tmdb, tvdb
+from app import catalog, db, sync, tvdb
 
 @pytest.fixture()
 def keyed(app):
     with app.app_context():
-        secretstore.set("tvdb_api_key", "tv-key", encrypted=True)
         yield
 
 SERIES = {
@@ -42,16 +41,15 @@ def test_picture_paths_round_trip_and_foreign_hosts_are_refused():
     assert tvdb.image("https://evil.example/banners/x.jpg") is None
     assert tvdb.image_url("/abc.jpg") is None
 
-def test_a_series_comes_back_in_tmdb_shape(keyed, monkeypatch):
+def test_a_series_comes_back_in_the_shape_the_app_reads(keyed, monkeypatch):
     monkeypatch.setattr(tvdb, "_get", fake_get({"/series/252800/extended": SERIES}))
     show = tvdb.show(tvdb.internal(252800))
     assert show["id"] == tvdb.internal(252800)
     assert show["status"] == "Returning Series" and show["original_language"] == "en"
     assert show["networks"] == [{"name": "BBC One"}] and show["episode_run_time"] == [58]
     assert [s["season_number"] for s in show["seasons"]] == [1, 2]
-    assert show["tmdb_id"] == 41956
-    assert tmdb.imdb_from(show) == "https://www.imdb.com/title/tt1888075/"
-    assert tmdb.trailer_from(show)["url"].endswith("abc123XYZ_-")
+    assert tvdb.imdb_from(show) == "https://www.imdb.com/title/tt1888075/"
+    assert tvdb.trailer_from(show)["url"].endswith("abc123XYZ_-")
 
 def test_tracking_a_tvdb_show_saves_its_episodes(keyed, monkeypatch):
     monkeypatch.setattr(tvdb, "_get", fake_get({
@@ -65,39 +63,7 @@ def test_tracking_a_tvdb_show_saves_its_episodes(keyed, monkeypatch):
     assert [(r["season_number"], r["name"]) for r in rows] == [(1, "One"), (2, "Two")]
     assert rows[0]["id"] == tvdb.internal(11)
 
-def test_the_first_source_is_asked_and_the_second_fills_gaps(keyed, monkeypatch):
-    secretstore.set("tmdb_api_key", "tm-key", encrypted=True)
-    thin = dict(SERIES, overview=None, image=None)
-    monkeypatch.setattr(tvdb, "_get", fake_get({"/series/252800/extended": thin, "/series/252800/translations": {}}))
-    monkeypatch.setattr(tmdb, "show", lambda i: {"id": i, "name": "Other", "overview": "From TMDB", "poster_path": "/p.jpg", "seasons": []})
-    catalog._counterparts.clear()
-    merged = catalog.show(tvdb.internal(252800))
-    assert merged["name"] == "Death in Paradise" and merged["overview"] == "From TMDB"
-    assert merged["poster_path"] == "/p.jpg"
-
-def test_a_tmdb_show_is_filled_from_tvdb_when_chosen_first(keyed, monkeypatch):
-    secretstore.set("tmdb_api_key", "tm-key", encrypted=True)
-    secretstore.set("source_first", "tmdb")
-    assert catalog.order() == ["tmdb", "tvdb"]
-    monkeypatch.setattr(tmdb, "show", lambda i: {"id": i, "name": "X", "overview": "", "poster_path": "/p.jpg", "first_air_date": "2020-01-01",
-                                                   "last_air_date": "2020-02-01", "backdrop_path": "/b.jpg", "status": "Ended", "original_language": "en"})
-    monkeypatch.setattr(tvdb, "find_by_tmdb", lambda i, kind: tvdb.internal(9))
-    monkeypatch.setattr(tvdb, "show", lambda i: {"id": i, "name": "Y", "overview": "From TVDB"})
-    catalog._counterparts.clear()
-    assert catalog.show(41956)["overview"] == "From TVDB"
-
-def test_only_one_key_means_only_that_source(keyed):
-    assert catalog.order() == ["tvdb"]
-    with pytest.raises(tvdb.TvdbError):
-        catalog.show_providers(tvdb.internal(1))
-
-def test_the_source_choice_sticks(signed_in, app):
-    signed_in.post("/settings/source", data={"source_first": "tmdb"})
-    with app.app_context():
-        assert catalog.first_name() == "tmdb"
-    assert signed_in.post("/settings/source", data={"source_first": "x"}).status_code == 302
-
-def test_the_footer_credits_thetvdb_once_a_key_is_saved(signed_in, keyed):
+def test_the_footer_credits_thetvdb(signed_in):
     assert "Metadata provided by" in signed_in.get("/settings").get_data(as_text=True)
 
 RELAY = "https://relay.example"
@@ -109,7 +75,7 @@ class Reply:
     def json(self):
         return {"data": {"ok": True}}
 
-def test_without_a_key_of_their_own_lookups_go_through_the_relay(app, monkeypatch):
+def test_lookups_go_through_the_relay_and_carry_no_credentials(app, monkeypatch):
     monkeypatch.setattr(tvdb, "RELAY_URL", RELAY)
     seen = {}
 
@@ -119,35 +85,11 @@ def test_without_a_key_of_their_own_lookups_go_through_the_relay(app, monkeypatc
 
     monkeypatch.setattr(tvdb.requests, "get", fake)
     with app.app_context():
-        assert tvdb.has_key() and catalog.configured("tvdb") and tvdb.using_relay()
         assert tvdb._get("/series/1/extended") == {"ok": True}
     assert seen["url"] == f"{RELAY}/v4/series/1/extended"
     assert "Authorization" not in seen["headers"]
 
-def test_a_saved_key_of_their_own_goes_straight_to_thetvdb(app, monkeypatch):
-    monkeypatch.setattr(tvdb, "RELAY_URL", RELAY)
-    monkeypatch.setattr(tvdb, "_bearer", lambda fresh=False: "tok")
-    seen = {}
-
-    def fake(url, params=None, timeout=None, headers=None):
-        seen.update(url=url, headers=headers)
-        return Reply()
-
-    monkeypatch.setattr(tvdb.requests, "get", fake)
-    with app.app_context():
-        secretstore.set("tvdb_api_key", "mine", encrypted=True)
-        assert not tvdb.using_relay()
-        tvdb._get("/series/1/extended")
-    assert seen["url"].startswith(tvdb.BASE) and seen["headers"]["Authorization"] == "Bearer tok"
-
-def test_with_the_relay_the_welcome_page_is_skipped(signed_in, monkeypatch):
-    monkeypatch.setattr(tvdb, "RELAY_URL", RELAY)
-    with signed_in.session_transaction() as sess:
-        sess.pop("skip_welcome")
-    assert "One step to start" not in signed_in.get("/").get_data(as_text=True)
-    assert b"TheTVDB key" not in signed_in.get("/settings").data
-
-def test_a_tmdb_show_keeps_refreshing_from_tvdb_when_the_tmdb_key_is_gone(keyed, monkeypatch):
+def test_an_older_numbered_show_keeps_refreshing_from_thetvdb(keyed, monkeypatch):
     sid = 41956
     db.execute("INSERT INTO show (id, name) VALUES (?, 'Old')", (sid,))
     db.execute("INSERT INTO episode (id, show_id, season_number, episode_number, name) VALUES (500, ?, 1, 1, 'Old one')", (sid,))
@@ -158,7 +100,7 @@ def test_a_tmdb_show_keeps_refreshing_from_tvdb_when_the_tmdb_key_is_gone(keyed,
         "/series/252800/episodes": {"episodes": EPISODES, "links": {"next": None}},
     }))
     tvdb._episodes.clear()
-    catalog._counterparts.clear()
+    catalog._legacy.clear()
     assert sync.sync_show(sid) == "Death in Paradise"
     one = db.query("SELECT id, name FROM episode WHERE show_id = ? AND season_number = 1", (sid,), one=True)
     assert one["id"] == 500 and one["name"] == "One"
@@ -183,4 +125,4 @@ def test_cast_comes_from_the_characters_in_order_with_photos():
     assert [c["name"] for c in cast] == ["A Person", "B Person"]
     assert cast[0]["profile_path"] is None
     assert cast[1]["profile_path"] == "/tvdb__banners__v4__actor__2__photo__b.jpg"
-    assert tvdb.cast_from({"credits": tvdb._credits(record)})[1]["role"] == "Role B" if hasattr(tvdb, "cast_from") else True
+    assert tvdb.cast_from({"credits": tvdb._credits(record)})[1]["role"] == "Role B"

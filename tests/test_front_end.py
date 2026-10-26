@@ -12,14 +12,13 @@ PAGES = ["/", "/shows", "/maybe", "/movies", "/upcoming", "/calendar", "/search"
 
 @pytest.fixture()
 def seeded(signed_in, app, monkeypatch):
-    from app import db, secretstore, tmdb
+    from app import db, secretstore, tvdb
 
     def down(*a, **k):
-        raise tmdb.TmdbError("TMDB is unreachable")
+        raise tvdb.TvdbError("TheTVDB is unreachable")
 
-    monkeypatch.setattr(tmdb, "show_detail", down)
-    monkeypatch.setattr(tmdb, "movie_detail", down)
-    monkeypatch.setattr(tmdb, "countries", down)
+    monkeypatch.setattr(tvdb, "show_detail", down)
+    monkeypatch.setattr(tvdb, "movie_detail", down)
     with app.app_context():
         db.execute("INSERT INTO show (id, name) VALUES (900, 'A Show')")
         db.execute("INSERT INTO tracked_show (show_id, added_at) VALUES (900, '2026-01-01')")
@@ -32,7 +31,6 @@ def seeded(signed_in, app, monkeypatch):
             " VALUES (9003, 900, 1, 2, 'Second', '2020-01-08')")
         db.execute("INSERT INTO movie (id, title) VALUES (901, 'A Film')")
         db.execute("INSERT INTO tracked_movie (movie_id, added_at) VALUES (901, '2026-01-01')")
-        secretstore.set("tmdb_api_key", "made-up-key", encrypted=True)
         for key, value in (("smtp_host", "mail.example.com"), ("mail_from", "a@example.com"),
                            ("mail_to", "b@example.com")):
             secretstore.set(key, value)
@@ -99,11 +97,11 @@ def test_removing_a_show_or_film_needs_a_second_step_without_scripting(seeded, p
     assert len(boxes) == 1 and "required" in boxes[0].attrs
     assert "Yes, remove it" in forms[0].text
 
-def test_removing_a_saved_key_or_password_needs_a_second_step(seeded):
+def test_removing_the_mail_password_needs_a_second_step(seeded):
     page = _page(seeded, "/settings")
     forms = {f.attrs["id"]: f for f in page.find_all("form") if "data-confirm" in f.attrs}
     assert {k: v.attrs["action"] for k, v in forms.items()} == {
-        "clear-mail-form": "/settings/mail/clear", "clear-tmdb-form": "/settings/tmdb/clear"}
+        "clear-mail-form": "/settings/mail/clear"}
     for form_id in forms:
         buttons = [b for b in page.find_all("button") if b.attrs.get("form") == form_id]
         boxes = [i for i in page.find_all("input", type="checkbox") if i.attrs.get("form") == form_id]
@@ -113,7 +111,7 @@ def test_removing_a_saved_key_or_password_needs_a_second_step(seeded):
 def test_a_save_form_never_asks_for_the_remove_box(seeded):
     page = _page(seeded, "/settings")
     for form in page.find_all("form"):
-        if form.attrs.get("action", "").endswith(("/settings/tmdb", "/settings/mail")):
+        if form.attrs.get("action", "").endswith("/settings/mail"):
             assert not [i for i in form.walk() if i.tag == "input" and "required" in i.attrs
                         and i.attrs.get("type") == "checkbox" and "form" not in i.attrs]
 
