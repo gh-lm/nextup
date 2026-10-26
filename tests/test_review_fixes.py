@@ -121,7 +121,7 @@ def test_a_bad_reply_for_one_show_does_not_stop_the_refresh(app, monkeypatch):
     from app import db, sync, tvdb
 
     with app.app_context():
-        for show_id, name in ((801, "Broken"), (802, "Fine")):
+        for show_id, name in ((tvdb.internal(801), "Broken"), (tvdb.internal(802), "Fine")):
             db.execute("INSERT INTO show (id, name) VALUES (?, ?)", (show_id, name))
             db.execute("INSERT INTO tracked_show (show_id, added_at) VALUES (?, '2026-01-01')", (show_id,))
 

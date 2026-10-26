@@ -8,6 +8,7 @@ const ALLOWED = [
   /^\/v4\/series\/\d+\/translations\/eng$/,
   /^\/v4\/movies\/\d+\/extended$/,
   /^\/v4\/movies\/\d+\/translations\/eng$/,
+  /^\/v4\/(movies|series)\/filter$/,
 ];
 const SEARCH_SECONDS = 3600;
 const RECORD_SECONDS = 86400;
@@ -36,6 +37,16 @@ export function cleanQuery(params) {
   const page = parseInt(params.get("page") || "", 10);
   if (page >= 0 && page <= 50) out.set("page", String(page));
   if (params.get("short") === "true") out.set("short", "true");
+  for (const key of ["country", "lang"]) {
+    const value = params.get(key) || "";
+    if (/^[a-z]{3}$/.test(value)) out.set(key, value);
+  }
+  const sort = params.get("sort") || "";
+  if (["score", "firstAired", "name"].includes(sort)) out.set("sort", sort);
+  const sortType = params.get("sortType") || "";
+  if (["asc", "desc"].includes(sortType)) out.set("sortType", sortType);
+  const year = params.get("year") || "";
+  if (/^\d{4}$/.test(year)) out.set("year", year);
   return out;
 }
 

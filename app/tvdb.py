@@ -246,21 +246,6 @@ def movie(movie_id, full=False):
 def movie_detail(movie_id):
     return movie(movie_id, full=True)
 
-def find_by_tmdb(tmdb_id, kind):
-    path = "series" if kind == "tv" else "movies"
-    try:
-        found = _get(f"/search/remoteid/{int(tmdb_id)}") or []
-        for entry in found:
-            record = entry.get("series" if kind == "tv" else "movie")
-            if not record or not record.get("id"):
-                continue
-            full = _get(f"/{path}/{record['id']}/extended", {"short": "true"}) or {}
-            if _remote(full, "TheMovieDB.com") == str(int(tmdb_id)):
-                return internal(record["id"])
-    except TvdbError:
-        return None
-    return None
-
 def safe_url(value):
     try:
         parts = urlsplit(value or "")

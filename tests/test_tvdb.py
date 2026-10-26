@@ -89,23 +89,6 @@ def test_lookups_go_through_the_relay_and_carry_no_credentials(app, monkeypatch)
     assert seen["url"] == f"{RELAY}/v4/series/1/extended"
     assert "Authorization" not in seen["headers"]
 
-def test_an_older_numbered_show_keeps_refreshing_from_thetvdb(keyed, monkeypatch):
-    sid = 41956
-    db.execute("INSERT INTO show (id, name) VALUES (?, 'Old')", (sid,))
-    db.execute("INSERT INTO episode (id, show_id, season_number, episode_number, name) VALUES (500, ?, 1, 1, 'Old one')", (sid,))
-    db.execute("INSERT INTO watched_episode (episode_id, show_id, watched_at) VALUES (500, ?, '2026-01-01')", (sid,))
-    monkeypatch.setattr(tvdb, "find_by_tmdb", lambda i, kind: tvdb.internal(252800))
-    monkeypatch.setattr(tvdb, "_get", fake_get({
-        "/series/252800/extended": SERIES,
-        "/series/252800/episodes": {"episodes": EPISODES, "links": {"next": None}},
-    }))
-    tvdb._episodes.clear()
-    catalog._legacy.clear()
-    assert sync.sync_show(sid) == "Death in Paradise"
-    one = db.query("SELECT id, name FROM episode WHERE show_id = ? AND season_number = 1", (sid,), one=True)
-    assert one["id"] == 500 and one["name"] == "One"
-    assert db.query("SELECT 1 FROM watched_episode WHERE episode_id = 500", one=True)
-
 def test_a_watched_mark_follows_an_episode_whose_id_changes_source(app):
     with app.app_context():
         db.execute("INSERT INTO show (id, name) VALUES (7, 'S')")
