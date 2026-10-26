@@ -32,31 +32,20 @@ if you add a key, TMDB, to look up the shows and movies you asked for.
 
 ```yaml
 services:
-  nextup-init:
-    image: ghcr.io/gh-lm/nextup:latest
-    user: "0:0"
-    entrypoint: ["chown", "-R", "1000:1000", "/data"]
-    restart: "no"
-    cap_drop:
-      - ALL
-    cap_add:
-      - CHOWN
-    read_only: true
-    volumes:
-      - /opt/nextup:/data
   nextup:
     image: ghcr.io/gh-lm/nextup:latest
     container_name: nextup
     restart: unless-stopped
-    depends_on:
-      nextup-init:
-        condition: service_completed_successfully
     ports:
       - "127.0.0.1:4090:8080"
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
     read_only: true
     mem_limit: 512m
     pids_limit: 128
@@ -74,17 +63,20 @@ docker compose up -d
 Open <http://localhost:4090> and sign in with **admin** and **nextup**. Nextup
 then makes you choose your own password before it shows anything else.
 
-Everything lives in `/opt/nextup`. The small `nextup-init` service runs once
-at start, gives that folder to user 1000 and exits, so there is nothing to set
-up by hand. Nextup itself never runs as root.
+Everything lives in `/opt/nextup`. Nextup gives that folder to its own user
+when it starts, so there is nothing to set up by hand, then runs as that user
+with no special rights.
 
 Nextup needs no sign-up to start. It looks shows and movies up on TheTVDB
 through a small service run by Lightmorphic, which holds the TheTVDB key so
 that you do not need one. The service keeps no record of who looks up what;
 Cloudflare, which runs it, sees ordinary request logs.
 
-A TMDB key is optional and adds Discover, where to watch, trailers and the
-cast. Make an account, go to <https://www.themoviedb.org/settings/api>, and
+A TMDB key is optional. If you add your own, Nextup also gives you Discover
+(what is trending and popular), where to watch (which streaming services carry
+a show or movie), an alert when a movie reaches streaming at home, and star
+ratings, age certificates and taglines. You can then choose which of the two,
+TheTVDB or TMDB, is asked first. Make an account, go to <https://www.themoviedb.org/settings/api>, and
 copy the **API Key (v3 auth)**. Keys go into the Settings page inside the
 app, never into this compose file: each is checked against its service and
 then stored encrypted. With both, you choose which is asked first and the

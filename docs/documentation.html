@@ -71,16 +71,13 @@
           <ul>
             <li>Docker, with the compose plugin.</li>
             <li>
-              Nothing to sign up for: Nextup finds shows and movies on TheTVDB through a service run by Lightmorphic. A free TMDB key is optional and adds Discover, where to watch, trailers and the cast; make the account, then go to <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a> and copy the API Key for v3 auth. You paste it into Nextup later, not into a file.
+              Nothing to sign up for: Nextup finds shows and movies on TheTVDB through a service run by Lightmorphic. A free TMDB key is optional. With one of your own, Nextup also gives you Discover (what is trending and popular), where to watch (which streaming services carry a show or movie), an alert when a movie reaches streaming at home, and star ratings, age certificates and taglines; make the account, then go to <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a> and copy the API Key for v3 auth. You paste it into Nextup later, not into a file.
             </li>
           </ul>
         </section>
         <section>
           <h2>Installing</h2>
-          <p>Make the directory your data will live in, owned by user 1000:</p>
-          <pre><code>sudo mkdir -p /opt/nextup
-sudo chown -R 1000:1000 /opt/nextup</code></pre>
-          <p>Save this as <code>docker-compose.yml</code> beside it:</p>
+          <p>Save this as <code>docker-compose.yml</code> anywhere you like:</p>
           <pre><code>services:
   nextup:
     image: ghcr.io/gh-lm/nextup:latest
@@ -92,6 +89,10 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
       - no-new-privileges:true
     cap_drop:
       - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
     read_only: true
     mem_limit: 512m
     pids_limit: 128
