@@ -420,6 +420,7 @@ textarea { min-height: 120px; resize: vertical; }
 
 .split > * { min-width: 0; }
 .split > .panel { margin-top: 0; }
+.split-one { grid-template-columns: 1fr; }
 .split-even { grid-template-columns: 1fr 1fr; align-items: stretch; }
 .panel + .split { margin-top: 20px; }
 .season-jump { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }

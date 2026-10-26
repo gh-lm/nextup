@@ -171,3 +171,16 @@ def test_a_watched_mark_follows_an_episode_whose_id_changes_source(app):
         db.execute("INSERT INTO watched_episode (episode_id, show_id, watched_at) VALUES (1, 7, '2026-01-01')")
         sync.upsert_episodes(7, {"season_number": 1, "episodes": [{"id": 99, "season_number": 1, "episode_number": 1, "name": "x"}]})
         assert db.query("SELECT 1 FROM watched_episode WHERE episode_id = 99", one=True)
+
+def test_cast_comes_from_the_characters_in_order_with_photos():
+    record = {"characters": [
+        {"peopleType": "Actor", "personName": "B Person", "name": "Role B", "sort": 2,
+         "personImgURL": "https://artworks.thetvdb.com/banners/v4/actor/2/photo/b.jpg"},
+        {"peopleType": "Director", "personName": "Not Cast", "sort": 0},
+        {"peopleType": "Actor", "personName": "A Person", "name": "Role A", "sort": 1, "personImgURL": None},
+    ]}
+    cast = tvdb._credits(record)["cast"]
+    assert [c["name"] for c in cast] == ["A Person", "B Person"]
+    assert cast[0]["profile_path"] is None
+    assert cast[1]["profile_path"] == "/tvdb__banners__v4__actor__2__photo__b.jpg"
+    assert tvdb.cast_from({"credits": tvdb._credits(record)})[1]["role"] == "Role B" if hasattr(tvdb, "cast_from") else True

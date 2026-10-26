@@ -191,9 +191,17 @@ def search_multi(query, page=1):
         })
     return {"results": results, "total_pages": 1, "page": page}
 
-def show(show_id):
+def _credits(record):
+    actors = [c for c in record.get("characters") or [] if c.get("peopleType") == "Actor" and c.get("personName")]
+    actors.sort(key=lambda c: c.get("sort") or 0)
+    return {"cast": [
+        {"name": c["personName"], "character": c.get("name"), "profile_path": image(c.get("personImgURL") or c.get("image"))}
+        for c in actors
+    ]}
+
+def show(show_id, full=False):
     number = raw(show_id)
-    record = _get(f"/series/{number}/extended", {"short": "true"}) or {}
+    record = _get(f"/series/{number}/extended", None if full else {"short": "true"}) or {}
     default_type = record.get("defaultSeasonType")
     seasons = sorted({
         s.get("number") for s in record.get("seasons") or []
@@ -219,10 +227,11 @@ def show(show_id):
         "videos": _trailers(record),
         "external_ids": _external_ids(record),
         "tmdb_id": _tmdb_id(record),
+        "credits": _credits(record),
     }
 
 def show_detail(show_id):
-    return show(show_id)
+    return show(show_id, full=True)
 
 def _all_episodes(number):
     now = time.time()
@@ -262,9 +271,9 @@ def episode(show_id, season_number, episode_number):
             return ep
     raise TvdbError("TheTVDB has no record of that.")
 
-def movie(movie_id):
+def movie(movie_id, full=False):
     number = raw(movie_id)
-    record = _get(f"/movies/{number}/extended", {"short": "true"}) or {}
+    record = _get(f"/movies/{number}/extended", None if full else {"short": "true"}) or {}
     first = (record.get("first_release") or {}).get("date")
     return {
         "id": internal(number),
@@ -279,10 +288,11 @@ def movie(movie_id):
         "videos": _trailers(record),
         "external_ids": _external_ids(record),
         "tmdb_id": _tmdb_id(record),
+        "credits": _credits(record),
     }
 
 def movie_detail(movie_id):
-    return movie(movie_id)
+    return movie(movie_id, full=True)
 
 def find_by_tmdb(tmdb_id, kind):
     try:
