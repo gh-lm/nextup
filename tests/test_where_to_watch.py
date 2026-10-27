@@ -206,3 +206,21 @@ def test_discover_poster_is_fetched_once_and_only_from_movie_of_the_night(signed
     assert len(calls) == 1
     assert signed_in.get("/discover/poster/tt9").status_code == 302
     assert len(calls) == 1
+
+def test_discover_add_problem_shows_under_the_clicked_title(signed_in, monkeypatch):
+    from datetime import date, timedelta
+
+    from app import streaming, tvdb
+
+    soon = (date.today() + timedelta(days=5)).isoformat()
+    monkeypatch.setattr(streaming, "country", lambda: "gb")
+    monkeypatch.setattr(streaming, "discover", lambda kind, when, code=None: [
+        {"imdb": "tt61", "title": "Missing One", "year": "2026", "date": soon, "services": ["Netflix"], "overview": ""}])
+    monkeypatch.setattr(tvdb, "movie_id_by_imdb", lambda imdb: None)
+    resp = signed_in.post("/discover/add", data={"imdb": "tt61", "date": "2026-12-01", "kind": "movie", "next": "/discover?kind=movie&days=30"})
+    assert resp.status_code == 302
+    assert resp.headers["Location"] == "/discover?kind=movie&days=30&problem=tt61%3Amissing#t-tt61"
+    assert "flash" not in resp.get_data(as_text=True)
+    page = signed_in.get("/discover?kind=movie&days=30&problem=tt61:missing").get_data(as_text=True)
+    assert page.count("does not list this title yet") == 1
+    assert 'id="t-tt61"' in page

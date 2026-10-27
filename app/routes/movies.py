@@ -1,5 +1,6 @@
 import os
 import re
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from datetime import timedelta
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, send_from_directory, url_for
@@ -7,7 +8,7 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, s
 from .. import catalog, clock, config, db, queries, streaming, sync, tvdb
 from ..auth import login_required
 from ..forms import confirmed, wanted_state
-from ..redirects import back_to
+from ..redirects import back_to, is_local_path
 
 bp = Blueprint("movies", __name__)
 
@@ -163,6 +164,7 @@ def discover():
         when=when,
         days=days,
         held=held,
+        problem=dict(zip(("imdb", "text"), _problem_of(request.args.get("problem", "")))),
         service=service,
         services=streaming.SERVICES,
         day_choices=streaming.DISCOVER_DAYS,
@@ -177,6 +179,25 @@ def discover_poster(imdb):
         return redirect(url_for("images.placeholder"))
     return send_from_directory(config.CACHE_DIR, os.path.basename(path), max_age=60 * 60 * 24 * 30, conditional=True)
 
+PROBLEMS = {
+    "missing": "TheTVDB does not list this title yet, so it cannot be added.",
+    "failed": "TheTVDB could not be reached. Try again in a little while.",
+}
+
+def _problem_of(raw):
+    imdb, _, code = raw.partition(":")
+    return (imdb, PROBLEMS.get(code, "")) if re.fullmatch(r"tt\d{1,10}", imdb) else ("", "")
+
+def _discover_back(imdb, problem=None):
+    target = request.form.get("next")
+    if not is_local_path(target):
+        target = url_for("movies.discover")
+    parts = urlsplit(target)
+    query = [(k, v) for k, v in parse_qsl(parts.query) if k != "problem"]
+    if problem:
+        query.append(("problem", f"{imdb}:{problem}"))
+    return redirect(urlunsplit(("", "", parts.path, urlencode(query), f"t-{imdb}")))
+
 @bp.route("/discover/add", methods=["POST"])
 @login_required
 def discover_add():
@@ -188,37 +209,31 @@ def discover_add():
         return _discover_add_show(imdb)
     movie_id = tvdb.movie_id_by_imdb(imdb)
     if movie_id is None:
-        flash("TheTVDB does not list that movie yet, so it cannot be added.", "error")
-        return back_to("movies.discover")
+        return _discover_back(imdb, "missing")
     try:
         payload = catalog.movie(movie_id)
         sync.upsert_movie(payload)
-    except catalog.TvdbError as exc:
-        flash(str(exc), "error")
-        return back_to("movies.discover")
+    except catalog.TvdbError:
+        return _discover_back(imdb, "failed")
     db.execute("UPDATE movie SET digital_release = ?, release_date = ?, imdb_id = ? WHERE id = ?",
                (day, day, imdb, movie_id))
     db.execute("INSERT OR IGNORE INTO tracked_movie (movie_id, added_at) VALUES (?, ?)",
                (movie_id, clock.now_iso()))
-    flash(f"Added {payload.get('title') or 'this movie'}. It shows on the calendar on {day}.", "success")
-    return back_to("movies.discover")
+    return _discover_back(imdb)
 
 def _discover_add_show(imdb):
     show_id = tvdb.series_id_by_imdb(imdb)
     if show_id is None:
-        flash("TheTVDB does not list that show yet, so it cannot be added.", "error")
-        return back_to("movies.discover")
+        return _discover_back(imdb, "missing")
     failed = []
     try:
         name = sync.sync_show(show_id, failed)
-    except catalog.TvdbError as exc:
-        flash(str(exc), "error")
-        return back_to("movies.discover")
+    except catalog.TvdbError:
+        return _discover_back(imdb, "failed")
     db.execute("UPDATE show SET imdb_id = ? WHERE id = ?", (imdb, show_id))
     db.execute(
         "INSERT INTO tracked_show (show_id, added_at, shortlist) VALUES (?, ?, 0)"
         " ON CONFLICT(show_id) DO UPDATE SET archived = 0",
         (show_id, clock.now_iso()),
     )
-    flash(f"Added {name} to your shows.", "success")
-    return back_to("movies.discover")
+    return _discover_back(imdb)

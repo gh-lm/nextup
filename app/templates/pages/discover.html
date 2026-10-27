@@ -42,7 +42,7 @@
 {% else %}
   <div class="mt-20">
     {% for item in items %}
-      <article class="watch-card mb-14">
+      <article class="watch-card mb-14" id="t-{{ item.imdb }}">
         <span class="poster">
           {% if item.poster %}
             <img src="{{ url_for('movies.discover_poster', imdb=item.imdb) }}" alt="" loading="lazy">
@@ -69,6 +69,7 @@
               <button class="btn btn-primary btn-small" type="submit">Add</button>
             </form>
           {% endif %}
+          {% if problem.imdb == item.imdb and problem.text %}<p class="note note-error" role="alert">{{ problem.text }}</p>{% endif %}
         </div>
       </article>
     {% endfor %}
