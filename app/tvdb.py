@@ -270,8 +270,10 @@ def trailer_from(payload):
             return {"name": video.get("name"), "url": f"https://www.youtube.com/watch?v={key}"}
     return None
 
-def imdb_from(payload):
+def imdb_id_from(payload):
     imdb_id = payload.get("imdb_id") or (payload.get("external_ids") or {}).get("imdb_id")
-    if not re.fullmatch(r"tt\d+", str(imdb_id or "")):
-        return None
-    return f"https://www.imdb.com/title/{imdb_id}/"
+    return imdb_id if re.fullmatch(r"tt\d+", str(imdb_id or "")) else None
+
+def imdb_from(payload):
+    imdb_id = imdb_id_from(payload)
+    return f"https://www.imdb.com/title/{imdb_id}/" if imdb_id else None

@@ -347,6 +347,28 @@
     {{ n.notes_for(notes, "order") }}
   </section>
 
+  <section class="panel" id="watch">
+    <div class="panel-head"><h2>Where to watch</h2></div>
+    <p class="subtle">
+      Show and movie pages list the services that carry them in this country.
+      Nextup asks Movie of the Night through its own lookup service, so you need no key.
+      Only the title's IMDb number and the country are sent.
+    </p>
+    <form data-autosave method="post" action="{{ url_for('settings.save_watch_country') }}">
+      <div class="field">
+        <label for="watch_country">Country</label>
+        <select id="watch_country" name="watch_country">
+          <option value="" {{ 'selected' if not watch_country else '' }}>Do not show where to watch</option>
+          {% for code, name in countries %}
+            <option value="{{ code }}" {{ 'selected' if code == watch_country else '' }}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button class="btn btn-primary" type="submit">Save</button>
+    </form>
+    {{ n.notes_for(notes, "watch") }}
+  </section>
+
   <section class="panel" id="sync">
     <div class="panel-head"><h2>Refresh now</h2></div>
     <p class="hint mt-0">

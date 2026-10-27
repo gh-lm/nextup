@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { handle, cleanQuery, forgetToken } from "./worker.js";
+import { handle, cleanQuery, forgetToken, slimShow } from "./worker.js";
 
 function memoryCache() {
   const store = new Map();
@@ -65,4 +65,43 @@ test("filter parameters are checked and passed in a fixed order", () => {
   const out = cleanQuery(new URL("https://x/?year=2026&sort=firstAired&sortType=desc&country=usa&lang=eng&sort2=x").searchParams);
   assert.equal(out.toString(), "country=usa&lang=eng&sort=firstAired&sortType=desc&year=2026");
   assert.equal(cleanQuery(new URL("https://x/?sort=drop&year=20x6&country=us").searchParams).toString(), "");
+});
+
+const motnShow = { title: "Severance", streamingOptions: { gb: [
+  { service: { name: "Apple TV", imageSet: {} }, type: "subscription", link: "https://tv.apple.com/x", audios: [1] },
+  { service: { name: "Apple TV" }, type: "subscription", link: "https://tv.apple.com/x" },
+  { service: { name: "Prime Video" }, type: "addon", addon: { name: "Apple TV" }, link: "https://p/x" },
+] } };
+
+test("streaming answers are trimmed and repeats removed", () => {
+  const out = slimShow(motnShow, "gb");
+  assert.equal(out.options.length, 2);
+  assert.deepEqual(out.options[1], { service: "Prime Video", type: "addon", link: "https://p/x", addon: "Apple TV" });
+  assert.deepEqual(slimShow(motnShow, "us").options, []);
+});
+
+test("the streaming key goes upstream only, and answers are cached", async () => {
+  const calls = [];
+  const fetchImpl = async (url, options) => { calls.push({ url: String(url), options }); return new Response(JSON.stringify(motnShow), { status: 200 }); };
+  const cache = memoryCache();
+  const pending = [];
+  const env = { MOTN_KEY: "motn-secret" };
+  const c = { waitUntil: (p) => pending.push(p) };
+  const resp = await handle(get("/motn/shows/tt11280740?country=GB"), env, c, { fetch: fetchImpl, cache });
+  await Promise.all(pending);
+  assert.equal(resp.status, 200);
+  assert.ok(!(await resp.text()).includes("motn-secret"));
+  assert.equal(calls[0].options.headers["X-API-Key"], "motn-secret");
+  assert.equal(calls[0].url, "https://api.movieofthenight.com/v4/shows/tt11280740?country=gb");
+  await handle(get("/motn/shows/tt11280740?country=gb"), env, c, { fetch: fetchImpl, cache });
+  assert.equal(calls.length, 1);
+});
+
+test("streaming lookups are checked: id shape, country, key, limit", async () => {
+  const deps = { fetch: async () => new Response("{}", { status: 200 }), cache: memoryCache() };
+  assert.equal((await handle(get("/motn/shows/abc?country=gb"), { MOTN_KEY: "k" }, ctx, deps)).status, 404);
+  assert.equal((await handle(get("/motn/shows/tt1"), { MOTN_KEY: "k" }, ctx, deps)).status, 400);
+  assert.equal((await handle(get("/motn/shows/tt1?country=gb"), {}, ctx, deps)).status, 503);
+  const env = { MOTN_KEY: "k", LIMITER_MOTN: { limit: async () => ({ success: false }) } };
+  assert.equal((await handle(get("/motn/shows/tt2?country=gb"), env, ctx, deps)).status, 429);
 });

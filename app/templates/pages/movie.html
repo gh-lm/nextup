@@ -67,6 +67,8 @@
   </div>
 </article>
 
+{% with watch=extras.watch, country_name=watch_country_name %}{% include 'partials/_watch.html' %}{% endwith %}
+
 {% if extras.cast or extras.imdb or extras.trailer %}
 <div class="split {{ 'split-even' if extras.cast else 'split-one' }}">
   {% with cast=extras.cast %}{% include 'partials/_cast.html' %}{% endwith %}

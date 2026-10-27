@@ -1,4 +1,4 @@
-/* Nextup's TheTVDB relay. It holds the key as a Cloudflare secret and passes on only the lookups Nextup makes. */
+/* Nextup's relay. It holds the TheTVDB and Movie of the Night keys as Cloudflare secrets and passes on only the lookups Nextup makes. */
 const UPSTREAM = "https://api4.thetvdb.com";
 const ALLOWED = [
   /^\/v4\/search$/,
@@ -10,6 +10,9 @@ const ALLOWED = [
   /^\/v4\/movies\/\d+\/translations\/eng$/,
   /^\/v4\/(movies|series)\/filter$/,
 ];
+const MOTN_UPSTREAM = "https://api.movieofthenight.com";
+const MOTN_ALLOWED = /^\/motn\/shows\/tt\d{1,10}$/;
+const MOTN_SECONDS = 3 * 86400;
 const SEARCH_SECONDS = 3600;
 const RECORD_SECONDS = 86400;
 const TOKEN_SECONDS = 20 * 24 * 3600;
@@ -71,11 +74,66 @@ async function upstream(url, env, fetchImpl) {
   throw new Error("auth");
 }
 
+export function slimShow(show, country) {
+  const seen = new Set();
+  const options = [];
+  for (const o of (show.streamingOptions || {})[country] || []) {
+    const entry = {
+      service: String((o.service || {}).name || ""),
+      type: String(o.type || ""),
+      link: String(o.link || ""),
+    };
+    if (o.addon) entry.addon = String(o.addon.name || "");
+    const id = `${entry.service}|${entry.type}|${entry.addon || ""}`;
+    if (!entry.service || seen.has(id)) continue;
+    seen.add(id);
+    options.push(entry);
+  }
+  return { title: String(show.title || ""), options };
+}
+
+async function handleMotn(request, env, ctx, deps, url) {
+  const fetchImpl = deps.fetch || fetch;
+  const cache = deps.cache || caches.default;
+  const country = (url.searchParams.get("country") || "").toLowerCase();
+  if (!/^[a-z]{2}$/.test(country)) return reply(400, { status: "failure", message: "Country needed." });
+  if (!env.MOTN_KEY) return reply(503, { status: "failure", message: "Not available." });
+  const target = `${MOTN_UPSTREAM}/v4${url.pathname.slice(5)}?country=${country}`;
+  const cacheKey = new Request(target);
+  const hit = await cache.match(cacheKey);
+  if (hit) return hit;
+
+  if (env.LIMITER_MOTN) {
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const { success } = await env.LIMITER_MOTN.limit({ key: ip });
+    if (!success) {
+      return reply(429, { status: "failure", message: "Too many lookups. Try again in a minute." }, { "Retry-After": "60" });
+    }
+  }
+
+  let resp;
+  try {
+    resp = await fetchImpl(target, { headers: { "X-API-Key": env.MOTN_KEY } });
+  } catch (err) {
+    return reply(502, { status: "failure", message: "Streaming lookup could not be reached." });
+  }
+  if (resp.status === 404) {
+    const none = reply(200, { title: "", options: [] }, { "Cache-Control": "public, max-age=86400" });
+    ctx.waitUntil(cache.put(cacheKey, none.clone()));
+    return none;
+  }
+  if (!resp.ok) return reply(503, { status: "failure", message: "Streaming lookup is unavailable." }, { "Cache-Control": "no-store" });
+  const out = reply(200, slimShow(await resp.json(), country), { "Cache-Control": `public, max-age=${MOTN_SECONDS}` });
+  ctx.waitUntil(cache.put(cacheKey, out.clone()));
+  return out;
+}
+
 export async function handle(request, env, ctx, deps = {}) {
   const fetchImpl = deps.fetch || fetch;
   const cache = deps.cache || caches.default;
   if (request.method !== "GET") return reply(405, { status: "failure", message: "Only GET." });
   const url = new URL(request.url);
+  if (MOTN_ALLOWED.test(url.pathname)) return handleMotn(request, env, ctx, deps, url);
   if (!ALLOWED.some((rule) => rule.test(url.pathname))) {
     return reply(404, { status: "failure", message: "Not available." });
   }

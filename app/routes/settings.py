@@ -4,7 +4,7 @@ import re
 from flask import (Blueprint, Response, current_app, flash, redirect, render_template,
                    request, session, url_for)
 
-from .. import clock, db, mailer, queries, secretstore, sync, transfer
+from .. import clock, db, mailer, queries, secretstore, streaming, sync, transfer
 from ..auth import (change_account, check_current_password, keep_this_browser_signed_in,
                     login_required, uses_default_password)
 from ..forms import confirmed, whole_number
@@ -56,6 +56,8 @@ def index():
         securities=mailer.SECURITIES,
         available_after=queries.available_after_days(),
         newest_first=queries.newest_first(),
+        watch_country=streaming.country(),
+        countries=sorted(streaming.COUNTRIES.items(), key=lambda kv: kv[1]),
         accents=ACCENTS,
         last_sync=sync.last_run(),
         syncing=sync.is_running(),
@@ -138,6 +140,17 @@ def save_season_order():
         else "Oldest first, latest at the bottom.",
         "success",
     )
+
+@bp.route("/settings/watch-country", methods=["POST"])
+@login_required
+def save_watch_country():
+    choice = (request.form.get("watch_country") or "").strip()
+    if choice and choice not in streaming.COUNTRIES:
+        return notify("watch", "Pick a country from the list.", "error")
+    secretstore.set("watch_country", choice)
+    if not choice:
+        return notify("watch", "Where to watch is switched off.", "success")
+    return notify("watch", f"Where to watch now uses {streaming.COUNTRIES[choice]}.", "success")
 
 @bp.route("/settings/mail", methods=["POST"])
 @login_required

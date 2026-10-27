@@ -1,4 +1,4 @@
-# Deploy with: wrangler deploy. The key is set once with: wrangler secret put TVDB_KEY
+# Deploy with: wrangler deploy. The key is set once with: wrangler secret put TVDB_KEY, and MOTN_KEY for Movie of the Night
 name = "nextup-tvdb-relay"
 main = "worker.js"
 compatibility_date = "2026-10-01"
@@ -8,3 +8,9 @@ name = "LIMITER"
 type = "ratelimit"
 namespace_id = "1001"
 simple = { limit = 120, period = 60 }
+
+[[unsafe.bindings]]
+name = "LIMITER_MOTN"
+type = "ratelimit"
+namespace_id = "1002"
+simple = { limit = 30, period = 60 }

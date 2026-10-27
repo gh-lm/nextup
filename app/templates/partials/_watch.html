@@ -1,0 +1,20 @@
+{% if watch is not none %}
+<section class="panel" id="watch">
+  <div class="panel-head"><h2>Where to watch</h2></div>
+  {% if watch %}
+    <dl class="fact-list">
+      {% for group in watch %}
+        <dt>{{ group.label }}</dt>
+        <dd>
+          {% for s in group.services %}
+            {% if s.link %}<a href="{{ s.link }}" target="_blank" rel="noopener noreferrer">{{ s.name }}</a>{% else %}{{ s.name }}{% endif %}{{ ', ' if not loop.last else '' }}
+          {% endfor %}
+        </dd>
+      {% endfor %}
+    </dl>
+  {% else %}
+    <p class="subtle m-0">Not on any service Nextup knows of in {{ country_name }}.</p>
+  {% endif %}
+  <p class="hint mt-10">Checked with Movie of the Night. Links open on other people's websites. Change the country in Settings.</p>
+</section>
+{% endif %}

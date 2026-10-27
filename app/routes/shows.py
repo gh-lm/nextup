@@ -1,6 +1,6 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
-from .. import catalog, clock, db, queries, sync, tvdb
+from .. import catalog, clock, db, queries, streaming, sync, tvdb
 from ..auth import login_required
 from ..forms import confirmed, wanted_state
 from ..redirects import back_to
@@ -65,7 +65,7 @@ def detail(show_id):
         if row is None:
             abort(404)
 
-    extras = {"cast": [], "genres": [], "trailer": None, "imdb": None}
+    extras = {"cast": [], "genres": [], "trailer": None, "imdb": None, "watch": None}
     try:
         payload = catalog.show_detail(show_id)
         extras.update(
@@ -73,6 +73,7 @@ def detail(show_id):
             genres=tvdb.genres_from(payload),
             trailer=tvdb.trailer_from(payload),
             imdb=tvdb.imdb_from(payload),
+            watch=streaming.lookup(tvdb.imdb_id_from(payload)),
         )
         if row["original_language"] is None and payload.get("original_language"):
             db.execute("UPDATE show SET original_language = ? WHERE id = ?",
@@ -95,6 +96,7 @@ def detail(show_id):
         next_up=queries.next_unwatched(show_id),
         next_air=queries.next_airing(show_id),
         extras=extras,
+        watch_country_name=streaming.COUNTRIES.get(streaming.country(), ""),
     )
 
 @bp.route("/show/<int:show_id>/track", methods=["POST"])
