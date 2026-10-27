@@ -3,7 +3,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 
-from . import catalog, clock, config, db, queries, secretstore, tvdb
+from . import catalog, clock, config, db, queries, secretstore, streaming, tvdb
 
 _sync_lock = threading.Lock()
 _running = False
@@ -217,7 +217,32 @@ def progress():
 def _step():
     _progress["done"] += 1
 
+def apply_streaming_dates():
+    listed = streaming.discover("movie", "upcoming") if streaming.country() else None
+    if not listed:
+        return
+    days = {}
+    for item in listed:
+        days[item["imdb"]] = min(item["date"], days.get(item["imdb"], item["date"]))
+    rows = db.query(
+        "SELECT m.id, m.imdb_id, m.digital_release FROM movie m JOIN tracked_movie t ON t.movie_id = m.id"
+        " WHERE t.watched_at IS NULL"
+    )
+    for row in rows:
+        imdb = row["imdb_id"]
+        if not imdb and row["id"] > 0:
+            try:
+                imdb = tvdb.imdb_id_from(catalog.movie_detail(row["id"]))
+            except catalog.TvdbError:
+                continue
+            if imdb:
+                db.execute("UPDATE movie SET imdb_id = ? WHERE id = ?", (imdb, row["id"]))
+        day = days.get(imdb)
+        if day and day != row["digital_release"]:
+            db.execute("UPDATE movie SET digital_release = ?, release_date = ? WHERE id = ?", (day, day, row["id"]))
+
 def sync_all_movies(force=False):
+    apply_streaming_dates()
     rows = db.query(
         "SELECT m.id, m.synced_at FROM movie m"
         " JOIN tracked_movie t ON t.movie_id = m.id"

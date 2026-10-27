@@ -266,3 +266,20 @@ def test_movie_page_says_on_streaming_when_the_date_is_a_streaming_date(signed_i
         db.execute("INSERT OR REPLACE INTO movie (id, title, release_date) VALUES (902, 'Cinema', ?)", (later,))
     assert "On streaming" in signed_in.get("/movie/901").get_data(as_text=True)
     assert "On streaming" not in signed_in.get("/movie/902").get_data(as_text=True)
+
+def test_waiting_films_get_their_streaming_date_whichever_catalogue_knew_them(app, monkeypatch):
+    from datetime import date, timedelta
+
+    from app import catalog, db, streaming, sync
+
+    day = (date.today() + timedelta(days=12)).isoformat()
+    monkeypatch.setattr(streaming, "country", lambda: "gb")
+    monkeypatch.setattr(streaming, "discover", lambda kind, when, code=None: [
+        {"imdb": "tt555", "title": "X", "year": "2026", "date": day, "services": ["Now"]}])
+    monkeypatch.setattr(catalog, "movie_detail", lambda _id: {"imdb_id": "tt555"})
+    with app.app_context():
+        db.execute("INSERT OR REPLACE INTO movie (id, title, release_date) VALUES (950, 'X', '2027-06-01')")
+        db.execute("INSERT OR REPLACE INTO tracked_movie (movie_id, added_at) VALUES (950, '2026-10-01')")
+        sync.apply_streaming_dates()
+        row = db.query("SELECT * FROM movie WHERE id = 950", one=True)
+        assert (row["imdb_id"], row["digital_release"], row["release_date"]) == ("tt555", day, day)
