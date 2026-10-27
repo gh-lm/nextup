@@ -30,6 +30,9 @@ def cached_file(size, image_path):
         return None
 
     os.makedirs(config.CACHE_DIR, exist_ok=True)
+    if clean.startswith("/motn-"):
+        kept = os.path.join(config.CACHE_DIR, clean[1:])
+        return kept if os.path.exists(kept) else None
     name = cache_name(size, clean)
     path = os.path.join(config.CACHE_DIR, name)
     if os.path.exists(path):

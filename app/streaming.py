@@ -99,15 +99,20 @@ def discover(kind, when, code=None):
     _kept[key] = (time.monotonic(), items)
     return items
 
-def poster_url(imdb):
+def listed(imdb):
     for _, items in list(_kept.values()):
-        if not isinstance(items, list):
-            continue
-        for i in items:
-            if i.get("imdb") == imdb:
-                url = str(i.get("poster", ""))
-                return url if urlsplit(url).hostname == "cdn.movieofthenight.com" and url.startswith("https://") else None
+        if isinstance(items, list):
+            for i in items:
+                if i.get("imdb") == imdb:
+                    return i
     return None
+
+def local_id(imdb):
+    return -int(imdb[2:])
+
+def poster_url(imdb):
+    url = str((listed(imdb) or {}).get("poster", ""))
+    return url if urlsplit(url).hostname == "cdn.movieofthenight.com" and url.startswith("https://") else None
 
 def poster_file(imdb):
     if not re.fullmatch(r"tt\d{1,10}", imdb or ""):

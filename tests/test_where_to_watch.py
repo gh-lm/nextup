@@ -224,3 +224,33 @@ def test_discover_add_problem_shows_under_the_clicked_title(signed_in, monkeypat
     page = signed_in.get("/discover?kind=movie&days=30&problem=tt61:missing").get_data(as_text=True)
     assert page.count("does not list this title yet") == 1
     assert 'id="t-tt61"' in page
+
+def test_movie_unknown_to_thetvdb_is_kept_under_its_own_number_then_adopted(signed_in, app, monkeypatch):
+    from datetime import date, timedelta
+
+    from app import catalog, db, posters, streaming, sync, tvdb
+
+    day = (date.today() + timedelta(days=5)).isoformat()
+    streaming._kept.clear()
+    streaming._kept[("discover", "movie", "upcoming", "gb")] = (0, [
+        {"imdb": "tt777", "title": "Only Here", "year": "2026", "date": day, "services": ["Netflix"],
+         "overview": "A film.", "poster": "https://cdn.movieofthenight.com/p/240.jpg"}])
+    monkeypatch.setattr(streaming, "country", lambda: "gb")
+    monkeypatch.setattr(tvdb, "movie_id_by_imdb", lambda imdb: None)
+    monkeypatch.setattr(posters, "_download", lambda url: b"\xff\xd8jpeg")
+    signed_in.post("/discover/add", data={"imdb": "tt777", "date": day, "kind": "movie"})
+    with app.app_context():
+        row = db.query("SELECT * FROM movie WHERE id = -777", one=True)
+        assert (row["title"], row["imdb_id"], row["release_date"]) == ("Only Here", "tt777", day)
+        assert db.query("SELECT 1 FROM tracked_movie WHERE movie_id = -777", one=True)
+    page = signed_in.get("/movie/-777")
+    assert page.status_code == 200 and "Only Here" in page.get_data(as_text=True)
+    assert signed_in.get("/img/w342/motn-tt777.jpg").data == b"\xff\xd8jpeg"
+
+    monkeypatch.setattr(tvdb, "movie_id_by_imdb", lambda imdb: 4242)
+    monkeypatch.setattr(catalog, "movie", lambda _id: {"id": 4242, "title": "Only Here", "release_date": "2026-01-01"})
+    with app.app_context():
+        assert sync.adopt_listed_movie(-777)
+        assert db.query("SELECT 1 FROM movie WHERE id = -777", one=True) is None
+        assert db.query("SELECT release_date FROM movie WHERE id = 4242", one=True)["release_date"] == day
+        assert db.query("SELECT 1 FROM tracked_movie WHERE movie_id = 4242", one=True)

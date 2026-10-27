@@ -23,10 +23,12 @@ def index():
         seen=films["seen"],
     )
 
-@bp.route("/movie/<int:movie_id>")
+@bp.route("/movie/<int(signed=True):movie_id>")
 @login_required
 def detail(movie_id):
     row = db.query("SELECT * FROM movie WHERE id = ?", (movie_id,), one=True)
+    if row is None and movie_id < 0:
+        abort(404)
     if row is None:
         try:
             sync.upsert_movie(catalog.movie(movie_id))
@@ -37,6 +39,21 @@ def detail(movie_id):
         if row is None:
             abort(404)
     extras = {"cast": [], "genres": [], "trailer": None, "imdb": None, "watch": None}
+    if movie_id < 0:
+        if sync.adopt_listed_movie(movie_id):
+            return redirect(url_for("movies.detail", movie_id=tvdb.movie_id_by_imdb(row["imdb_id"])))
+        extras["imdb"] = f"https://www.imdb.com/title/{row['imdb_id']}/"
+        extras["watch"] = streaming.lookup(row["imdb_id"]) if queries.is_released(row) else None
+        tracked = queries.movie_list_state(movie_id)
+        return render_template(
+            "pages/movie.html",
+            extras=extras,
+            watch_country_name=streaming.COUNTRIES.get(streaming.country(), ""),
+            movie=row,
+            tracked=tracked,
+            shortlisted=bool(tracked and tracked["shortlist"]),
+            released=queries.is_released(row),
+        )
     try:
         payload = catalog.movie_detail(movie_id)
         extras.update(
@@ -64,15 +81,21 @@ def detail(movie_id):
         released=queries.is_released(row),
     )
 
-@bp.route("/movie/<int:movie_id>/track", methods=["POST"])
+@bp.route("/movie/<int(signed=True):movie_id>/track", methods=["POST"])
 @login_required
 def track(movie_id):
-    try:
-        payload = catalog.movie(movie_id)
-        sync.upsert_movie(payload)
-    except catalog.TvdbError as exc:
-        flash(str(exc), "error")
-        return back_to("movies.index")
+    if movie_id < 0:
+        row = db.query("SELECT title FROM movie WHERE id = ?", (movie_id,), one=True)
+        if row is None:
+            abort(404)
+        payload = {"title": row["title"]}
+    else:
+        try:
+            payload = catalog.movie(movie_id)
+            sync.upsert_movie(payload)
+        except catalog.TvdbError as exc:
+            flash(str(exc), "error")
+            return back_to("movies.index")
     db.execute(
         "INSERT OR IGNORE INTO tracked_movie (movie_id, added_at) VALUES (?, ?)",
         (movie_id, clock.now_iso()),
@@ -80,7 +103,7 @@ def track(movie_id):
     flash(f"Added {payload.get('title') or 'this movie'}.", "success")
     return back_to("movies.index")
 
-@bp.route("/movie/<int:movie_id>/refresh", methods=["POST"])
+@bp.route("/movie/<int(signed=True):movie_id>/refresh", methods=["POST"])
 @login_required
 def refresh(movie_id):
     try:
@@ -90,7 +113,7 @@ def refresh(movie_id):
         flash(str(exc), "error")
     return back_to("movies.index")
 
-@bp.route("/movie/<int:movie_id>/untrack", methods=["POST"])
+@bp.route("/movie/<int(signed=True):movie_id>/untrack", methods=["POST"])
 @login_required
 def untrack(movie_id):
     if not confirmed():
@@ -99,7 +122,7 @@ def untrack(movie_id):
     db.execute("DELETE FROM tracked_movie WHERE movie_id = ?", (movie_id,))
     return back_to("movies.index")
 
-@bp.route("/movie/<int:movie_id>/maybe", methods=["POST"])
+@bp.route("/movie/<int(signed=True):movie_id>/maybe", methods=["POST"])
 @login_required
 def toggle_maybe(movie_id):
     row = queries.movie_list_state(movie_id)
@@ -113,7 +136,7 @@ def toggle_maybe(movie_id):
     flash("Moved to your maybe list." if moving else "Moved to your movies.", "success")
     return back_to("shows.maybe" if moving else "movies.index")
 
-@bp.route("/movie/<int:movie_id>/watched", methods=["POST"])
+@bp.route("/movie/<int(signed=True):movie_id>/watched", methods=["POST"])
 @login_required
 def watched(movie_id):
     watching = wanted_state()
@@ -209,12 +232,20 @@ def discover_add():
         return _discover_add_show(imdb)
     movie_id = tvdb.movie_id_by_imdb(imdb)
     if movie_id is None:
-        return _discover_back(imdb, "missing")
-    try:
-        payload = catalog.movie(movie_id)
-        sync.upsert_movie(payload)
-    except catalog.TvdbError:
-        return _discover_back(imdb, "failed")
+        listed = streaming.listed(imdb)
+        if listed is None:
+            return _discover_back(imdb, "missing")
+        movie_id = streaming.local_id(imdb)
+        kept = streaming.poster_file(imdb)
+        sync.upsert_movie({
+            "id": movie_id, "title": listed.get("title"), "overview": listed.get("overview"),
+            "poster_path": f"/motn-{imdb}.jpg" if kept else None, "release_date": day,
+        })
+    else:
+        try:
+            sync.upsert_movie(catalog.movie(movie_id))
+        except catalog.TvdbError:
+            return _discover_back(imdb, "failed")
     db.execute("UPDATE movie SET digital_release = ?, release_date = ?, imdb_id = ? WHERE id = ?",
                (day, day, imdb, movie_id))
     db.execute("INSERT OR IGNORE INTO tracked_movie (movie_id, added_at) VALUES (?, ?)",

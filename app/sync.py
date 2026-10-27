@@ -192,7 +192,24 @@ def upsert_movie(payload):
     )
 
 def sync_movie(movie_id):
+    if movie_id < 0:
+        adopt_listed_movie(movie_id)
+        return
     upsert_movie(catalog.movie(movie_id))
+
+def adopt_listed_movie(local):
+    row = db.query("SELECT imdb_id, digital_release FROM movie WHERE id = ?", (local,), one=True)
+    if row is None or not row["imdb_id"]:
+        return False
+    found = tvdb.movie_id_by_imdb(row["imdb_id"])
+    if found is None:
+        return False
+    upsert_movie(catalog.movie(found))
+    db.execute("UPDATE movie SET imdb_id = ?, digital_release = ?, release_date = COALESCE(?, release_date) WHERE id = ?",
+               (row["imdb_id"], row["digital_release"], row["digital_release"], found))
+    db.execute("UPDATE OR IGNORE tracked_movie SET movie_id = ? WHERE movie_id = ?", (found, local))
+    db.execute("DELETE FROM movie WHERE id = ?", (local,))
+    return True
 
 def progress():
     return dict(_progress) if _running and _progress["total"] else None
