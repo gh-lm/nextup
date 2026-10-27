@@ -80,3 +80,27 @@ def test_imdb_id_alone():
 
     assert tvdb.imdb_id_from({"imdb_id": "tt12"}) == "tt12"
     assert tvdb.imdb_id_from({"imdb_id": "x"}) is None
+
+def test_nothing_is_asked_before_release(signed_in, app, monkeypatch):
+    from datetime import date, timedelta
+
+    from app import catalog, db, streaming, tvdb
+
+    asked = []
+    monkeypatch.setattr(streaming, "lookup", lambda imdb, code=None: asked.append(imdb) or [])
+    payload = {"imdb_id": "tt99"}
+    monkeypatch.setattr(catalog, "show_detail", lambda _id: payload)
+    monkeypatch.setattr(catalog, "movie_detail", lambda _id: payload)
+    soon = (date.today() + timedelta(days=30)).isoformat()
+    past = (date.today() - timedelta(days=30)).isoformat()
+    with app.app_context():
+        db.execute("INSERT OR REPLACE INTO show (id, name, first_air_date) VALUES (840, 'Later', ?)", (soon,))
+        db.execute("INSERT OR REPLACE INTO movie (id, title, release_date) VALUES (841, 'Later', ?)", (soon,))
+        db.execute("INSERT OR REPLACE INTO show (id, name, first_air_date) VALUES (842, 'Out', ?)", (past,))
+        db.execute("INSERT OR REPLACE INTO movie (id, title, release_date) VALUES (843, 'Out', ?)", (past,))
+    for path in ("/show/840", "/movie/841"):
+        signed_in.get(path)
+    assert asked == []
+    for path in ("/show/842", "/movie/843"):
+        signed_in.get(path)
+    assert asked == ["tt99", "tt99"]

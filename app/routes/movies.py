@@ -39,7 +39,7 @@ def detail(movie_id):
             genres=tvdb.genres_from(payload),
             trailer=tvdb.trailer_from(payload),
             imdb=tvdb.imdb_from(payload),
-            watch=streaming.lookup(tvdb.imdb_id_from(payload)),
+            watch=streaming.lookup(tvdb.imdb_id_from(payload)) if queries.is_released(row) else None,
         )
         if row["original_language"] is None and payload.get("original_language"):
             db.execute("UPDATE movie SET original_language = ? WHERE id = ?",

@@ -12,7 +12,7 @@ const ALLOWED = [
 ];
 const MOTN_UPSTREAM = "https://api.movieofthenight.com";
 const MOTN_ALLOWED = /^\/motn\/shows\/tt\d{1,10}$/;
-const MOTN_SECONDS = 3 * 86400;
+const MOTN_SECONDS = 7 * 86400;
 const SEARCH_SECONDS = 3600;
 const RECORD_SECONDS = 86400;
 const TOKEN_SECONDS = 20 * 24 * 3600;

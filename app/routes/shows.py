@@ -73,7 +73,7 @@ def detail(show_id):
             genres=tvdb.genres_from(payload),
             trailer=tvdb.trailer_from(payload),
             imdb=tvdb.imdb_from(payload),
-            watch=streaming.lookup(tvdb.imdb_id_from(payload)),
+            watch=streaming.lookup(tvdb.imdb_id_from(payload)) if (row["first_air_date"] or "9") <= clock.today_date().isoformat() else None,
         )
         if row["original_language"] is None and payload.get("original_language"):
             db.execute("UPDATE show SET original_language = ? WHERE id = ?",
