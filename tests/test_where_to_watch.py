@@ -164,3 +164,29 @@ def test_discover_filters_by_time_direction_and_service(signed_in, app, monkeypa
         assert db.query("SELECT 1 FROM tracked_show WHERE show_id = 6000", one=True)
         assert db.query("SELECT imdb_id FROM show WHERE id = 6000", one=True)["imdb_id"] == "tt71"
     assert "On your list" in page("kind=series")
+
+def test_discover_upcoming_drops_old_titles(app, monkeypatch):
+    from datetime import date
+
+    import requests
+
+    from app import streaming, tvdb
+
+    this = date.today().year
+    items = [
+        {"imdb": "tt1", "title": "New", "year": str(this), "date": "2026-11-01"},
+        {"imdb": "tt2", "title": "Last year", "year": str(this - 1), "date": "2026-11-01"},
+        {"imdb": "tt3", "title": "Old", "year": "1987", "date": "2026-11-01"},
+    ]
+
+    class Resp:
+        ok = True
+
+        def json(self):
+            return {"items": items}
+
+    monkeypatch.setattr(tvdb, "RELAY_URL", "https://relay.example.com")
+    monkeypatch.setattr(requests, "get", lambda *a, **k: Resp())
+    streaming._kept.clear()
+    got = streaming.discover("movie", "upcoming", "gb")
+    assert [i["title"] for i in got] == ["New", "Last year"]

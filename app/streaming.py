@@ -1,4 +1,5 @@
 """Where a show or movie can be watched, from Movie of the Night through Nextup's own relay."""
+import datetime
 import re
 import time
 from urllib.parse import urlsplit
@@ -90,5 +91,8 @@ def discover(kind, when, code=None):
     except (requests.RequestException, ValueError, AttributeError):
         return None
     items = [i for i in items if re.fullmatch(r"tt\d{1,10}", str(i.get("imdb", ""))) and re.fullmatch(r"\d{4}-\d\d-\d\d", str(i.get("date", "")))]
+    if when == "upcoming":
+        oldest = datetime.date.today().year - 1
+        items = [i for i in items if not str(i.get("year", "")).isdigit() or int(i["year"]) >= oldest]
     _kept[key] = (time.monotonic(), items)
     return items
