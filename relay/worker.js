@@ -159,7 +159,7 @@ async function handleUpcoming(request, env, ctx, deps, url) {
   if (!env.MOTN_KEY) return reply(503, { status: "failure", message: "Not available." });
   const catalogs = MOTN_SERVICES.join(",");
   const base = `country=${country}&catalogs=${catalogs}&show_type=${kind}`;
-  const cacheKey = new Request(`${MOTN_UPSTREAM}/discover?${base}&when=${when}`);
+  const cacheKey = new Request(`${MOTN_UPSTREAM}/discover?${base}&when=${when}&v=2`);
   const hit = await cache.match(cacheKey);
   if (hit) return hit;
 
