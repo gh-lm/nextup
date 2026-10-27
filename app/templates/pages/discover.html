@@ -42,25 +42,34 @@
 {% else %}
   <div class="mt-20">
     {% for item in items %}
-      <article class="panel mb-14">
-        <div class="watch-card-meta">
+      <article class="watch-card mb-14">
+        <span class="poster">
+          {% if item.poster %}
+            <img src="{{ url_for('movies.discover_poster', imdb=item.imdb) }}" alt="" loading="lazy">
+          {% else %}<span class="poster-empty">{{ item.title }}</span>{% endif %}
+        </span>
+        <div class="watch-card-body">
           <strong>{{ item.title }}</strong>
-          {% if item.year %}<span class="badge">{{ item.year }}</span>{% endif %}
-          <span class="badge badge-accent">{{ item.date|pretty_date }}</span>
-          {% for name in item.services %}<span class="badge">{{ name }}</span>{% endfor %}
+          <div class="watch-card-meta">
+            {% if item.year %}<span class="badge">{{ item.year }}</span>{% endif %}
+            <span class="badge badge-accent">{{ item.date|pretty_date }}</span>
+            {% for name in item.services %}<span class="badge">{{ name }}</span>{% endfor %}
+          </div>
+          {% if item.overview %}<p class="subtle mt-10">{{ item.overview }}</p>{% endif %}
         </div>
-        {% if item.overview %}<p class="subtle">{{ item.overview }}</p>{% endif %}
-        {% if item.imdb in held %}
-          <span class="badge">On your list</span>
-        {% else %}
-          <form method="post" action="{{ url_for('movies.discover_add') }}">
-            <input type="hidden" name="imdb" value="{{ item.imdb }}">
-            <input type="hidden" name="date" value="{{ item.date }}">
-            <input type="hidden" name="kind" value="{{ kind }}">
-            <input type="hidden" name="next" value="{{ request.full_path }}">
-            <button class="btn btn-primary btn-small" type="submit">Add</button>
-          </form>
-        {% endif %}
+        <div class="watch-card-actions">
+          {% if item.imdb in held %}
+            <span class="badge">On your list</span>
+          {% else %}
+            <form method="post" action="{{ url_for('movies.discover_add') }}">
+              <input type="hidden" name="imdb" value="{{ item.imdb }}">
+              <input type="hidden" name="date" value="{{ item.date }}">
+              <input type="hidden" name="kind" value="{{ kind }}">
+              <input type="hidden" name="next" value="{{ request.full_path }}">
+              <button class="btn btn-primary btn-small" type="submit">Add</button>
+            </form>
+          {% endif %}
+        </div>
       </article>
     {% endfor %}
   </div>

@@ -113,13 +113,14 @@ test("coming-up lists join the services, date each title and list it once", () =
       { showId: "1", timestamp: 1793343600, service: { name: "Now" } },
       { showId: "2", timestamp: 1793343600, service: { name: "Netflix" } },
     ],
-    shows: { 1: { imdbId: "tt11", title: "One", releaseYear: "2026", overview: "x".repeat(500) }, 2: { imdbId: "bad", title: "Two" } },
+    shows: { 1: { imdbId: "tt11", title: "One", releaseYear: "2026", overview: "x".repeat(500), imageSet: { verticalPoster: { w240: "https://cdn.movieofthenight.com/p/240.jpg?k=1" } } }, 2: { imdbId: "bad", title: "Two" } },
   };
   const out = slimDiscover(body, "upcoming", "gb");
   assert.equal(out.items.length, 1);
   assert.equal(out.items[0].date, "2026-10-29");
   assert.deepEqual(out.items[0].services, ["Netflix", "Now"]);
   assert.equal(out.items[0].overview.length, 300);
+  assert.equal(out.items[0].poster, "https://cdn.movieofthenight.com/p/240.jpg?k=1");
 });
 
 test("just-out lists are dated by the first day on a service, newest first", () => {

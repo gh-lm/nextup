@@ -1,12 +1,14 @@
 """Where a show or movie can be watched, from Movie of the Night through Nextup's own relay."""
 import datetime
+import os
 import re
+import tempfile
 import time
 from urllib.parse import urlsplit
 
 import requests
 
-from . import secretstore, tvdb
+from . import config, posters, secretstore, tvdb
 
 TIMEOUT = 4
 KEPT_SECONDS = 6 * 3600
@@ -96,3 +98,35 @@ def discover(kind, when, code=None):
         items = [i for i in items if not str(i.get("year", "")).isdigit() or int(i["year"]) >= oldest]
     _kept[key] = (time.monotonic(), items)
     return items
+
+def poster_url(imdb):
+    for _, items in list(_kept.values()):
+        if not isinstance(items, list):
+            continue
+        for i in items:
+            if i.get("imdb") == imdb:
+                url = str(i.get("poster", ""))
+                return url if urlsplit(url).hostname == "cdn.movieofthenight.com" and url.startswith("https://") else None
+    return None
+
+def poster_file(imdb):
+    if not re.fullmatch(r"tt\d{1,10}", imdb or ""):
+        return None
+    os.makedirs(config.CACHE_DIR, exist_ok=True)
+    path = os.path.join(config.CACHE_DIR, f"motn-{imdb}.jpg")
+    if os.path.exists(path):
+        return path
+    url = poster_url(imdb)
+    body = posters._download(url) if url else None
+    if body is None:
+        return None
+    fd, tmp = tempfile.mkstemp(dir=config.CACHE_DIR, suffix=".part")
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(body)
+        os.replace(tmp, path)
+    except OSError:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        return None
+    return path

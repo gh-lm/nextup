@@ -1,9 +1,10 @@
+import os
 import re
 from datetime import timedelta
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, send_from_directory, url_for
 
-from .. import catalog, clock, db, queries, streaming, sync, tvdb
+from .. import catalog, clock, config, db, queries, streaming, sync, tvdb
 from ..auth import login_required
 from ..forms import confirmed, wanted_state
 from ..redirects import back_to
@@ -167,6 +168,14 @@ def discover():
         day_choices=streaming.DISCOVER_DAYS,
         country_name=streaming.COUNTRIES.get(code, ""),
     )
+
+@bp.route("/discover/poster/<imdb>")
+@login_required
+def discover_poster(imdb):
+    path = streaming.poster_file(imdb)
+    if path is None:
+        return redirect(url_for("images.placeholder"))
+    return send_from_directory(config.CACHE_DIR, os.path.basename(path), max_age=60 * 60 * 24 * 30, conditional=True)
 
 @bp.route("/discover/add", methods=["POST"])
 @login_required

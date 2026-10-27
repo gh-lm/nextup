@@ -190,3 +190,19 @@ def test_discover_upcoming_drops_old_titles(app, monkeypatch):
     streaming._kept.clear()
     got = streaming.discover("movie", "upcoming", "gb")
     assert [i["title"] for i in got] == ["New", "Last year"]
+
+def test_discover_poster_is_fetched_once_and_only_from_movie_of_the_night(signed_in, app, monkeypatch):
+    from app import posters, streaming
+
+    streaming._kept.clear()
+    streaming._kept[("discover", "movie", "upcoming", "gb")] = (0, [
+        {"imdb": "tt8", "poster": "https://cdn.movieofthenight.com/a/240.jpg?x=1"},
+        {"imdb": "tt9", "poster": "https://evil.example.com/a.jpg"},
+    ])
+    calls = []
+    monkeypatch.setattr(posters, "_download", lambda url: calls.append(url) or b"\xff\xd8jpeg")
+    assert signed_in.get("/discover/poster/tt8").data == b"\xff\xd8jpeg"
+    signed_in.get("/discover/poster/tt8")
+    assert len(calls) == 1
+    assert signed_in.get("/discover/poster/tt9").status_code == 302
+    assert len(calls) == 1

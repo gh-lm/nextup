@@ -97,6 +97,11 @@ export function slimShow(show, country) {
   return { title: String(show.title || ""), options };
 }
 
+function posterOf(show) {
+  const url = String((((show.imageSet || {}).verticalPoster) || {}).w240 || "");
+  return url.startsWith("https://cdn.movieofthenight.com/") ? url : "";
+}
+
 export function slimDiscover(body, when, country) {
   const names = {};
   const dates = {};
@@ -129,6 +134,7 @@ export function slimDiscover(body, when, country) {
       date: new Date(stamp * 1000).toISOString().slice(0, 10),
       services: services.filter(Boolean),
       overview: String(show.overview || "").slice(0, 300),
+      poster: posterOf(show),
     });
   }
   items.sort((a, b) => (when === "out" ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date)));
