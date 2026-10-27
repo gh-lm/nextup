@@ -113,7 +113,7 @@
                 </div>
                 <div class="watch-card-meta">
                   <span class="badge">
-                    {% if film.release_date %}Out {{ film.release_date|relative_day }}{% else %}Out now{% endif %}
+                    {% if film.release_date %}{{ 'On streaming' if film.digital_release else 'Out' }} {{ film.release_date|relative_day }}{% else %}Out now{% endif %}
                   </span>
                 </div>
               </div>

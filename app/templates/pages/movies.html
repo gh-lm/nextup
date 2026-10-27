@@ -17,7 +17,7 @@
     {% if show_state %}
       <div class="show-tile-badges">
         {% if film.release_date %}
-          <span class="badge badge-info">Out {{ film.release_date|short_date }}</span>
+          <span class="badge badge-info">{{ 'On streaming' if film.digital_release else 'Out' }} {{ film.release_date|short_date }}</span>
         {% else %}
           <span class="badge">No date yet</span>
         {% endif %}

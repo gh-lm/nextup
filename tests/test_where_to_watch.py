@@ -254,3 +254,15 @@ def test_movie_unknown_to_thetvdb_is_kept_under_its_own_number_then_adopted(sign
         assert db.query("SELECT 1 FROM movie WHERE id = -777", one=True) is None
         assert db.query("SELECT release_date FROM movie WHERE id = 4242", one=True)["release_date"] == day
         assert db.query("SELECT 1 FROM tracked_movie WHERE movie_id = 4242", one=True)
+
+def test_movie_page_says_on_streaming_when_the_date_is_a_streaming_date(signed_in, app):
+    from datetime import date, timedelta
+
+    from app import db
+
+    later = (date.today() + timedelta(days=20)).isoformat()
+    with app.app_context():
+        db.execute("INSERT OR REPLACE INTO movie (id, title, release_date, digital_release) VALUES (901, 'Stream', ?, ?)", (later, later))
+        db.execute("INSERT OR REPLACE INTO movie (id, title, release_date) VALUES (902, 'Cinema', ?)", (later,))
+    assert "On streaming" in signed_in.get("/movie/901").get_data(as_text=True)
+    assert "On streaming" not in signed_in.get("/movie/902").get_data(as_text=True)
