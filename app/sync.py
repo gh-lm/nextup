@@ -172,7 +172,7 @@ def upsert_movie(payload):
             title = excluded.title,
             overview = excluded.overview,
             poster_path = excluded.poster_path,
-            release_date = excluded.release_date,
+            release_date = COALESCE(movie.digital_release, excluded.release_date),
             runtime = excluded.runtime,
             vote_average = excluded.vote_average,
             original_language = excluded.original_language,

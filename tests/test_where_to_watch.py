@@ -104,3 +104,22 @@ def test_nothing_is_asked_before_release(signed_in, app, monkeypatch):
     for path in ("/show/842", "/movie/843"):
         signed_in.get(path)
     assert asked == ["tt99", "tt99"]
+
+def test_discover_lists_and_adds_by_streaming_date(signed_in, app, monkeypatch):
+    from app import catalog, db, streaming, sync, tvdb
+
+    monkeypatch.setattr(streaming, "upcoming", lambda service, code=None: [
+        {"imdb": "tt55", "title": "Soon", "year": "2026", "date": "2026-12-01", "service": "Netflix", "overview": "A film."}])
+    body = signed_in.get("/discover").get_data(as_text=True)
+    assert "Soon" in body and "tt55" in body
+    monkeypatch.setattr(tvdb, "movie_id_by_imdb", lambda imdb: 5000)
+    monkeypatch.setattr(catalog, "movie", lambda _id: {"id": 5000, "title": "Soon", "release_date": "2026-11-20"})
+    signed_in.post("/discover/add", data={"imdb": "tt55", "date": "2026-12-01"})
+    with app.app_context():
+        row = db.query("SELECT release_date, imdb_id FROM movie WHERE id = 5000", one=True)
+        assert (row["release_date"], row["imdb_id"]) == ("2026-12-01", "tt55")
+        assert db.query("SELECT 1 FROM tracked_movie WHERE movie_id = 5000", one=True)
+        sync.upsert_movie({"id": 5000, "title": "Soon", "release_date": "2026-11-20"})
+        assert db.query("SELECT release_date FROM movie WHERE id = 5000", one=True)["release_date"] == "2026-12-01"
+    assert "On your list" in signed_in.get("/discover").get_data(as_text=True)
+    assert signed_in.post("/discover/add", data={"imdb": "x", "date": "2026-12-01"}).status_code == 400

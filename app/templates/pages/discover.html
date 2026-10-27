@@ -1,0 +1,49 @@
+{% extends 'layout/base.html' %}
+{% block title %}Discover | Nextup{% endblock %}
+{% block body %}
+<div class="page-head">
+  <div>
+    <h1>Discover</h1>
+    <p>Movies about to reach streaming{% if country_name %} in {{ country_name }}{% endif %}, dated by the day they arrive.</p>
+  </div>
+</div>
+
+<nav class="season-jump" aria-label="Streaming service">
+  {% for key, name in services %}
+    <a class="btn btn-small{{ ' btn-primary' if key == service else '' }}" href="{{ url_for('movies.discover', service=key) }}"
+       {% if key == service %}aria-current="page"{% endif %}>{{ name }}</a>
+  {% endfor %}
+</nav>
+
+{% if not country_name %}
+  <p class="subtle mt-20">Choose a country under Where to watch in Settings to see what is coming.</p>
+{% elif items is none %}
+  <p class="note note-error mt-20">The list could not be fetched just now. Try again in a little while.</p>
+{% elif not items %}
+  <p class="subtle mt-20">Nothing is listed as coming to this service yet.</p>
+{% else %}
+  <div class="mt-20">
+    {% for item in items %}
+      <article class="panel mb-14">
+        <div class="watch-card-meta">
+          <strong>{{ item.title }}</strong>
+          {% if item.year %}<span class="badge">{{ item.year }}</span>{% endif %}
+          <span class="badge badge-accent">{{ item.date|pretty_date }}</span>
+        </div>
+        {% if item.overview %}<p class="subtle">{{ item.overview }}</p>{% endif %}
+        {% if item.imdb in held %}
+          <span class="badge">On your list</span>
+        {% else %}
+          <form method="post" action="{{ url_for('movies.discover_add') }}">
+            <input type="hidden" name="imdb" value="{{ item.imdb }}">
+            <input type="hidden" name="date" value="{{ item.date }}">
+            <input type="hidden" name="next" value="{{ request.full_path }}">
+            <button class="btn btn-primary btn-small" type="submit">Add</button>
+          </form>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+  <p class="hint mt-10">Checked with Movie of the Night. Movies are dated by their streaming day, not the cinema.</p>
+{% endif %}
+{% endblock %}

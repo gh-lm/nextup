@@ -12,6 +12,9 @@ const ALLOWED = [
 ];
 const MOTN_UPSTREAM = "https://api.movieofthenight.com";
 const MOTN_ALLOWED = /^\/motn\/shows\/tt\d{1,10}$/;
+const MOTN_UPCOMING = /^\/motn\/upcoming$/;
+const MOTN_SERVICES = ["netflix", "prime", "disney", "apple", "paramount", "now", "hulu"];
+const MOTN_UPCOMING_SECONDS = 12 * 3600;
 const MOTN_SECONDS = 7 * 86400;
 const SEARCH_SECONDS = 3600;
 const RECORD_SECONDS = 86400;
@@ -92,6 +95,60 @@ export function slimShow(show, country) {
   return { title: String(show.title || ""), options };
 }
 
+export function slimUpcoming(body) {
+  const shows = body.shows || {};
+  const seen = new Set();
+  const items = [];
+  for (const change of body.changes || []) {
+    const show = shows[change.showId] || {};
+    const imdb = String(show.imdbId || "");
+    if (!/^tt\d{1,10}$/.test(imdb) || seen.has(imdb) || !change.timestamp) continue;
+    seen.add(imdb);
+    items.push({
+      imdb,
+      title: String(show.title || ""),
+      year: String(show.releaseYear || ""),
+      date: new Date(change.timestamp * 1000).toISOString().slice(0, 10),
+      service: String((change.service || {}).name || ""),
+      overview: String(show.overview || "").slice(0, 300),
+    });
+  }
+  return { items };
+}
+
+async function handleUpcoming(request, env, ctx, deps, url) {
+  const fetchImpl = deps.fetch || fetch;
+  const cache = deps.cache || caches.default;
+  const country = (url.searchParams.get("country") || "").toLowerCase();
+  const service = url.searchParams.get("service") || "";
+  if (!/^[a-z]{2}$/.test(country) || !MOTN_SERVICES.includes(service)) {
+    return reply(400, { status: "failure", message: "Country and service needed." });
+  }
+  if (!env.MOTN_KEY) return reply(503, { status: "failure", message: "Not available." });
+  const target = `${MOTN_UPSTREAM}/v4/changes?change_type=upcoming&item_type=show&show_type=movie&order_direction=asc&country=${country}&catalogs=${service}`;
+  const cacheKey = new Request(target);
+  const hit = await cache.match(cacheKey);
+  if (hit) return hit;
+
+  if (env.LIMITER_MOTN) {
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const { success } = await env.LIMITER_MOTN.limit({ key: ip });
+    if (!success) {
+      return reply(429, { status: "failure", message: "Too many lookups. Try again in a minute." }, { "Retry-After": "60" });
+    }
+  }
+  let resp;
+  try {
+    resp = await fetchImpl(target, { headers: { "X-API-Key": env.MOTN_KEY } });
+  } catch (err) {
+    return reply(502, { status: "failure", message: "Streaming lookup could not be reached." });
+  }
+  if (!resp.ok) return reply(503, { status: "failure", message: "Streaming lookup is unavailable." }, { "Cache-Control": "no-store" });
+  const out = reply(200, slimUpcoming(await resp.json()), { "Cache-Control": `public, max-age=${MOTN_UPCOMING_SECONDS}` });
+  ctx.waitUntil(cache.put(cacheKey, out.clone()));
+  return out;
+}
+
 async function handleMotn(request, env, ctx, deps, url) {
   const fetchImpl = deps.fetch || fetch;
   const cache = deps.cache || caches.default;
@@ -134,6 +191,7 @@ export async function handle(request, env, ctx, deps = {}) {
   if (request.method !== "GET") return reply(405, { status: "failure", message: "Only GET." });
   const url = new URL(request.url);
   if (MOTN_ALLOWED.test(url.pathname)) return handleMotn(request, env, ctx, deps, url);
+  if (MOTN_UPCOMING.test(url.pathname)) return handleUpcoming(request, env, ctx, deps, url);
   if (!ALLOWED.some((rule) => rule.test(url.pathname))) {
     return reply(404, { status: "failure", message: "Not available." });
   }

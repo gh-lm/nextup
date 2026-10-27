@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { handle, cleanQuery, forgetToken, slimShow } from "./worker.js";
+import { handle, cleanQuery, forgetToken, slimShow, slimUpcoming } from "./worker.js";
 
 function memoryCache() {
   const store = new Map();
@@ -104,4 +104,30 @@ test("streaming lookups are checked: id shape, country, key, limit", async () =>
   assert.equal((await handle(get("/motn/shows/tt1?country=gb"), {}, ctx, deps)).status, 503);
   const env = { MOTN_KEY: "k", LIMITER_MOTN: { limit: async () => ({ success: false }) } };
   assert.equal((await handle(get("/motn/shows/tt2?country=gb"), env, ctx, deps)).status, 429);
+});
+
+test("upcoming movies are trimmed, dated and listed once", async () => {
+  const body = {
+    changes: [
+      { showId: "1", timestamp: 1793257200, service: { name: "Netflix" } },
+      { showId: "1", timestamp: 1793257200, service: { name: "Netflix" } },
+      { showId: "2", timestamp: 1793343600, service: { name: "Netflix" } },
+    ],
+    shows: { 1: { imdbId: "tt11", title: "One", releaseYear: "2026", overview: "x".repeat(500) }, 2: { imdbId: "bad", title: "Two" } },
+  };
+  const out = slimUpcoming(body);
+  assert.equal(out.items.length, 1);
+  assert.equal(out.items[0].date, "2026-10-29");
+  assert.equal(out.items[0].overview.length, 300);
+});
+
+test("upcoming lookups check the service and use the key upstream only", async () => {
+  const calls = [];
+  const fetchImpl = async (url, options) => { calls.push({ url: String(url), options }); return new Response(JSON.stringify({ changes: [], shows: {} }), { status: 200 }); };
+  const deps = { fetch: fetchImpl, cache: memoryCache() };
+  assert.equal((await handle(get("/motn/upcoming?country=gb&service=evil"), { MOTN_KEY: "k" }, ctx, deps)).status, 400);
+  const ok = await handle(get("/motn/upcoming?country=GB&service=netflix"), { MOTN_KEY: "k" }, ctx, deps);
+  assert.equal(ok.status, 200);
+  assert.ok(calls[0].url.endsWith("country=gb&catalogs=netflix"));
+  assert.equal(calls[0].options.headers["X-API-Key"], "k");
 });

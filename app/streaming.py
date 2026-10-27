@@ -21,6 +21,10 @@ COUNTRIES = {
     "kr": "South Korea", "es": "Spain", "se": "Sweden", "ch": "Switzerland", "th": "Thailand",
     "tr": "Turkey", "ae": "United Arab Emirates", "gb": "United Kingdom", "us": "United States",
 }
+SERVICES = (
+    ("netflix", "Netflix"), ("prime", "Prime Video"), ("disney", "Disney+"), ("apple", "Apple TV"),
+    ("paramount", "Paramount+"), ("now", "Now"), ("hulu", "Hulu"),
+)
 GROUPS = (("subscription", "Stream"), ("free", "Free"), ("rent", "Rent"), ("buy", "Buy"))
 _kept = {}
 
@@ -65,3 +69,23 @@ def lookup(imdb_id, code=None):
     groups = _grouped(options)
     _kept[key] = (time.monotonic(), groups)
     return groups
+
+def upcoming(service, code=None):
+    code = code or country()
+    if not code or service not in dict(SERVICES) or not tvdb.RELAY_URL:
+        return None
+    key = ("upcoming", service, code)
+    hit = _kept.get(key)
+    if hit and time.monotonic() - hit[0] < KEPT_SECONDS:
+        return hit[1]
+    try:
+        resp = requests.get(f"{tvdb.RELAY_URL}/motn/upcoming", params={"country": code, "service": service},
+                            timeout=TIMEOUT, headers={"User-Agent": "Nextup"})
+        if not resp.ok:
+            return None
+        items = resp.json().get("items") or []
+    except (requests.RequestException, ValueError, AttributeError):
+        return None
+    items = [i for i in items if re.fullmatch(r"tt\d{1,10}", str(i.get("imdb", ""))) and re.fullmatch(r"\d{4}-\d\d-\d\d", str(i.get("date", "")))]
+    _kept[key] = (time.monotonic(), items)
+    return items

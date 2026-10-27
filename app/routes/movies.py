@@ -1,4 +1,6 @@
-from flask import Blueprint, abort, flash, redirect, render_template, url_for
+import re
+
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
 from .. import catalog, clock, db, queries, streaming, sync, tvdb
 from ..auth import login_required
@@ -122,3 +124,46 @@ def watched(movie_id):
         (clock.now_iso() if watching else None, movie_id),
     )
     return back_to("movies.index")
+
+@bp.route("/discover")
+@login_required
+def discover():
+    service = request.args.get("service", "")
+    if service not in dict(streaming.SERVICES):
+        service = streaming.SERVICES[0][0]
+    code = streaming.country()
+    items = streaming.upcoming(service) if code else None
+    held = {row["imdb_id"] for row in db.query(
+        "SELECT m.imdb_id FROM movie m JOIN tracked_movie t ON t.movie_id = m.id WHERE m.imdb_id IS NOT NULL")}
+    return render_template(
+        "pages/discover.html",
+        items=items,
+        held=held,
+        service=service,
+        services=streaming.SERVICES,
+        country_name=streaming.COUNTRIES.get(code, ""),
+    )
+
+@bp.route("/discover/add", methods=["POST"])
+@login_required
+def discover_add():
+    imdb = request.form.get("imdb", "")
+    day = request.form.get("date", "")
+    if not re.fullmatch(r"tt\d{1,10}", imdb) or not re.fullmatch(r"\d{4}-\d\d-\d\d", day):
+        abort(400)
+    movie_id = tvdb.movie_id_by_imdb(imdb)
+    if movie_id is None:
+        flash("TheTVDB does not list that movie yet, so it cannot be added.", "error")
+        return back_to("movies.discover")
+    try:
+        payload = catalog.movie(movie_id)
+        sync.upsert_movie(payload)
+    except catalog.TvdbError as exc:
+        flash(str(exc), "error")
+        return back_to("movies.discover")
+    db.execute("UPDATE movie SET digital_release = ?, release_date = ?, imdb_id = ? WHERE id = ?",
+               (day, day, imdb, movie_id))
+    db.execute("INSERT OR IGNORE INTO tracked_movie (movie_id, added_at) VALUES (?, ?)",
+               (movie_id, clock.now_iso()))
+    flash(f"Added {payload.get('title') or 'this movie'}. It shows on the calendar on {day}.", "success")
+    return back_to("movies.discover")

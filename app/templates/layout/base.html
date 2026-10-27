@@ -28,7 +28,8 @@
     <nav class="nav" aria-label="Main">
       {% set here = request.endpoint or '' %}
       <a href="{{ url_for('shows.index') }}" {% if here.startswith('shows.') and here != 'shows.maybe' %}class="current" aria-current="page"{% endif %}>Shows</a>
-      <a href="{{ url_for('movies.index') }}" {% if here.startswith('movies.') %}class="current" aria-current="page"{% endif %}>Movies</a>
+      <a href="{{ url_for('movies.index') }}" {% if here.startswith('movies.') and here != 'movies.discover' %}class="current" aria-current="page"{% endif %}>Movies</a>
+      <a href="{{ url_for('movies.discover') }}" {% if here == 'movies.discover' %}class="current" aria-current="page"{% endif %}>Discover</a>
       <a href="{{ url_for('shows.maybe') }}" {% if here == 'shows.maybe' %}class="current" aria-current="page"{% endif %}>Maybe</a>
       <a href="{{ url_for('main.upcoming_view') }}" {% if here == 'main.upcoming_view' %}class="current" aria-current="page"{% endif %}>Coming soon</a>
       <a href="{{ url_for('main.calendar_view') }}" {% if here == 'main.calendar_view' %}class="current" aria-current="page"{% endif %}>Calendar</a>

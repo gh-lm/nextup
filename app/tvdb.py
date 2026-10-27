@@ -145,6 +145,19 @@ def search_multi(query, page=1):
         })
     return {"results": results, "total_pages": 1, "page": page}
 
+def movie_id_by_imdb(imdb_id):
+    if not re.fullmatch(r"tt\d{1,10}", str(imdb_id or "")):
+        return None
+    try:
+        data = _get(f"/search/remoteid/{imdb_id}") or []
+    except TvdbError:
+        return None
+    for entry in data:
+        found = entry.get("movie")
+        if found and str(found.get("id", "")).isdigit():
+            return internal(found["id"])
+    return None
+
 def _credits(record):
     actors = [c for c in record.get("characters") or [] if c.get("peopleType") == "Actor" and c.get("personName")]
     actors.sort(key=lambda c: c.get("sort") or 0)
