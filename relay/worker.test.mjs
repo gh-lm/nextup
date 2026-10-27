@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { handle, cleanQuery, forgetToken, slimShow, slimUpcoming } from "./worker.js";
+import { handle, cleanQuery, forgetToken, slimShow, slimDiscover } from "./worker.js";
 
 function memoryCache() {
   const store = new Map();
@@ -106,28 +106,39 @@ test("streaming lookups are checked: id shape, country, key, limit", async () =>
   assert.equal((await handle(get("/motn/shows/tt2?country=gb"), env, ctx, deps)).status, 429);
 });
 
-test("upcoming movies are trimmed, dated and listed once", async () => {
+test("coming-up lists join the services, date each title and list it once", () => {
   const body = {
     changes: [
       { showId: "1", timestamp: 1793257200, service: { name: "Netflix" } },
-      { showId: "1", timestamp: 1793257200, service: { name: "Netflix" } },
+      { showId: "1", timestamp: 1793343600, service: { name: "Now" } },
       { showId: "2", timestamp: 1793343600, service: { name: "Netflix" } },
     ],
     shows: { 1: { imdbId: "tt11", title: "One", releaseYear: "2026", overview: "x".repeat(500) }, 2: { imdbId: "bad", title: "Two" } },
   };
-  const out = slimUpcoming(body);
+  const out = slimDiscover(body, "upcoming", "gb");
   assert.equal(out.items.length, 1);
   assert.equal(out.items[0].date, "2026-10-29");
+  assert.deepEqual(out.items[0].services, ["Netflix", "Now"]);
   assert.equal(out.items[0].overview.length, 300);
 });
 
-test("upcoming lookups check the service and use the key upstream only", async () => {
+test("just-out lists are dated by the first day on a service, newest first", () => {
+  const show = (imdb, since, name) => ({ imdbId: imdb, title: imdb, releaseYear: "2026", streamingOptions: { gb: [{ service: { name }, availableSince: since }] } });
+  const out = slimDiscover({ shows: [show("tt1", 1792000000, "Netflix"), show("tt2", 1792500000, "Now"), { imdbId: "tt3", streamingOptions: { gb: [] } }] }, "out", "gb");
+  assert.deepEqual(out.items.map((i) => i.imdb), ["tt2", "tt1"]);
+  assert.deepEqual(out.items[0].services, ["Now"]);
+});
+
+test("discover lookups check their parameters and the key stays upstream", async () => {
   const calls = [];
-  const fetchImpl = async (url, options) => { calls.push({ url: String(url), options }); return new Response(JSON.stringify({ changes: [], shows: {} }), { status: 200 }); };
+  const fetchImpl = async (url, options) => { calls.push({ url: String(url), options }); return new Response(JSON.stringify({ changes: [], shows: {}, hasMore: false }), { status: 200 }); };
   const deps = { fetch: fetchImpl, cache: memoryCache() };
-  assert.equal((await handle(get("/motn/upcoming?country=gb&service=evil"), { MOTN_KEY: "k" }, ctx, deps)).status, 400);
-  const ok = await handle(get("/motn/upcoming?country=GB&service=netflix"), { MOTN_KEY: "k" }, ctx, deps);
-  assert.equal(ok.status, 200);
-  assert.ok(calls[0].url.endsWith("country=gb&catalogs=netflix"));
+  const env = { MOTN_KEY: "k" };
+  assert.equal((await handle(get("/motn/discover?country=gb&type=x&when=out"), env, ctx, deps)).status, 400);
+  assert.equal((await handle(get("/motn/discover?country=gb&type=movie&when=later"), env, ctx, deps)).status, 400);
+  assert.equal((await handle(get("/motn/discover?country=GB&type=series&when=upcoming"), env, ctx, deps)).status, 200);
+  assert.ok(calls[0].url.includes("change_type=upcoming") && calls[0].url.includes("show_type=series") && calls[0].url.includes("country=gb"));
   assert.equal(calls[0].options.headers["X-API-Key"], "k");
+  await handle(get("/motn/discover?country=gb&type=movie&when=out"), env, ctx, deps);
+  assert.ok(calls[1].url.includes("/shows/search/filters") && calls[1].url.includes("order_by=release_date"));
 });

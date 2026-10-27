@@ -12,7 +12,9 @@ const ALLOWED = [
 ];
 const MOTN_UPSTREAM = "https://api.movieofthenight.com";
 const MOTN_ALLOWED = /^\/motn\/shows\/tt\d{1,10}$/;
-const MOTN_UPCOMING = /^\/motn\/upcoming$/;
+const MOTN_UPCOMING = /^\/motn\/discover$/;
+const UPCOMING_PAGES = 3;
+const OUT_PAGES = 2;
 const MOTN_SERVICES = ["netflix", "prime", "disney", "apple", "paramount", "now", "hulu"];
 const MOTN_UPCOMING_SECONDS = 12 * 3600;
 const MOTN_SECONDS = 7 * 86400;
@@ -95,38 +97,63 @@ export function slimShow(show, country) {
   return { title: String(show.title || ""), options };
 }
 
-export function slimUpcoming(body) {
-  const shows = body.shows || {};
+export function slimDiscover(body, when, country) {
+  const names = {};
+  const dates = {};
+  if (when === "upcoming") {
+    for (const change of body.changes || []) {
+      const key = change.showId;
+      (names[key] = names[key] || new Set()).add(String((change.service || {}).name || ""));
+      if (change.timestamp && !(dates[key] <= change.timestamp)) dates[key] = change.timestamp;
+    }
+  }
+  const shows = when === "upcoming" ? Object.entries(body.shows || {}).map(([id, s]) => ({ ...s, id })) : body.shows || [];
   const seen = new Set();
   const items = [];
-  for (const change of body.changes || []) {
-    const show = shows[change.showId] || {};
+  for (const show of shows) {
     const imdb = String(show.imdbId || "");
-    if (!/^tt\d{1,10}$/.test(imdb) || seen.has(imdb) || !change.timestamp) continue;
+    if (!/^tt\d{1,10}$/.test(imdb) || seen.has(imdb)) continue;
+    let stamp = dates[show.id];
+    let services = [...(names[show.id] || [])];
+    if (when === "out") {
+      const options = ((show.streamingOptions || {})[country] || []).filter((o) => o.availableSince);
+      stamp = Math.min(...options.map((o) => o.availableSince));
+      services = [...new Set(options.map((o) => String((o.service || {}).name || "")))];
+    }
+    if (!stamp || !Number.isFinite(stamp) || !services.length) continue;
     seen.add(imdb);
     items.push({
       imdb,
       title: String(show.title || ""),
-      year: String(show.releaseYear || ""),
-      date: new Date(change.timestamp * 1000).toISOString().slice(0, 10),
-      service: String((change.service || {}).name || ""),
+      year: String(show.releaseYear || show.firstAirYear || ""),
+      date: new Date(stamp * 1000).toISOString().slice(0, 10),
+      services: services.filter(Boolean),
       overview: String(show.overview || "").slice(0, 300),
     });
   }
+  items.sort((a, b) => (when === "out" ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date)));
   return { items };
+}
+
+async function motnGet(path, env, fetchImpl) {
+  const resp = await fetchImpl(`${MOTN_UPSTREAM}${path}`, { headers: { "X-API-Key": env.MOTN_KEY } });
+  if (!resp.ok) throw new Error("motn");
+  return resp.json();
 }
 
 async function handleUpcoming(request, env, ctx, deps, url) {
   const fetchImpl = deps.fetch || fetch;
   const cache = deps.cache || caches.default;
   const country = (url.searchParams.get("country") || "").toLowerCase();
-  const service = url.searchParams.get("service") || "";
-  if (!/^[a-z]{2}$/.test(country) || !MOTN_SERVICES.includes(service)) {
-    return reply(400, { status: "failure", message: "Country and service needed." });
+  const kind = url.searchParams.get("type") || "";
+  const when = url.searchParams.get("when") || "";
+  if (!/^[a-z]{2}$/.test(country) || !["movie", "series"].includes(kind) || !["upcoming", "out"].includes(when)) {
+    return reply(400, { status: "failure", message: "Country, type and when needed." });
   }
   if (!env.MOTN_KEY) return reply(503, { status: "failure", message: "Not available." });
-  const target = `${MOTN_UPSTREAM}/v4/changes?change_type=upcoming&item_type=show&show_type=movie&order_direction=asc&country=${country}&catalogs=${service}`;
-  const cacheKey = new Request(target);
+  const catalogs = MOTN_SERVICES.join(",");
+  const base = `country=${country}&catalogs=${catalogs}&show_type=${kind}`;
+  const cacheKey = new Request(`${MOTN_UPSTREAM}/discover?${base}&when=${when}`);
   const hit = await cache.match(cacheKey);
   if (hit) return hit;
 
@@ -137,14 +164,33 @@ async function handleUpcoming(request, env, ctx, deps, url) {
       return reply(429, { status: "failure", message: "Too many lookups. Try again in a minute." }, { "Retry-After": "60" });
     }
   }
-  let resp;
+  let body;
   try {
-    resp = await fetchImpl(target, { headers: { "X-API-Key": env.MOTN_KEY } });
+    if (when === "upcoming") {
+      body = { changes: [], shows: {} };
+      let cursor = "";
+      for (let page = 0; page < UPCOMING_PAGES; page++) {
+        const part = await motnGet(`/v4/changes?change_type=upcoming&item_type=show&order_direction=asc&${base}${cursor}`, env, fetchImpl);
+        body.changes.push(...(part.changes || []));
+        Object.assign(body.shows, part.shows || {});
+        if (!part.hasMore || !part.nextCursor) break;
+        cursor = `&cursor=${encodeURIComponent(part.nextCursor)}`;
+      }
+    } else {
+      body = { shows: [] };
+      const year = new Date(Date.now() - 90 * 86400000).getUTCFullYear();
+      let cursor = "";
+      for (let page = 0; page < OUT_PAGES; page++) {
+        const part = await motnGet(`/v4/shows/search/filters?order_by=release_date&order_direction=desc&year_min=${year}&${base}${cursor}`, env, fetchImpl);
+        body.shows.push(...(part.shows || []));
+        if (!part.hasMore || !part.nextCursor) break;
+        cursor = `&cursor=${encodeURIComponent(part.nextCursor)}`;
+      }
+    }
   } catch (err) {
-    return reply(502, { status: "failure", message: "Streaming lookup could not be reached." });
+    return reply(503, { status: "failure", message: "Streaming lookup is unavailable." }, { "Cache-Control": "no-store" });
   }
-  if (!resp.ok) return reply(503, { status: "failure", message: "Streaming lookup is unavailable." }, { "Cache-Control": "no-store" });
-  const out = reply(200, slimUpcoming(await resp.json()), { "Cache-Control": `public, max-age=${MOTN_UPCOMING_SECONDS}` });
+  const out = reply(200, slimDiscover(body, when, country), { "Cache-Control": `public, max-age=${MOTN_UPCOMING_SECONDS}` });
   ctx.waitUntil(cache.put(cacheKey, out.clone()));
   return out;
 }

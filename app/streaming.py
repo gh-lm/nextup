@@ -28,6 +28,9 @@ SERVICES = (
 GROUPS = (("subscription", "Stream"), ("free", "Free"), ("rent", "Rent"), ("buy", "Buy"))
 _kept = {}
 
+DISCOVER_DAYS = (7, 14, 30, 60)
+DEFAULT_DISCOVER_DAYS = 30
+
 def country():
     value = secretstore.get("watch_country", DEFAULT_COUNTRY)
     return value if value in COUNTRIES else ""
@@ -70,16 +73,16 @@ def lookup(imdb_id, code=None):
     _kept[key] = (time.monotonic(), groups)
     return groups
 
-def upcoming(service, code=None):
+def discover(kind, when, code=None):
     code = code or country()
-    if not code or service not in dict(SERVICES) or not tvdb.RELAY_URL:
+    if not code or kind not in ("movie", "series") or when not in ("upcoming", "out") or not tvdb.RELAY_URL:
         return None
-    key = ("upcoming", service, code)
+    key = ("discover", kind, when, code)
     hit = _kept.get(key)
     if hit and time.monotonic() - hit[0] < KEPT_SECONDS:
         return hit[1]
     try:
-        resp = requests.get(f"{tvdb.RELAY_URL}/motn/upcoming", params={"country": code, "service": service},
+        resp = requests.get(f"{tvdb.RELAY_URL}/motn/discover", params={"country": code, "type": kind, "when": when},
                             timeout=TIMEOUT, headers={"User-Agent": "Nextup"})
         if not resp.ok:
             return None

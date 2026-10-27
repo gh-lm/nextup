@@ -145,7 +145,7 @@ def search_multi(query, page=1):
         })
     return {"results": results, "total_pages": 1, "page": page}
 
-def movie_id_by_imdb(imdb_id):
+def _id_by_imdb(imdb_id, kind):
     if not re.fullmatch(r"tt\d{1,10}", str(imdb_id or "")):
         return None
     try:
@@ -153,10 +153,16 @@ def movie_id_by_imdb(imdb_id):
     except TvdbError:
         return None
     for entry in data:
-        found = entry.get("movie")
+        found = entry.get(kind)
         if found and str(found.get("id", "")).isdigit():
             return internal(found["id"])
     return None
+
+def movie_id_by_imdb(imdb_id):
+    return _id_by_imdb(imdb_id, "movie")
+
+def series_id_by_imdb(imdb_id):
+    return _id_by_imdb(imdb_id, "series")
 
 def _credits(record):
     actors = [c for c in record.get("characters") or [] if c.get("peopleType") == "Actor" and c.get("personName")]

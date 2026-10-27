@@ -1,4 +1,5 @@
 import re
+from datetime import timedelta
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
@@ -130,17 +131,40 @@ def watched(movie_id):
 def discover():
     service = request.args.get("service", "")
     if service not in dict(streaming.SERVICES):
-        service = streaming.SERVICES[0][0]
+        service = ""
+    kind = "series" if request.args.get("kind") == "series" else "movie"
+    when = "out" if request.args.get("when") == "out" else "upcoming"
+    try:
+        days = int(request.args.get("days", ""))
+    except ValueError:
+        days = streaming.DEFAULT_DISCOVER_DAYS
+    if days not in streaming.DISCOVER_DAYS:
+        days = streaming.DEFAULT_DISCOVER_DAYS
     code = streaming.country()
-    items = streaming.upcoming(service) if code else None
+    items = streaming.discover(kind, when) if code else None
+    if items is not None:
+        today = clock.today_date()
+        names = dict(streaming.SERVICES)
+        edge = (today + timedelta(days=days) if when == "upcoming" else today - timedelta(days=days)).isoformat()
+        now = today.isoformat()
+        items = [
+            i for i in items
+            if (now <= i["date"] <= edge if when == "upcoming" else edge <= i["date"] <= now)
+            and (not service or names[service] in i.get("services", []))
+        ]
     held = {row["imdb_id"] for row in db.query(
-        "SELECT m.imdb_id FROM movie m JOIN tracked_movie t ON t.movie_id = m.id WHERE m.imdb_id IS NOT NULL")}
+        "SELECT m.imdb_id FROM movie m JOIN tracked_movie t ON t.movie_id = m.id WHERE m.imdb_id IS NOT NULL"
+        " UNION SELECT s.imdb_id FROM show s JOIN tracked_show t ON t.show_id = s.id WHERE s.imdb_id IS NOT NULL")}
     return render_template(
         "pages/discover.html",
         items=items,
+        kind=kind,
+        when=when,
+        days=days,
         held=held,
         service=service,
         services=streaming.SERVICES,
+        day_choices=streaming.DISCOVER_DAYS,
         country_name=streaming.COUNTRIES.get(code, ""),
     )
 
@@ -151,6 +175,8 @@ def discover_add():
     day = request.form.get("date", "")
     if not re.fullmatch(r"tt\d{1,10}", imdb) or not re.fullmatch(r"\d{4}-\d\d-\d\d", day):
         abort(400)
+    if request.form.get("kind") == "series":
+        return _discover_add_show(imdb)
     movie_id = tvdb.movie_id_by_imdb(imdb)
     if movie_id is None:
         flash("TheTVDB does not list that movie yet, so it cannot be added.", "error")
@@ -166,4 +192,24 @@ def discover_add():
     db.execute("INSERT OR IGNORE INTO tracked_movie (movie_id, added_at) VALUES (?, ?)",
                (movie_id, clock.now_iso()))
     flash(f"Added {payload.get('title') or 'this movie'}. It shows on the calendar on {day}.", "success")
+    return back_to("movies.discover")
+
+def _discover_add_show(imdb):
+    show_id = tvdb.series_id_by_imdb(imdb)
+    if show_id is None:
+        flash("TheTVDB does not list that show yet, so it cannot be added.", "error")
+        return back_to("movies.discover")
+    failed = []
+    try:
+        name = sync.sync_show(show_id, failed)
+    except catalog.TvdbError as exc:
+        flash(str(exc), "error")
+        return back_to("movies.discover")
+    db.execute("UPDATE show SET imdb_id = ? WHERE id = ?", (imdb, show_id))
+    db.execute(
+        "INSERT INTO tracked_show (show_id, added_at, shortlist) VALUES (?, ?, 0)"
+        " ON CONFLICT(show_id) DO UPDATE SET archived = 0",
+        (show_id, clock.now_iso()),
+    )
+    flash(f"Added {name} to your shows.", "success")
     return back_to("movies.discover")

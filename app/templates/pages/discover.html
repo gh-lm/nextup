@@ -1,18 +1,36 @@
 {% extends 'layout/base.html' %}
 {% block title %}Discover | Nextup{% endblock %}
 {% block body %}
+{% set base = {'kind': kind, 'when': when, 'days': days, 'service': service} %}
+{% macro link(label, current, over) -%}
+  <a class="btn btn-small{{ ' btn-primary' if current else '' }}" {% if current %}aria-current="page"{% endif %}
+     href="{{ url_for('movies.discover', **dict(base, **over)) }}">{{ label }}</a>
+{%- endmacro %}
 <div class="page-head">
   <div>
     <h1>Discover</h1>
-    <p>Movies about to reach streaming{% if country_name %} in {{ country_name }}{% endif %}, dated by the day they arrive.</p>
+    <p>
+      {{ 'Shows' if kind == 'series' else 'Movies' }}
+      {{ 'coming to' if when == 'upcoming' else 'that arrived on' }} streaming{% if country_name %} in {{ country_name }}{% endif %},
+      {{ 'in the next' if when == 'upcoming' else 'in the last' }} {{ days }} days.
+    </p>
   </div>
 </div>
 
-<nav class="season-jump" aria-label="Streaming service">
-  {% for key, name in services %}
-    <a class="btn btn-small{{ ' btn-primary' if key == service else '' }}" href="{{ url_for('movies.discover', service=key) }}"
-       {% if key == service %}aria-current="page"{% endif %}>{{ name }}</a>
-  {% endfor %}
+<nav class="season-jump" aria-label="Movies or TV">
+  {{ link('Movies', kind == 'movie', {'kind': 'movie'}) }}
+  {{ link('TV', kind == 'series', {'kind': 'series'}) }}
+</nav>
+<nav class="season-jump mt-10" aria-label="Coming up or just out">
+  {{ link('Coming up', when == 'upcoming', {'when': 'upcoming'}) }}
+  {{ link('Just out', when == 'out', {'when': 'out'}) }}
+</nav>
+<nav class="season-jump mt-10" aria-label="How many days">
+  {% for d in day_choices %}{{ link(d ~ ' days', d == days, {'days': d}) }}{% endfor %}
+</nav>
+<nav class="season-jump mt-10" aria-label="Streaming service">
+  {{ link('All', not service, {'service': ''}) }}
+  {% for key, name in services %}{{ link(name, key == service, {'service': key}) }}{% endfor %}
 </nav>
 
 {% if not country_name %}
@@ -20,7 +38,7 @@
 {% elif items is none %}
   <p class="note note-error mt-20">The list could not be fetched just now. Try again in a little while.</p>
 {% elif not items %}
-  <p class="subtle mt-20">Nothing is listed as coming to this service yet.</p>
+  <p class="subtle mt-20">Nothing is listed for that choice. Try more days or all services.</p>
 {% else %}
   <div class="mt-20">
     {% for item in items %}
@@ -29,6 +47,7 @@
           <strong>{{ item.title }}</strong>
           {% if item.year %}<span class="badge">{{ item.year }}</span>{% endif %}
           <span class="badge badge-accent">{{ item.date|pretty_date }}</span>
+          {% for name in item.services %}<span class="badge">{{ name }}</span>{% endfor %}
         </div>
         {% if item.overview %}<p class="subtle">{{ item.overview }}</p>{% endif %}
         {% if item.imdb in held %}
@@ -37,6 +56,7 @@
           <form method="post" action="{{ url_for('movies.discover_add') }}">
             <input type="hidden" name="imdb" value="{{ item.imdb }}">
             <input type="hidden" name="date" value="{{ item.date }}">
+            <input type="hidden" name="kind" value="{{ kind }}">
             <input type="hidden" name="next" value="{{ request.full_path }}">
             <button class="btn btn-primary btn-small" type="submit">Add</button>
           </form>
@@ -44,6 +64,6 @@
       </article>
     {% endfor %}
   </div>
-  <p class="hint mt-10">Checked with Movie of the Night. Movies are dated by their streaming day, not the cinema.</p>
+  <p class="hint mt-10">Checked with Movie of the Night. Movies are dated by the day they reach streaming, not the cinema.</p>
 {% endif %}
 {% endblock %}

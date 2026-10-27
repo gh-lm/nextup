@@ -108,8 +108,10 @@ def test_nothing_is_asked_before_release(signed_in, app, monkeypatch):
 def test_discover_lists_and_adds_by_streaming_date(signed_in, app, monkeypatch):
     from app import catalog, db, streaming, sync, tvdb
 
-    monkeypatch.setattr(streaming, "upcoming", lambda service, code=None: [
-        {"imdb": "tt55", "title": "Soon", "year": "2026", "date": "2026-12-01", "service": "Netflix", "overview": "A film."}])
+    from datetime import date, timedelta
+
+    monkeypatch.setattr(streaming, "discover", lambda kind, when, code=None: [
+        {"imdb": "tt55", "title": "Soon", "year": "2026", "date": (date.today() + timedelta(days=9)).isoformat(), "services": ["Netflix"], "overview": "A film."}])
     body = signed_in.get("/discover").get_data(as_text=True)
     assert "Soon" in body and "tt55" in body
     monkeypatch.setattr(tvdb, "movie_id_by_imdb", lambda imdb: 5000)
@@ -123,3 +125,42 @@ def test_discover_lists_and_adds_by_streaming_date(signed_in, app, monkeypatch):
         assert db.query("SELECT release_date FROM movie WHERE id = 5000", one=True)["release_date"] == "2026-12-01"
     assert "On your list" in signed_in.get("/discover").get_data(as_text=True)
     assert signed_in.post("/discover/add", data={"imdb": "x", "date": "2026-12-01"}).status_code == 400
+
+def test_discover_filters_by_time_direction_and_service(signed_in, app, monkeypatch):
+    from datetime import date, timedelta
+
+    from app import db, streaming, sync, tvdb
+
+    def day(n):
+        return (date.today() + timedelta(days=n)).isoformat()
+
+    asked = []
+
+    def fake(kind, when, code=None):
+        asked.append((kind, when))
+        return [
+            {"imdb": "tt71", "title": "Near Show", "year": "2026", "date": day(5), "services": ["Netflix"], "overview": ""},
+            {"imdb": "tt72", "title": "Far Show", "year": "2026", "date": day(50), "services": ["Now"], "overview": ""},
+            {"imdb": "tt73", "title": "Fresh Show", "year": "2026", "date": day(-3), "services": ["Netflix", "Now"], "overview": ""},
+            {"imdb": "tt74", "title": "Old Show", "year": "2026", "date": day(-40), "services": ["Netflix"], "overview": ""},
+        ]
+
+    monkeypatch.setattr(streaming, "discover", fake)
+    page = lambda q: signed_in.get("/discover?" + q).get_data(as_text=True)
+    body = page("kind=series")
+    assert asked[-1] == ("series", "upcoming") and "Near Show" in body and "Far Show" not in body and "Fresh Show" not in body
+    assert "Far Show" in page("days=60")
+    body = page("when=out")
+    assert asked[-1] == ("movie", "out") and "Fresh Show" in body and "Old Show" not in body and "Near Show" not in body
+    assert "Old Show" in page("when=out&days=60")
+    body = page("days=60&service=now")
+    assert "Far Show" in body and "Near Show" not in body
+    assert "Near Show" in page("days=999&service=nonsense")
+    monkeypatch.setattr(tvdb, "series_id_by_imdb", lambda imdb: 6000)
+    monkeypatch.setattr(sync, "sync_show", lambda show_id, failed: db.execute(
+        "INSERT OR REPLACE INTO show (id, name) VALUES (?, 'Near Show')", (show_id,)) and "Near Show")
+    signed_in.post("/discover/add", data={"imdb": "tt71", "date": day(5), "kind": "series"})
+    with app.app_context():
+        assert db.query("SELECT 1 FROM tracked_show WHERE show_id = 6000", one=True)
+        assert db.query("SELECT imdb_id FROM show WHERE id = 6000", one=True)["imdb_id"] == "tt71"
+    assert "On your list" in page("kind=series")
