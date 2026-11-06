@@ -89,13 +89,17 @@
         <section>
           <h2>How the container runs</h2>
           <p>
-            As user 1000, never as root, and it only ever writes to the one directory you
+            It starts as root only for the moment it takes to give the data folder to user 1000, then runs as that user, and it only ever writes to the one directory you
             mounted. The compose file in the project goes further and is worth copying:
           </p>
           <pre><code>security_opt:
   - no-new-privileges:true
 cap_drop:
   - ALL
+cap_add:
+  - CHOWN
+  - SETUID
+  - SETGID
 read_only: true
 tmpfs:
   - /tmp</code></pre>

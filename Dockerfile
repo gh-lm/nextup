@@ -27,11 +27,11 @@ COPY --from=build /opt/venv /opt/venv
 
 WORKDIR /app
 COPY app ./app
-COPY wsgi.py run.py VERSION LICENSE ./
+COPY wsgi.py run.py VERSION LICENSE docker-entrypoint.sh ./
 
 RUN mkdir -p /data && chown -R 1000:1000 /data /app
 
-USER 1000
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 EXPOSE 8080
 
 HEALTHCHECK --interval=60s --timeout=10s --start-period=20s --retries=3 \

@@ -189,10 +189,8 @@ docker compose start</code></pre>
           <p>
             Artwork is fetched from TMDB once and then cached in
             <code>images/</code> inside your data directory. If none of it appears, the
-            server either cannot reach TMDB or cannot write to that directory. The
-            directory has to belong to user 1000:
+            server cannot reach TMDB.
           </p>
-          <pre><code>sudo chown -R 1000:1000 /opt/nextup</code></pre>
         </section>
         <section>
           <h2>Changes do not save, and nothing says why</h2>
@@ -230,8 +228,6 @@ docker compose ps</code></pre>
           </p>
           <pre><code>docker compose down
 sudo rm -rf /opt/nextup
-sudo mkdir -p /opt/nextup
-sudo chown -R 1000:1000 /opt/nextup
 docker compose up -d</code></pre>
         </section>
       </div>

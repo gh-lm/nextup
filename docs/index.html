@@ -36,7 +36,7 @@
       "operatingSystem": "Linux, via Docker",
       "description": "A self-hosted tracker for TV shows and movies. It records which episodes you have watched, shows the next one to watch, lists when new episodes air, tells you when a movie reaches streaming in your country, and emails you each morning.",
       "license": "https://www.gnu.org/licenses/gpl-3.0.html",
-      "softwareVersion": "1.7.2",
+      "softwareVersion": "1.7.3",
       "programmingLanguage": "Python",
       "isAccessibleForFree": true,
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
@@ -352,14 +352,11 @@
     <ol class="steps">
       <li>
         <div>
-          <h3>Make the data directory</h3>
+          <h3>Data folder</h3>
           <p>
-            Nextup runs as a normal user inside the container, user ID 1000, so
-            the folder on the host has to belong to that same ID or the app
-            cannot write to it.
+            Nothing to do. Nextup creates its data folder and sets it up when it
+            starts.
           </p>
-          <pre><code>sudo mkdir -p /opt/nextup
-sudo chown -R 1000:1000 /opt/nextup</code></pre>
         </div>
       </li>
       <li>
@@ -382,6 +379,10 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
       - no-new-privileges:true
     cap_drop:
       - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
     read_only: true
     mem_limit: 512m
     pids_limit: 128

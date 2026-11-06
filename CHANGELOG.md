@@ -3,6 +3,11 @@
 All notable changes to Nextup are recorded here, newest first. Small releases
 made close together are described as one.
 
+## [1.7.3], 2026-11-06
+
+- **Nothing to set up by hand.** Nextup now gives its data folder to its own user when it starts, so the first start no longer fails with a permission error and there is no `chown` step. It still runs as that user, not root.
+- The base image is updated.
+
 ## [1.7.2], 2026-10-24
 
 Fixes and tidying. Your data is untouched.

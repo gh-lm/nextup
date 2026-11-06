@@ -80,10 +80,7 @@
         </section>
         <section>
           <h2>Installing</h2>
-          <p>Make the directory your data will live in, owned by user 1000:</p>
-          <pre><code>sudo mkdir -p /opt/nextup
-sudo chown -R 1000:1000 /opt/nextup</code></pre>
-          <p>Save this as <code>docker-compose.yml</code> beside it:</p>
+          <p>Save this as <code>docker-compose.yml</code>. Nextup creates its data folder and sets it up itself:</p>
           <pre><code>services:
   nextup:
     image: ghcr.io/gh-lm/nextup:latest
@@ -95,6 +92,10 @@ sudo chown -R 1000:1000 /opt/nextup</code></pre>
       - no-new-privileges:true
     cap_drop:
       - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
     read_only: true
     mem_limit: 512m
     pids_limit: 128

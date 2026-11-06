@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.7.2-fbc711?style=flat-square&labelColor=282b34" alt="Version 1.7.2" />
+  <img src="https://img.shields.io/badge/version-1.7.3-fbc711?style=flat-square&labelColor=282b34" alt="Version 1.7.3" />
   <img src="https://img.shields.io/badge/licence-GPL%20v3-7fd99a?style=flat-square&labelColor=282b34" alt="GPL v3" />
   <img src="https://img.shields.io/badge/image-ghcr.io-5eb6ff?style=flat-square&labelColor=282b34" alt="Image on ghcr.io" />
   <img src="https://img.shields.io/badge/tracking-none-c2c2cc?style=flat-square&labelColor=282b34" alt="No tracking" />
@@ -42,6 +42,10 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
     read_only: true
     mem_limit: 512m
     pids_limit: 128
@@ -53,17 +57,14 @@ services:
 ```
 
 ```bash
-sudo mkdir -p /opt/nextup
-sudo chown -R 1000:1000 /opt/nextup
 docker compose up -d
 ```
 
 Open <http://localhost:4090> and sign in with **admin** and **nextup**. Nextup
 then makes you choose your own password before it shows anything else.
 
-The container runs as user 1000, not root, so the `chown` above matters.
-Without it Nextup cannot write to the directory you mounted, and it fails to
-start with a permission error on `/data/session.key`.
+Nextup creates the data folder and hands it to its own user when it starts, so
+there is nothing to set up by hand.
 
 Nextup needs a free TMDB API key before it can look anything up. Make an
 account, go to <https://www.themoviedb.org/settings/api>, and copy the **API
@@ -200,8 +201,8 @@ What follows is what is already built in.
   the app runs as.
 - The login cookie is signed, HttpOnly and SameSite Lax, and marked Secure
   when `NEXTUP_HTTPS_ONLY` is on.
-- The container runs as user 1000, never root, and the compose file above
-  drops every Linux capability, forbids gaining new privileges, and runs with
+- The container starts as root only long enough to give the data folder to user 1000, then runs as that user, and the compose file above
+  drops every Linux capability except the three that step needs, forbids gaining new privileges, and runs with
   a read-only filesystem and a small writable `/tmp`.
 - No analytics, no telemetry and no third-party script. The only outbound
   calls are to TMDB and to your own mail server.

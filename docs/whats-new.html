@@ -53,6 +53,7 @@
       <nav class="changelog-index" aria-label="Versions">
         <h2>Versions</h2>
         <ul>
+          <li><a href="#v1.7.3">1.7.3</a></li>
           <li><a href="#v1.7.2">1.7.2</a></li>
           <li><a href="#v1.7.1">1.7.1</a></li>
           <li><a href="#v1.6.0">1.6.0</a></li>
@@ -67,6 +68,15 @@
       </nav>
       <div class="prose">
         <div class="prose-cards changelog-entries">
+          <section>
+        <h2 id="v1.7.3">1.7.3<span class="when"> &middot; 6 November 2026</span></h2>
+        <ul>
+          <li><strong>Nothing to set up by hand.</strong> Nextup now gives its data folder to its own user when it starts, so the first start no longer fails with a permission error and there is no <code>chown</code> step. It still runs as that user, not root.
+          </li>
+          <li><strong>The base image is updated.</strong>
+          </li>
+        </ul>
+        </section>
           <section>
         <h2 id="v1.7.2">1.7.2<span class="when"> &middot; 24 October 2026</span></h2>
         <p>Fixes and tidying. Your data is untouched.</p>
