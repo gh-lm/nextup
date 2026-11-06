@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to Nextup are recorded here, newest first. Small releases
-made close together are described as one.
+made close together are described as one. Versions before 1.5.4 were first kept in a different Git repository. They were added here afterwards, with their original release dates.
 
 ## [1.7.3], 2026-11-06
 

@@ -274,6 +274,10 @@ nextup/
 └── LICENSE
 ```
 
+## History
+
+Versions before 1.5.4 were first kept in a different Git repository. They were added here afterwards, with their original release dates.
+
 ## Licence
 
 Copyright (C) 2026 Lightmorphic Ltd.
