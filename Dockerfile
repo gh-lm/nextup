@@ -1,5 +1,5 @@
 # ---- Build stage: install dependencies into a self-contained venv ----
-FROM python:3.14-slim-trixie@sha256:0514bc76712d64f8bb48adcb95b1ab0d88c69fee95d62fe4c18ee948bee9b1e1 AS build
+FROM python:3.14-slim-trixie@sha256:af8a5aa14780025dbfbcfbc81bd8a91ebd87711dd5b0f48ed71090949dd7cb1d AS build
 
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir pip==26.2.2 \
  && pip install --no-cache-dir --require-hashes --only-binary=:all: -r /tmp/requirements.lock \
  && pip uninstall -y pip
 
-FROM python:3.14-slim-trixie@sha256:0514bc76712d64f8bb48adcb95b1ab0d88c69fee95d62fe4c18ee948bee9b1e1
+FROM python:3.14-slim-trixie@sha256:af8a5aa14780025dbfbcfbc81bd8a91ebd87711dd5b0f48ed71090949dd7cb1d
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends tzdata \
