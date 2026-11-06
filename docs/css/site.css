@@ -219,9 +219,15 @@ p code, li code, dd code {
 .steps > li > div:has(pre) > h3 { grid-column: 1 / -1; }
 .steps > li > div:has(pre) > p { grid-column: 1; }
 .steps > li > div:has(pre) > pre { grid-column: 2; }
-.steps > li > div:has(pre + pre) { grid-template-columns: minmax(0, 1fr); }
-.steps > li > div:has(pre + pre) > p,
-.steps > li > div:has(pre + pre) > pre { grid-column: 1; }
+.install-grid { display: grid; grid-template-columns: minmax(0, 1fr) max-content; gap: 2rem 3rem; align-items: start; }
+.install-grid > pre { margin: 0; }
+.install-grid .steps > li > div:has(pre) { grid-template-columns: minmax(0, 1fr); }
+.install-grid .steps > li > div:has(pre) > p,
+.install-grid .steps > li > div:has(pre) > pre { grid-column: 1; }
+@media (max-width: 900px) {
+  .install-grid { grid-template-columns: minmax(0, 1fr); }
+}
+}
 @media (max-width: 900px) {
   .steps > li > div:has(pre) { grid-template-columns: minmax(0, 1fr); }
   .steps > li > div:has(pre) > p,

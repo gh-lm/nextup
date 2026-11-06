@@ -7,7 +7,7 @@
 <meta name="description" content="Nextup remembers which episode you are on for every show you watch, tells you when the next one airs, and emails you each morning with what has become watchable. Free, open source, runs on your own server.">
 <link rel="canonical" href="https://nextup.lightmorphic.com/">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/site.css?v=e54b5f6556">
+<link rel="stylesheet" href="css/site.css?v=1682206e26">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Nextup">
@@ -349,17 +349,55 @@
       <h2>Running in about five minutes</h2>
       <p>You need Docker and a free TMDB account.</p>
     </div>
+    <div class="install-grid">
     <ol class="steps">
-      <li>
-        <div>
-          <h3>Start it</h3>
-          <p>
-            Save this as <code>docker-compose.yml</code> and bring it up. It
-            listens on port 4090 unless you change the left-hand number. The
-            image is <code>ghcr.io/gh-lm/nextup</code>, and the link to it is
-            in the footer.
-          </p>
-          <pre><code>services:
+        <li>
+          <div>
+            <h3>Start it</h3>
+            <p>
+              Save the compose file as <code>docker-compose.yml</code> and bring it up. It
+              listens on port 4090 unless you change the left-hand number. The
+              image is <code>ghcr.io/gh-lm/nextup</code>, and the link to it is
+              in the footer.
+            </p>
+            <pre><code>docker compose up -d</code></pre>
+          </div>
+        </li>
+        <li>
+          <div>
+            <h3>Sign in and change the password</h3>
+            <p>
+              Open it in a browser and sign in with <code>admin</code> and
+              <code>nextup</code>. Nothing else opens until you choose your own
+              password, which is the idea.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <h3>Add your TMDB key</h3>
+            <p>
+              Make a free account, then go straight to
+              <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a>
+              and copy the API Key for v3 auth. Paste it into the Settings page in
+              Nextup. It is checked against TMDB before it is saved, and encrypted
+              once it is.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <h3>Add a show and mark your place</h3>
+            <p>
+              Search a title, press Add, then use <b>Up to here</b> on the last
+              episode you watched. From then on the front page is a list of what is
+              waiting, and the morning email starts arriving once you fill in your
+              mail server.
+            </p>
+          </div>
+        </li>
+      </ol>
+      <pre><code>services:
   nextup:
     image: ghcr.io/gh-lm/nextup:latest
     container_name: nextup
@@ -382,43 +420,7 @@
     volumes:
       - /opt/nextup:/data
       - /etc/localtime:/etc/localtime:ro</code></pre>
-          <pre><code>docker compose up -d</code></pre>
-        </div>
-      </li>
-      <li>
-        <div>
-          <h3>Sign in and change the password</h3>
-          <p>
-            Open it in a browser and sign in with <code>admin</code> and
-            <code>nextup</code>. Nothing else opens until you choose your own
-            password, which is the idea.
-          </p>
-        </div>
-      </li>
-      <li>
-        <div>
-          <h3>Add your TMDB key</h3>
-          <p>
-            Make a free account, then go straight to
-            <a href="https://www.themoviedb.org/settings/api">themoviedb.org/settings/api</a>
-            and copy the API Key for v3 auth. Paste it into the Settings page in
-            Nextup. It is checked against TMDB before it is saved, and encrypted
-            once it is.
-          </p>
-        </div>
-      </li>
-      <li>
-        <div>
-          <h3>Add a show and mark your place</h3>
-          <p>
-            Search a title, press Add, then use <b>Up to here</b> on the last
-            episode you watched. From then on the front page is a list of what is
-            waiting, and the morning email starts arriving once you fill in your
-            mail server.
-          </p>
-        </div>
-      </li>
-    </ol>
+    </div>
   </div>
 </section>
 
