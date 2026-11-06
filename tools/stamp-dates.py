@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Set the "Page last updated" date and sitemap entry of every docs page with changes not yet committed to today. Page names given on the command line count as changed too. Run before committing a release."""
+"""Set the "Page last updated" date and sitemap entry of every docs page with changes not yet committed to today. With page names on the command line, only those pages are stamped. Run before committing a release."""
 import datetime
 import pathlib
 import re
@@ -10,8 +10,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs"
 
 def changed_on(page):
-    if page.name in sys.argv[1:]:
-        return datetime.date.today()
+    if sys.argv[1:]:
+        return datetime.date.today() if page.name in sys.argv[1:] else None
     rel = str(page.relative_to(ROOT))
     if subprocess.run(["git", "diff", "--quiet", "HEAD", "--", rel], cwd=ROOT).returncode:
         return datetime.date.today()
