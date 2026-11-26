@@ -408,11 +408,10 @@ dl.faq dd { margin: 0; color: var(--muted-fg); max-width: none; }
   align-items: flex-end; justify-content: space-between;
 }
 .built-by {
-  position: absolute; right: 0; top: calc(-1.5rem - 22px);
+  position: absolute; right: -6px; top: calc(-1.5rem - 22.5px);
   display: grid; place-items: center; width: 44px; height: 44px;
-  background: var(--bg);
 }
-.sub-footer-note + .sub-footer-inner > .built-by { top: calc(-1.25rem - 22px); }
+.sub-footer-note + .sub-footer-inner > .built-by { top: calc(-0.5rem - 22.5px); }
 .built-by-tip {
   position: absolute; right: 100%; margin-right: 8px;
   padding: 0.25rem 0.6rem; white-space: nowrap;
